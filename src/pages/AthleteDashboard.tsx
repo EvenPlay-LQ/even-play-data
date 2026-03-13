@@ -33,7 +33,7 @@ const AthleteDashboard = () => {
   const xpPercent = (mockAthlete.xp / mockAthlete.xpToNext) * 100;
 
   return (
-    <AppLayout role="athlete">
+    <DashboardLayout role="athlete">
       <div className="md:ml-16 space-y-6">
         {/* Profile Card */}
         <motion.div
