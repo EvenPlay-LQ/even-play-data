@@ -101,11 +101,9 @@ const ZonePage = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Sports</SelectItem>
-                  <SelectItem value="Football">Football</SelectItem>
-                  <SelectItem value="Rugby">Rugby</SelectItem>
-                  <SelectItem value="Athletics">Athletics</SelectItem>
-                  <SelectItem value="Cricket">Cricket</SelectItem>
-                  <SelectItem value="Basketball">Basketball</SelectItem>
+                  {SPORT_OPTIONS.map((sport) => (
+                    <SelectItem key={sport} value={sport}>{sport}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
