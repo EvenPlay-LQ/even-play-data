@@ -31,9 +31,6 @@ const AthleteDashboard = () => {
         .maybeSingle();
 
       if (aErr) { handleQueryError(aErr); setLoading(false); return; }
-        .select("*, profiles(*)")
-        .eq("profile_id", user.id)
-        .maybeSingle();
 
       if (athleteData) {
         setAthlete(athleteData);
