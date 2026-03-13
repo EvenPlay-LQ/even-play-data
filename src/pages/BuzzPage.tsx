@@ -4,8 +4,7 @@ import { Search, TrendingUp, Clock, Heart, MessageCircle, Eye } from "lucide-rea
 import { Input } from "@/components/ui/input";
 import AppLayout from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
-
-const categories = ["All", "Transfers", "Youth", "Local", "International", "Live Feed"];
+import { BUZZ_CATEGORIES } from "@/config/constants";
 
 interface Post {
   id: string;
