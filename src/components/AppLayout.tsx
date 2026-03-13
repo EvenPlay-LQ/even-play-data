@@ -1,7 +1,8 @@
 import { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Home, Calendar, Users, BarChart3, User, Zap, LogOut } from "lucide-react";
+import { Home, Calendar, Users, BarChart3, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import logo from "@/assets/logo.jpg";
 
 interface AppLayoutProps {
   children: ReactNode;
