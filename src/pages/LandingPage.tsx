@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import { Trophy, BarChart3, Shield, Users, ArrowRight, Zap } from "lucide-react";
+import { Trophy, BarChart3, Shield, Users, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import logo from "@/assets/logo.jpg";
 
 const features = [
   {
@@ -42,7 +43,7 @@ const LandingPage = () => {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="container flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
-            <Zap className="h-6 w-6 text-primary" />
+            <img src={logo} alt="Even Playground" className="h-8 w-8 rounded" />
             <span className="font-display font-bold text-xl text-foreground">Even Playground</span>
           </div>
           <div className="hidden md:flex items-center gap-8">
@@ -57,10 +58,9 @@ const LandingPage = () => {
 
       {/* Hero */}
       <section className="relative pt-32 pb-20 md:pt-44 md:pb-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-hero opacity-95" />
         <div className="absolute inset-0">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-energy/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-gold/10 rounded-full blur-3xl" />
+          <img src="/images/banner.jpg" alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
         </div>
         <div className="container relative z-10">
           <motion.div
@@ -70,7 +70,7 @@ const LandingPage = () => {
             className="max-w-3xl mx-auto text-center"
           >
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-8">
-              <Zap className="h-3.5 w-3.5 text-primary" />
+              <img src={logo} alt="" className="h-4 w-4 rounded-sm" />
               <span className="text-xs font-medium text-primary">Sports Performance Data Platform</span>
             </div>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold text-primary-foreground mb-6 leading-tight">
@@ -175,7 +175,7 @@ const LandingPage = () => {
         <div className="container">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <Zap className="h-5 w-5 text-primary" />
+              <img src={logo} alt="Even Playground" className="h-6 w-6 rounded" />
               <span className="font-display font-bold text-foreground">Even Playground</span>
             </div>
             <p className="text-sm text-muted-foreground">© 2026 Even Playground. All rights reserved.</p>

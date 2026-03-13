@@ -1,7 +1,8 @@
 import { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Home, Calendar, Users, BarChart3, User, Zap, LogOut } from "lucide-react";
+import { Home, Calendar, Users, BarChart3, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import logo from "@/assets/logo.jpg";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -35,7 +36,7 @@ const AppLayout = ({ children, role }: AppLayoutProps) => {
       <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-xl border-b border-border">
         <div className="container flex items-center justify-between h-14">
           <div className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-primary" />
+            <img src={logo} alt="Even Playground" className="h-7 w-7 rounded" />
             <span className="font-display font-bold text-foreground">Even Playground</span>
           </div>
           <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
