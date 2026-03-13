@@ -7,6 +7,10 @@ import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
+import BuzzPage from "./pages/BuzzPage";
+import CommunityPage from "./pages/CommunityPage";
+import ZonePage from "./pages/ZonePage";
+import ProfilePage from "./pages/ProfilePage";
 import AthleteDashboard from "./pages/AthleteDashboard";
 import InstitutionDashboard from "./pages/InstitutionDashboard";
 import NotFound from "./pages/NotFound";
@@ -21,17 +25,22 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Public */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
+
+            {/* Community Layer (protected) */}
+            <Route path="/buzz" element={<ProtectedRoute><BuzzPage /></ProtectedRoute>} />
+            <Route path="/community" element={<ProtectedRoute><CommunityPage /></ProtectedRoute>} />
+            <Route path="/zone" element={<ProtectedRoute><ZonePage /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+
+            {/* Operational Dashboards (protected) */}
             <Route path="/dashboard/athlete" element={<ProtectedRoute><AthleteDashboard /></ProtectedRoute>} />
             <Route path="/dashboard/athlete/*" element={<ProtectedRoute><AthleteDashboard /></ProtectedRoute>} />
             <Route path="/dashboard/institution" element={<ProtectedRoute><InstitutionDashboard /></ProtectedRoute>} />
             <Route path="/dashboard/institution/*" element={<ProtectedRoute><InstitutionDashboard /></ProtectedRoute>} />
-            {/* Legacy routes redirect */}
-            <Route path="/athlete" element={<ProtectedRoute><AthleteDashboard /></ProtectedRoute>} />
-            <Route path="/athlete/*" element={<ProtectedRoute><AthleteDashboard /></ProtectedRoute>} />
-            <Route path="/institution" element={<ProtectedRoute><InstitutionDashboard /></ProtectedRoute>} />
-            <Route path="/institution/*" element={<ProtectedRoute><InstitutionDashboard /></ProtectedRoute>} />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

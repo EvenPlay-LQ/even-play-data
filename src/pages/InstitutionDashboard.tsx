@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Users, AlertTriangle, CheckCircle, Clock, TrendingUp, Calendar, ChevronRight, BarChart3, Shield } from "lucide-react";
-import AppLayout from "@/components/AppLayout";
+import DashboardLayout from "@/components/DashboardLayout";
 import { Progress } from "@/components/ui/progress";
 
 const institutionData = {
@@ -27,7 +27,7 @@ const upcomingMatches = [
 
 const InstitutionDashboard = () => {
   return (
-    <AppLayout role="institution">
+    <DashboardLayout role="institution">
       <div className="md:ml-16 space-y-6">
         {/* Header */}
         <motion.div
@@ -160,7 +160,7 @@ const InstitutionDashboard = () => {
           </div>
         </div>
       </div>
-    </AppLayout>
+    </DashboardLayout>
   );
 };
 

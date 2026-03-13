@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Trophy, TrendingUp, Star, Flame, Shield, Calendar, ChevronRight, Zap } from "lucide-react";
-import AppLayout from "@/components/AppLayout";
+import DashboardLayout from "@/components/DashboardLayout";
 import { Progress } from "@/components/ui/progress";
 
 const mockAthlete = {
@@ -33,7 +33,7 @@ const AthleteDashboard = () => {
   const xpPercent = (mockAthlete.xp / mockAthlete.xpToNext) * 100;
 
   return (
-    <AppLayout role="athlete">
+    <DashboardLayout role="athlete">
       <div className="md:ml-16 space-y-6">
         {/* Profile Card */}
         <motion.div
@@ -159,7 +159,7 @@ const AthleteDashboard = () => {
           </div>
         </div>
       </div>
-    </AppLayout>
+    </DashboardLayout>
   );
 };
 
