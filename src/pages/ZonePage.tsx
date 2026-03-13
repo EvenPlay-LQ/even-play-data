@@ -41,7 +41,8 @@ const ZonePage = () => {
         query = query.eq("sport", sportFilter);
       }
 
-      const { data } = await query;
+      const { data, error } = await query;
+      if (error) handleQueryError(error, "Failed to load athletes.");
       setAthletes((data as unknown as Athlete[]) || []);
       setLoading(false);
     };

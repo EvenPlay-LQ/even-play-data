@@ -24,8 +24,13 @@ const AthleteDashboard = () => {
       setLoading(true);
 
       // Fetch athlete + profile
-      const { data: athleteData } = await supabase
+      const { data: athleteData, error: aErr } = await supabase
         .from("athletes")
+        .select("*, profiles(*)")
+        .eq("profile_id", user.id)
+        .maybeSingle();
+
+      if (aErr) { handleQueryError(aErr); setLoading(false); return; }
         .select("*, profiles(*)")
         .eq("profile_id", user.id)
         .maybeSingle();

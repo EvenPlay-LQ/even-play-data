@@ -23,11 +23,13 @@ const InstitutionDashboard = () => {
       setLoading(true);
 
       // Fetch institution
-      const { data: inst } = await supabase
+      const { data: inst, error: instErr } = await supabase
         .from("institutions")
         .select("*")
         .eq("profile_id", user.id)
         .maybeSingle();
+
+      if (instErr) { handleQueryError(instErr); setLoading(false); return; }
 
       if (inst) {
         setInstitution(inst);
