@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Trophy, TrendingUp, Star, Flame, Shield, Calendar, ChevronRight, Zap } from "lucide-react";
-import AppLayout from "@/components/AppLayout";
+import DashboardLayout from "@/components/DashboardLayout";
 import { Progress } from "@/components/ui/progress";
 
 const mockAthlete = {
