@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import AppLayout from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { LEVEL_NAMES, SPORT_OPTIONS, getLevelName } from "@/config/constants";
+import { handleQueryError } from "@/lib/queryHelpers";
 
 interface Athlete {
   id: string;
