@@ -2,35 +2,81 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   User, Star, Calendar, Heart, MessageCircle, Users, Settings,
-  LogOut, Moon, Globe, LayoutDashboard, ChevronRight, Bot, Award
+  LogOut, Moon, Globe, LayoutDashboard, ChevronRight, Bot, Award, Edit
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import AppLayout from "@/components/AppLayout";
+import { SPORT_OPTIONS } from "@/config/constants";
+import { profileSchema } from "@/lib/validations";
+import { handleQueryError } from "@/lib/queryHelpers";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
-  const { profile, primaryRole, loading } = useProfile();
+  const { profile, primaryRole, loading, updateProfile } = useProfile();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<"activity" | "favorites">("activity");
   const [postCount, setPostCount] = useState(0);
   const [likeCount, setLikeCount] = useState(0);
+  const [showEdit, setShowEdit] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editBio, setEditBio] = useState("");
+  const [editSport, setEditSport] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!user) return;
     const fetchStats = async () => {
-      const [{ count: posts }, { count: likes }] = await Promise.all([
+      const [{ count: posts, error: e1 }, { count: likes, error: e2 }] = await Promise.all([
         supabase.from("posts").select("*", { count: "exact", head: true }).eq("author_id", user.id),
         supabase.from("likes").select("*", { count: "exact", head: true }).eq("user_id", user.id),
       ]);
+      if (e1) handleQueryError(e1);
+      if (e2) handleQueryError(e2);
       setPostCount(posts || 0);
       setLikeCount(likes || 0);
     };
     fetchStats();
   }, [user]);
+
+  const openEditDialog = () => {
+    setEditName(profile?.name || "");
+    setEditBio(profile?.bio || "");
+    setEditSport(profile?.favorite_sport || "");
+    setFormErrors({});
+    setShowEdit(true);
+  };
+
+  const handleSaveProfile = async () => {
+    setFormErrors({});
+    const result = profileSchema.safeParse({ name: editName, bio: editBio, favorite_sport: editSport });
+    if (!result.success) {
+      const errs: Record<string, string> = {};
+      result.error.issues.forEach((i) => { errs[i.path[0] as string] = i.message; });
+      setFormErrors(errs);
+      return;
+    }
+    setSaving(true);
+    const { error } = await updateProfile({ name: editName.trim(), bio: editBio.trim(), favorite_sport: editSport });
+    if (error) {
+      handleQueryError(error, "Failed to update profile.");
+    } else {
+      toast({ title: "Profile updated!" });
+      setShowEdit(false);
+    }
+    setSaving(false);
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -79,6 +125,9 @@ const ProfilePage = () => {
                 Member since {profile?.created_at ? new Date(profile.created_at).toLocaleDateString("en", { month: "short", year: "numeric" }) : "—"}
               </p>
             </div>
+            <Button variant="ghost" size="icon" onClick={openEditDialog}>
+              <Edit className="h-4 w-4" />
+            </Button>
             <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-gold/10">
               <Star className="h-3.5 w-3.5 text-gold" />
               <span className="text-xs font-semibold text-gold">{profile?.reputation || 0}</span>
@@ -88,11 +137,7 @@ const ProfilePage = () => {
 
         {/* Dashboard Shortcut */}
         {dashboardPath && (
-          <Button
-            variant="outline"
-            className="w-full justify-between h-12 rounded-xl"
-            onClick={() => navigate(dashboardPath)}
-          >
+          <Button variant="outline" className="w-full justify-between h-12 rounded-xl" onClick={() => navigate(dashboardPath)}>
             <span className="flex items-center gap-2">
               <LayoutDashboard className="h-4 w-4 text-primary" />
               Go to {primaryRole === "institution" ? "Institution" : "Athlete"} Dashboard
@@ -161,10 +206,10 @@ const ProfilePage = () => {
         <div className="bg-card rounded-xl border border-border shadow-card overflow-hidden">
           <h2 className="font-display font-semibold text-foreground p-5 pb-3">Settings</h2>
           {[
-            { icon: User, label: "Account", action: () => {} },
-            { icon: Moon, label: "Dark Mode", action: () => {}, badge: "Soon" },
-            { icon: Globe, label: "Language", action: () => {}, badge: "English" },
-            { icon: Award, label: "Promo Code", action: () => {} },
+            { icon: User, label: "Account", action: openEditDialog },
+            { icon: Moon, label: "Dark Mode", action: () => toast({ title: "Coming soon", description: "Dark mode is coming in a future update." }), badge: "Soon" },
+            { icon: Globe, label: "Language", action: () => toast({ title: "Coming soon", description: "Language settings coming soon." }), badge: "English" },
+            { icon: Award, label: "Promo Code", action: () => toast({ title: "Coming soon", description: "Promo codes coming soon." }) },
           ].map((item) => (
             <button
               key={item.label}
@@ -186,6 +231,39 @@ const ProfilePage = () => {
           </button>
         </div>
       </div>
+
+      {/* Edit Profile Dialog */}
+      <Dialog open={showEdit} onOpenChange={setShowEdit}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display">Edit Profile</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-foreground">Name</Label>
+              <Input className="mt-1.5" value={editName} onChange={(e) => setEditName(e.target.value)} />
+              {formErrors.name && <p className="text-xs text-destructive mt-1">{formErrors.name}</p>}
+            </div>
+            <div>
+              <Label className="text-foreground">Bio</Label>
+              <Textarea className="mt-1.5" value={editBio} onChange={(e) => setEditBio(e.target.value)} placeholder="Tell us about yourself..." />
+              {formErrors.bio && <p className="text-xs text-destructive mt-1">{formErrors.bio}</p>}
+            </div>
+            <div>
+              <Label className="text-foreground">Favorite Sport</Label>
+              <Select value={editSport} onValueChange={setEditSport}>
+                <SelectTrigger className="mt-1.5"><SelectValue placeholder="Select sport" /></SelectTrigger>
+                <SelectContent>
+                  {SPORT_OPTIONS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button onClick={handleSaveProfile} disabled={saving} className="w-full" variant="hero">
+              {saving ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 };

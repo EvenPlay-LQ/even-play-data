@@ -256,7 +256,7 @@ const LandingPage = () => {
               <h4 className="font-display font-semibold text-foreground mb-4">For Athletes</h4>
               <div className="space-y-2">
                 {FOOTER_LINKS.forAthletes.map((link) => (
-                  <span key={link} className="block text-sm text-muted-foreground">{link}</span>
+                  <button key={link} className="block text-sm text-muted-foreground hover:text-foreground transition-colors" onClick={() => navigate("/login")}>{link}</button>
                 ))}
               </div>
             </div>
@@ -264,7 +264,7 @@ const LandingPage = () => {
               <h4 className="font-display font-semibold text-foreground mb-4">Support</h4>
               <div className="space-y-2">
                 {FOOTER_LINKS.support.map((link) => (
-                  <span key={link} className="block text-sm text-muted-foreground">{link}</span>
+                  <button key={link} className="block text-sm text-muted-foreground hover:text-foreground transition-colors" onClick={() => navigate("/login")}>{link}</button>
                 ))}
               </div>
             </div>
@@ -272,9 +272,9 @@ const LandingPage = () => {
           <div className="border-t border-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">© 2026 Even Playground. All rights reserved.</p>
             <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <span>Privacy</span>
-              <span>Terms</span>
-              <span>Cookies</span>
+              <button className="hover:text-foreground transition-colors" onClick={() => navigate("/login")}>Privacy</button>
+              <button className="hover:text-foreground transition-colors" onClick={() => navigate("/login")}>Terms</button>
+              <button className="hover:text-foreground transition-colors" onClick={() => navigate("/login")}>Cookies</button>
             </div>
           </div>
         </div>

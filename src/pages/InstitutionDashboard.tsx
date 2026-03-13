@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { handleQueryError } from "@/lib/queryHelpers";
 
 const InstitutionDashboard = () => {
   const { user } = useAuth();
@@ -22,11 +23,13 @@ const InstitutionDashboard = () => {
       setLoading(true);
 
       // Fetch institution
-      const { data: inst } = await supabase
+      const { data: inst, error: instErr } = await supabase
         .from("institutions")
         .select("*")
         .eq("profile_id", user.id)
         .maybeSingle();
+
+      if (instErr) { handleQueryError(instErr); setLoading(false); return; }
 
       if (inst) {
         setInstitution(inst);

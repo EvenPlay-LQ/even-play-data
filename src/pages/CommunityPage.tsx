@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import { Users, Play, Star, ShoppingBag, Crown, ChevronRight, Video } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { handleQueryError } from "@/lib/queryHelpers";
 
 interface CommunityGroup {
   id: string;
@@ -23,6 +25,7 @@ interface MerchItem {
 }
 
 const CommunityPage = () => {
+  const { toast } = useToast();
   const [groups, setGroups] = useState<CommunityGroup[]>([]);
   const [merch, setMerch] = useState<MerchItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,12 +36,18 @@ const CommunityPage = () => {
         supabase.from("community_groups").select("*").order("member_count", { ascending: false }).limit(6),
         supabase.from("merchandise").select("*").eq("in_stock", true).limit(4),
       ]);
+      if (groupsRes.error) handleQueryError(groupsRes.error);
+      if (merchRes.error) handleQueryError(merchRes.error);
       setGroups((groupsRes.data as unknown as CommunityGroup[]) || []);
       setMerch((merchRes.data as unknown as MerchItem[]) || []);
       setLoading(false);
     };
     fetchData();
   }, []);
+
+  const comingSoon = (feature: string) => {
+    toast({ title: "Coming Soon", description: `${feature} is coming in a future update.` });
+  };
 
   if (loading) {
     return (
@@ -50,6 +59,14 @@ const CommunityPage = () => {
     );
   }
 
+  const actionCards = [
+    { icon: Users, title: "Join Community Groups", desc: "Find your tribe", gradient: "from-primary/10 to-primary/5", action: () => {
+      document.getElementById("groups-section")?.scrollIntoView({ behavior: "smooth" });
+    }},
+    { icon: Play, title: "Watch Live & Replays", desc: "Catch the action", gradient: "from-stat-blue/10 to-stat-blue/5", action: () => comingSoon("Live & Replays") },
+    { icon: Star, title: "Rate A Ref!", desc: "Share your opinion", gradient: "from-gold/10 to-gold/5", action: () => comingSoon("Rate A Ref") },
+  ];
+
   return (
     <AppLayout>
       <div className="space-y-8 max-w-4xl">
@@ -60,17 +77,14 @@ const CommunityPage = () => {
 
         {/* Action Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[
-            { icon: Users, title: "Join Community Groups", desc: "Find your tribe", gradient: "from-primary/10 to-primary/5" },
-            { icon: Play, title: "Watch Live & Replays", desc: "Catch the action", gradient: "from-stat-blue/10 to-stat-blue/5" },
-            { icon: Star, title: "Rate A Ref!", desc: "Share your opinion", gradient: "from-gold/10 to-gold/5" },
-          ].map((card, i) => (
+          {actionCards.map((card, i) => (
             <motion.div
               key={card.title}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
               className={`rounded-2xl bg-gradient-to-br ${card.gradient} p-6 border border-border cursor-pointer hover:shadow-elevated transition-shadow`}
+              onClick={card.action}
             >
               <card.icon className="h-8 w-8 text-foreground mb-3" />
               <h3 className="font-display font-semibold text-foreground">{card.title}</h3>
@@ -85,7 +99,7 @@ const CommunityPage = () => {
             <h2 className="font-display font-semibold text-foreground flex items-center gap-2">
               <Crown className="h-5 w-5 text-gold" /> Top Fans
             </h2>
-            <button className="text-xs text-primary font-medium flex items-center gap-1">
+            <button className="text-xs text-primary font-medium flex items-center gap-1" onClick={() => comingSoon("Full leaderboard")}>
               View All <ChevronRight className="h-3 w-3" />
             </button>
           </div>
@@ -109,22 +123,24 @@ const CommunityPage = () => {
         </div>
 
         {/* Community Groups */}
-        {groups.length > 0 && (
-          <div>
-            <h2 className="font-display font-semibold text-foreground mb-4">Community Groups</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {groups.map((group) => (
-                <div key={group.id} className="bg-card rounded-xl p-4 border border-border shadow-card">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
-                    <Users className="h-5 w-5 text-primary" />
+        <div id="groups-section">
+          {groups.length > 0 && (
+            <div>
+              <h2 className="font-display font-semibold text-foreground mb-4">Community Groups</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {groups.map((group) => (
+                  <div key={group.id} className="bg-card rounded-xl p-4 border border-border shadow-card">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
+                      <Users className="h-5 w-5 text-primary" />
+                    </div>
+                    <h3 className="text-sm font-semibold text-foreground line-clamp-1">{group.name}</h3>
+                    <p className="text-xs text-muted-foreground mt-1">{group.member_count} members · {group.sport || "Sports"}</p>
                   </div>
-                  <h3 className="text-sm font-semibold text-foreground line-clamp-1">{group.name}</h3>
-                  <p className="text-xs text-muted-foreground mt-1">{group.member_count} members · {group.sport || "Sports"}</p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Official Merch */}
         <div>

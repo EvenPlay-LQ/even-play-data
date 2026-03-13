@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { LEVEL_NAMES, ICON_MAP, xpToNextLevel, getLevelName } from "@/config/constants";
+import { handleQueryError } from "@/lib/queryHelpers";
 
 const AthleteDashboard = () => {
   const { user } = useAuth();
@@ -23,11 +24,13 @@ const AthleteDashboard = () => {
       setLoading(true);
 
       // Fetch athlete + profile
-      const { data: athleteData } = await supabase
+      const { data: athleteData, error: aErr } = await supabase
         .from("athletes")
         .select("*, profiles(*)")
         .eq("profile_id", user.id)
         .maybeSingle();
+
+      if (aErr) { handleQueryError(aErr); setLoading(false); return; }
 
       if (athleteData) {
         setAthlete(athleteData);
