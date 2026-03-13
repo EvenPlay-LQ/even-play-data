@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import AppLayout from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
+import { LEVEL_NAMES, SPORT_OPTIONS, getLevelName } from "@/config/constants";
 
 interface Athlete {
   id: string;
@@ -17,10 +18,6 @@ interface Athlete {
   profiles?: { name: string; avatar: string | null };
 }
 
-const levelNames: Record<number, string> = {
-  1: "Rookie", 2: "Beginner", 3: "Amateur", 4: "Semi-Pro", 5: "Starter",
-  6: "Regular", 7: "Advanced", 8: "Elite", 9: "Pro", 10: "National Prospect",
-};
 
 const ZonePage = () => {
   const [activeTab, setActiveTab] = useState<"participants" | "compare" | "marketplace">("participants");
@@ -101,11 +98,9 @@ const ZonePage = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Sports</SelectItem>
-                  <SelectItem value="Football">Football</SelectItem>
-                  <SelectItem value="Rugby">Rugby</SelectItem>
-                  <SelectItem value="Athletics">Athletics</SelectItem>
-                  <SelectItem value="Cricket">Cricket</SelectItem>
-                  <SelectItem value="Basketball">Basketball</SelectItem>
+                  {SPORT_OPTIONS.map((sport) => (
+                    <SelectItem key={sport} value={sport}>{sport}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -154,7 +149,7 @@ const ZonePage = () => {
                     </div>
                     <div className="mt-3 flex items-center gap-2">
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
-                        {levelNames[athlete.level] || `Level ${athlete.level}`}
+                        {getLevelName(athlete.level)}
                       </span>
                       <span className="text-[10px] text-muted-foreground">{athlete.xp_points} XP</span>
                     </div>
