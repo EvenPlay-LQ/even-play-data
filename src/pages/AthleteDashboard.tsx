@@ -6,16 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-
-const LEVEL_NAMES: Record<number, string> = {
-  1: "Rookie", 2: "Beginner", 3: "Developing", 4: "Competitive",
-  5: "Starter", 6: "Advanced", 7: "Elite", 8: "Provincial",
-  9: "National Prospect", 10: "Professional",
-};
-
-const ICON_MAP: Record<string, React.ElementType> = {
-  trophy: Trophy, flame: Flame, star: Star, zap: Zap,
-};
+import { LEVEL_NAMES, ICON_MAP, xpToNextLevel, getLevelName } from "@/config/constants";
 
 const AthleteDashboard = () => {
   const { user } = useAuth();
