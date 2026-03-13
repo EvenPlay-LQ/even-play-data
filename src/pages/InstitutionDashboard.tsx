@@ -27,7 +27,7 @@ const upcomingMatches = [
 
 const InstitutionDashboard = () => {
   return (
-    <AppLayout role="institution">
+    <DashboardLayout role="institution">
       <div className="md:ml-16 space-y-6">
         {/* Header */}
         <motion.div
