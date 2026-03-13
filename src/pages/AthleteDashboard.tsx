@@ -159,7 +159,7 @@ const AthleteDashboard = () => {
           </div>
         </div>
       </div>
-    </AppLayout>
+    </DashboardLayout>
   );
 };
 

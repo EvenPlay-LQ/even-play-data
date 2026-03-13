@@ -160,7 +160,7 @@ const InstitutionDashboard = () => {
           </div>
         </div>
       </div>
-    </AppLayout>
+    </DashboardLayout>
   );
 };
 
