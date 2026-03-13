@@ -58,10 +58,9 @@ const LandingPage = () => {
 
       {/* Hero */}
       <section className="relative pt-32 pb-20 md:pt-44 md:pb-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-hero opacity-95" />
         <div className="absolute inset-0">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-energy/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-gold/10 rounded-full blur-3xl" />
+          <img src="/images/banner.jpg" alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
         </div>
         <div className="container relative z-10">
           <motion.div
