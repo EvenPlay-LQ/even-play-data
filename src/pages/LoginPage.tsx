@@ -7,8 +7,10 @@ import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { loginSchema, signupSchema, forgotPasswordSchema } from "@/lib/validations";
 
-type AuthMode = "login" | "signup";
+type AuthMode = "login" | "signup" | "forgot";
 type UserRole = "athlete" | "institution";
 
 const LoginPage = () => {
@@ -18,20 +20,45 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
   const { signIn, signUp } = useAuth();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
+    setErrors({});
+
+    if (mode === "forgot") {
+      const result = forgotPasswordSchema.safeParse({ email });
+      if (!result.success) {
+        setErrors({ email: result.error.issues[0].message });
+        return;
+      }
+      setSubmitting(true);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Check your email", description: "We've sent a password reset link." });
+        setMode("login");
+      }
+      setSubmitting(false);
+      return;
+    }
 
     if (mode === "signup") {
-      const { error } = await signUp(email, password, {
-        name,
-        full_name: name,
-        user_type: role,
-      });
+      const result = signupSchema.safeParse({ name, email, password });
+      if (!result.success) {
+        const fieldErrors: Record<string, string> = {};
+        result.error.issues.forEach((issue) => { fieldErrors[issue.path[0] as string] = issue.message; });
+        setErrors(fieldErrors);
+        return;
+      }
+      setSubmitting(true);
+      const { error } = await signUp(email, password, { name, full_name: name, user_type: role });
       if (error) {
         toast({ title: "Signup failed", description: error.message, variant: "destructive" });
       } else {
@@ -39,6 +66,14 @@ const LoginPage = () => {
         setMode("login");
       }
     } else {
+      const result = loginSchema.safeParse({ email, password });
+      if (!result.success) {
+        const fieldErrors: Record<string, string> = {};
+        result.error.issues.forEach((issue) => { fieldErrors[issue.path[0] as string] = issue.message; });
+        setErrors(fieldErrors);
+        return;
+      }
+      setSubmitting(true);
       const { error } = await signIn(email, password);
       if (error) {
         toast({ title: "Sign in failed", description: error.message, variant: "destructive" });
@@ -84,10 +119,10 @@ const LoginPage = () => {
           </div>
 
           <h1 className="text-2xl font-display font-bold text-foreground mb-2">
-            {mode === "login" ? "Welcome back" : "Create your account"}
+            {mode === "login" ? "Welcome back" : mode === "signup" ? "Create your account" : "Reset password"}
           </h1>
           <p className="text-muted-foreground mb-8">
-            {mode === "login" ? "Sign in to continue" : "Join the platform"}
+            {mode === "login" ? "Sign in to continue" : mode === "signup" ? "Join the platform" : "Enter your email to receive a reset link"}
           </p>
 
           {mode === "signup" && (
@@ -96,9 +131,7 @@ const LoginPage = () => {
                 type="button"
                 onClick={() => setRole("athlete")}
                 className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
-                  role === "athlete"
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-muted-foreground/30"
+                  role === "athlete" ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/30"
                 }`}
               >
                 <User className={`h-5 w-5 ${role === "athlete" ? "text-primary" : "text-muted-foreground"}`} />
@@ -111,9 +144,7 @@ const LoginPage = () => {
                 type="button"
                 onClick={() => setRole("institution")}
                 className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
-                  role === "institution"
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-muted-foreground/30"
+                  role === "institution" ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/30"
                 }`}
               >
                 <Building2 className={`h-5 w-5 ${role === "institution" ? "text-primary" : "text-muted-foreground"}`} />
@@ -130,32 +161,52 @@ const LoginPage = () => {
               <div>
                 <Label htmlFor="name" className="text-foreground">Full Name</Label>
                 <Input id="name" placeholder="Your name" className="mt-1.5" value={name} onChange={(e) => setName(e.target.value)} required />
+                {errors.name && <p className="text-xs text-destructive mt-1">{errors.name}</p>}
               </div>
             )}
             <div>
               <Label htmlFor="email" className="text-foreground">Email</Label>
               <Input id="email" type="email" placeholder="you@example.com" className="mt-1.5" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              {errors.email && <p className="text-xs text-destructive mt-1">{errors.email}</p>}
             </div>
-            <div>
-              <Label htmlFor="password" className="text-foreground">Password</Label>
-              <Input id="password" type="password" placeholder="••••••••" className="mt-1.5" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
-            </div>
+            {mode !== "forgot" && (
+              <div>
+                <Label htmlFor="password" className="text-foreground">Password</Label>
+                <Input id="password" type="password" placeholder="••••••••" className="mt-1.5" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+                {errors.password && <p className="text-xs text-destructive mt-1">{errors.password}</p>}
+              </div>
+            )}
+            {mode === "login" && (
+              <div className="text-right">
+                <button type="button" className="text-xs text-primary hover:underline" onClick={() => setMode("forgot")}>
+                  Forgot password?
+                </button>
+              </div>
+            )}
             <Button type="submit" variant="hero" className="w-full" size="lg" disabled={submitting}>
               {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              {mode === "login" ? "Sign In" : "Create Account"}
-              {!submitting && <ArrowRight className="ml-2 h-4 w-4" />}
+              {mode === "login" ? "Sign In" : mode === "signup" ? "Create Account" : "Send Reset Link"}
+              {!submitting && mode !== "forgot" && <ArrowRight className="ml-2 h-4 w-4" />}
             </Button>
           </form>
 
           <p className="text-center text-sm text-muted-foreground mt-6">
-            {mode === "login" ? "Don't have an account? " : "Already have an account? "}
-            <button
-              type="button"
-              className="text-primary font-medium hover:underline"
-              onClick={() => setMode(mode === "login" ? "signup" : "login")}
-            >
-              {mode === "login" ? "Sign Up" : "Sign In"}
-            </button>
+            {mode === "forgot" ? (
+              <button type="button" className="text-primary font-medium hover:underline" onClick={() => setMode("login")}>
+                Back to Sign In
+              </button>
+            ) : (
+              <>
+                {mode === "login" ? "Don't have an account? " : "Already have an account? "}
+                <button
+                  type="button"
+                  className="text-primary font-medium hover:underline"
+                  onClick={() => setMode(mode === "login" ? "signup" : "login")}
+                >
+                  {mode === "login" ? "Sign Up" : "Sign In"}
+                </button>
+              </>
+            )}
           </p>
         </motion.div>
       </div>
