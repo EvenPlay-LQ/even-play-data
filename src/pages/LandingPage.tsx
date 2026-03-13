@@ -256,7 +256,7 @@ const LandingPage = () => {
               <h4 className="font-display font-semibold text-foreground mb-4">For Athletes</h4>
               <div className="space-y-2">
                 {FOOTER_LINKS.forAthletes.map((link) => (
-                  <span key={link} className="block text-sm text-muted-foreground">{link}</span>
+                  <button key={link} className="block text-sm text-muted-foreground hover:text-foreground transition-colors" onClick={() => navigate("/login")}>{link}</button>
                 ))}
               </div>
             </div>
@@ -264,7 +264,7 @@ const LandingPage = () => {
               <h4 className="font-display font-semibold text-foreground mb-4">Support</h4>
               <div className="space-y-2">
                 {FOOTER_LINKS.support.map((link) => (
-                  <span key={link} className="block text-sm text-muted-foreground">{link}</span>
+                  <button key={link} className="block text-sm text-muted-foreground hover:text-foreground transition-colors" onClick={() => navigate("/login")}>{link}</button>
                 ))}
               </div>
             </div>
