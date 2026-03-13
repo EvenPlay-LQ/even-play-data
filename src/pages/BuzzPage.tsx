@@ -71,7 +71,7 @@ const BuzzPage = () => {
 
         {/* Category Tabs */}
         <div className="flex gap-2 overflow-x-auto pb-1">
-          {categories.map((cat) => (
+          {BUZZ_CATEGORIES.map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}

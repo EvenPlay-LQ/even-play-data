@@ -152,7 +152,7 @@ const ZonePage = () => {
                     </div>
                     <div className="mt-3 flex items-center gap-2">
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
-                        {levelNames[athlete.level] || `Level ${athlete.level}`}
+                        {getLevelName(athlete.level)}
                       </span>
                       <span className="text-[10px] text-muted-foreground">{athlete.xp_points} XP</span>
                     </div>

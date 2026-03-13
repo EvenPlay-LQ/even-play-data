@@ -90,9 +90,9 @@ const AthleteDashboard = () => {
     );
   }
 
-  const xpToNext = (athlete.level + 1) * 600;
+  const xpToNext = xpToNextLevel(athlete.level);
   const xpPercent = Math.min((athlete.xp_points / xpToNext) * 100, 100);
-  const levelName = LEVEL_NAMES[athlete.level] || `Level ${athlete.level}`;
+  const levelName = getLevelName(athlete.level);
 
   return (
     <DashboardLayout role="athlete">

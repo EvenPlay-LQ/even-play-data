@@ -1,63 +1,11 @@
 import { motion } from "framer-motion";
 import {
-  Trophy, BarChart3, Shield, Users, ArrowRight, Newspaper, Target,
-  Star, Zap, CheckCircle, Globe, Award, ChevronRight
+  ArrowRight, Award, CheckCircle, Globe, ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import logo from "@/assets/logo.jpg";
-
-const stats = [
-  { value: "1,000+", label: "Athletes", icon: Users },
-  { value: "200+", label: "Scouts", icon: Target },
-  { value: "50+", label: "Stories", icon: Newspaper },
-  { value: "15+", label: "Sports", icon: Trophy },
-];
-
-const whyJoin = [
-  {
-    icon: Zap,
-    title: "Athletes",
-    description: "Track your performance, earn XP, level up from Rookie to National Prospect. Get discovered by scouts worldwide.",
-    color: "bg-primary/10 text-primary",
-  },
-  {
-    icon: Star,
-    title: "Fans",
-    description: "Follow your favorite athletes, join community groups, access exclusive highlights and live match updates.",
-    color: "bg-gold/10 text-gold",
-  },
-  {
-    icon: BarChart3,
-    title: "Coaches",
-    description: "Access verified analytics, compare talent side-by-side, manage team rosters and track progression.",
-    color: "bg-stat-blue/10 text-stat-blue",
-  },
-  {
-    icon: Shield,
-    title: "Officials",
-    description: "Verify match results, maintain data integrity, and build trust in grassroots sports data pipelines.",
-    color: "bg-stat-orange/10 text-stat-orange",
-  },
-];
-
-const features = [
-  {
-    icon: Newspaper,
-    title: "Buzz",
-    description: "Live sports news, transfer stories, youth highlights, and community updates in one feed.",
-  },
-  {
-    icon: Users,
-    title: "Community",
-    description: "Join groups, watch replays, shop official merch, and climb the fan leaderboard.",
-  },
-  {
-    icon: Target,
-    title: "Zone",
-    description: "Discover talent, compare athletes side-by-side with verified stats and radar charts.",
-  },
-];
+import { LANDING_STATS, WHY_JOIN_CARDS, FEATURE_SECTIONS, FOOTER_LINKS } from "@/config/landing";
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -129,7 +77,7 @@ const LandingPage = () => {
       <section id="stats" className="py-12 bg-card border-y border-border">
         <div className="container">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, i) => (
+            {LANDING_STATS.map((stat, i) => (
               <motion.div
                 key={stat.label}
                 initial={{ opacity: 0, y: 20 }}
@@ -164,7 +112,7 @@ const LandingPage = () => {
             </p>
           </motion.div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {whyJoin.map((item, i) => (
+            {WHY_JOIN_CARDS.map((item, i) => (
               <motion.div
                 key={item.title}
                 initial={{ opacity: 0, y: 20 }}
@@ -201,7 +149,7 @@ const LandingPage = () => {
             </p>
           </motion.div>
           <div className="grid md:grid-cols-3 gap-8">
-            {features.map((feature, i) => (
+            {FEATURE_SECTIONS.map((feature, i) => (
               <motion.div
                 key={feature.title}
                 initial={{ opacity: 0, y: 30 }}
@@ -297,7 +245,7 @@ const LandingPage = () => {
             <div>
               <h4 className="font-display font-semibold text-foreground mb-4">Quick Links</h4>
               <div className="space-y-2">
-                {["Buzz", "Community", "Zone", "About"].map((link) => (
+                {FOOTER_LINKS.quickLinks.map((link) => (
                   <button key={link} className="block text-sm text-muted-foreground hover:text-foreground transition-colors" onClick={() => navigate("/login")}>
                     {link}
                   </button>
@@ -307,7 +255,7 @@ const LandingPage = () => {
             <div>
               <h4 className="font-display font-semibold text-foreground mb-4">For Athletes</h4>
               <div className="space-y-2">
-                {["Track Performance", "Upload Highlights", "Get Verified", "Find Teams"].map((link) => (
+                {FOOTER_LINKS.forAthletes.map((link) => (
                   <span key={link} className="block text-sm text-muted-foreground">{link}</span>
                 ))}
               </div>
@@ -315,7 +263,7 @@ const LandingPage = () => {
             <div>
               <h4 className="font-display font-semibold text-foreground mb-4">Support</h4>
               <div className="space-y-2">
-                {["Help Center", "Privacy Policy", "Terms of Service", "Contact Us"].map((link) => (
+                {FOOTER_LINKS.support.map((link) => (
                   <span key={link} className="block text-sm text-muted-foreground">{link}</span>
                 ))}
               </div>
