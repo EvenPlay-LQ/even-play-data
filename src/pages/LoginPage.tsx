@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Zap, ArrowRight, User, Building2 } from "lucide-react";
+import { Zap, ArrowRight, User, Building2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 type AuthMode = "login" | "signup";
 type UserRole = "athlete" | "institution";
@@ -12,16 +14,39 @@ type UserRole = "athlete" | "institution";
 const LoginPage = () => {
   const [mode, setMode] = useState<AuthMode>("login");
   const [role, setRole] = useState<UserRole>("athlete");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
+  const { signIn, signUp } = useAuth();
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Demo navigation — will connect to auth later
-    if (role === "athlete") {
-      navigate("/athlete");
+    setSubmitting(true);
+
+    if (mode === "signup") {
+      const { error } = await signUp(email, password, {
+        name,
+        full_name: name,
+        user_type: role,
+      });
+      if (error) {
+        toast({ title: "Signup failed", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Account created!", description: "Check your email to confirm, or sign in if email confirmation is disabled." });
+        setMode("login");
+      }
     } else {
-      navigate("/institution");
+      const { error } = await signIn(email, password);
+      if (error) {
+        toast({ title: "Sign in failed", description: error.message, variant: "destructive" });
+      } else {
+        navigate("/buzz");
+      }
     }
+    setSubmitting(false);
   };
 
   return (
@@ -104,20 +129,21 @@ const LoginPage = () => {
             {mode === "signup" && (
               <div>
                 <Label htmlFor="name" className="text-foreground">Full Name</Label>
-                <Input id="name" placeholder="Your name" className="mt-1.5" />
+                <Input id="name" placeholder="Your name" className="mt-1.5" value={name} onChange={(e) => setName(e.target.value)} required />
               </div>
             )}
             <div>
               <Label htmlFor="email" className="text-foreground">Email</Label>
-              <Input id="email" type="email" placeholder="you@example.com" className="mt-1.5" />
+              <Input id="email" type="email" placeholder="you@example.com" className="mt-1.5" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
             <div>
               <Label htmlFor="password" className="text-foreground">Password</Label>
-              <Input id="password" type="password" placeholder="••••••••" className="mt-1.5" />
+              <Input id="password" type="password" placeholder="••••••••" className="mt-1.5" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
             </div>
-            <Button type="submit" variant="hero" className="w-full" size="lg">
+            <Button type="submit" variant="hero" className="w-full" size="lg" disabled={submitting}>
+              {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               {mode === "login" ? "Sign In" : "Create Account"}
-              <ArrowRight className="ml-2 h-4 w-4" />
+              {!submitting && <ArrowRight className="ml-2 h-4 w-4" />}
             </Button>
           </form>
 
