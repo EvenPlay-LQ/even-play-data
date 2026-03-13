@@ -18,10 +18,6 @@ interface Athlete {
   profiles?: { name: string; avatar: string | null };
 }
 
-const levelNames: Record<number, string> = {
-  1: "Rookie", 2: "Beginner", 3: "Amateur", 4: "Semi-Pro", 5: "Starter",
-  6: "Regular", 7: "Advanced", 8: "Elite", 9: "Pro", 10: "National Prospect",
-};
 
 const ZonePage = () => {
   const [activeTab, setActiveTab] = useState<"participants" | "compare" | "marketplace">("participants");
