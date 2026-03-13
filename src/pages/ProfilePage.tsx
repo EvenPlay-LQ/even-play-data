@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   User, Star, Calendar, Heart, MessageCircle, Users, Settings,
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import { supabase } from "@/integrations/supabase/client";
 import AppLayout from "@/components/AppLayout";
 
 const ProfilePage = () => {
@@ -15,6 +16,21 @@ const ProfilePage = () => {
   const { signOut, user } = useAuth();
   const { profile, primaryRole, loading } = useProfile();
   const [activeTab, setActiveTab] = useState<"activity" | "favorites">("activity");
+  const [postCount, setPostCount] = useState(0);
+  const [likeCount, setLikeCount] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchStats = async () => {
+      const [{ count: posts }, { count: likes }] = await Promise.all([
+        supabase.from("posts").select("*", { count: "exact", head: true }).eq("author_id", user.id),
+        supabase.from("likes").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+      ]);
+      setPostCount(posts || 0);
+      setLikeCount(likes || 0);
+    };
+    fetchStats();
+  }, [user]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -89,8 +105,8 @@ const ProfilePage = () => {
         <div className="grid grid-cols-4 gap-3">
           {[
             { icon: Users, label: "Teams", value: "0" },
-            { icon: MessageCircle, label: "Posts", value: "0" },
-            { icon: Heart, label: "Likes", value: "0" },
+            { icon: MessageCircle, label: "Posts", value: String(postCount) },
+            { icon: Heart, label: "Likes", value: String(likeCount) },
             { icon: Calendar, label: "Years", value: profile?.created_at ? String(new Date().getFullYear() - new Date(profile.created_at).getFullYear() || 1) : "1" },
           ].map((stat) => (
             <div key={stat.label} className="bg-card rounded-xl p-3 border border-border shadow-card text-center">
