@@ -70,7 +70,7 @@ const LandingPage = () => {
             className="max-w-3xl mx-auto text-center"
           >
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-8">
-              <Zap className="h-3.5 w-3.5 text-primary" />
+              <img src={logo} alt="" className="h-4 w-4 rounded-sm" />
               <span className="text-xs font-medium text-primary">Sports Performance Data Platform</span>
             </div>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold text-primary-foreground mb-6 leading-tight">
