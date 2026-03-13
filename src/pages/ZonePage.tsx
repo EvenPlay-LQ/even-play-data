@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import AppLayout from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
+import { LEVEL_NAMES, SPORT_OPTIONS, getLevelName } from "@/config/constants";
 
 interface Athlete {
   id: string;
