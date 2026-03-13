@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import { Trophy, BarChart3, Shield, Users, ArrowRight, Zap } from "lucide-react";
+import { Trophy, BarChart3, Shield, Users, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import logo from "@/assets/logo.jpg";
 
 const features = [
   {
