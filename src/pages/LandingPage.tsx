@@ -1,6 +1,7 @@
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowRight, Award, CheckCircle, Globe, ChevronRight
+  ArrowRight, Award, CheckCircle, Globe, ChevronRight, Menu, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -9,6 +10,7 @@ import { LANDING_STATS, WHY_JOIN_CARDS, FEATURE_SECTIONS, FOOTER_LINKS } from "@
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-background">
@@ -26,8 +28,36 @@ const LandingPage = () => {
             <Button variant="ghost" size="sm" onClick={() => navigate("/login")}>Sign In</Button>
             <Button variant="hero" size="sm" onClick={() => navigate("/login")}>Get Started</Button>
           </div>
-          <Button variant="hero" size="sm" className="md:hidden" onClick={() => navigate("/login")}>Get Started</Button>
+          <button className="md:hidden p-2 text-foreground" onClick={() => setMobileMenuOpen(true)}>
+            <Menu className="h-6 w-6" />
+          </button>
         </div>
+
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="md:hidden bg-background border-b border-border overflow-hidden"
+            >
+              <div className="container py-4 flex flex-col gap-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-display font-semibold text-foreground">Menu</span>
+                  <button onClick={() => setMobileMenuOpen(false)} className="p-1"><X className="h-5 w-5 text-muted-foreground" /></button>
+                </div>
+                <a href="#why" onClick={() => setMobileMenuOpen(false)} className="text-sm text-foreground hover:text-primary transition-colors py-2 border-b border-border/50">Why Join</a>
+                <a href="#features" onClick={() => setMobileMenuOpen(false)} className="text-sm text-foreground hover:text-primary transition-colors py-2 border-b border-border/50">Features</a>
+                <a href="#stats" onClick={() => setMobileMenuOpen(false)} className="text-sm text-foreground hover:text-primary transition-colors py-2 border-b border-border/50">Stats</a>
+                <div className="flex flex-col gap-2 pt-2">
+                  <Button variant="outline" size="sm" className="w-full" onClick={() => navigate("/login")}>Sign In</Button>
+                  <Button variant="hero" size="sm" className="w-full" onClick={() => navigate("/login")}>Get Started</Button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
 
       {/* Hero */}
