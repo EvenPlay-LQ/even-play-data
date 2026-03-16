@@ -17,6 +17,7 @@ const BuzzPage = lazy(() => import("./pages/BuzzPage"));
 const CommunityPage = lazy(() => import("./pages/CommunityPage"));
 const ZonePage = lazy(() => import("./pages/ZonePage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const SignupWizard = lazy(() => import("./pages/SignupWizard"));
 const AthleteDashboard = lazy(() => import("./pages/AthleteDashboard"));
 const InstitutionDashboard = lazy(() => import("./pages/InstitutionDashboard"));
 const AthleteMatches = lazy(() => import("./pages/dashboard/athlete/AthleteMatches"));
@@ -53,6 +54,7 @@ const App = () => (
                 <Route path="/community" element={<ProtectedRoute><CommunityPage /></ProtectedRoute>} />
                 <Route path="/zone" element={<ProtectedRoute><ZonePage /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+                <Route path="/setup" element={<ProtectedRoute><SignupWizard /></ProtectedRoute>} />
 
                 {/* Athlete Dashboard */}
                 <Route path="/dashboard/athlete" element={<ProtectedRoute><AthleteDashboard /></ProtectedRoute>} />

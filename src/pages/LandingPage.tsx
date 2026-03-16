@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { SEO } from "@/components/SEO";
 import logo from "@/assets/logo.jpg";
 import { LANDING_STATS, WHY_JOIN_CARDS, FEATURE_SECTIONS, FOOTER_LINKS } from "@/config/landing";
 
@@ -14,6 +15,10 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title="Even Playground | Elevate Your Game"
+        description="The centralized platform for athletes, institutions, and fans to track performance and verified sports data."
+      />
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="container flex items-center justify-between h-16">
