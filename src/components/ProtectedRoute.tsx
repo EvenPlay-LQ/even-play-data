@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { user, loading } = useAuth();
+  const { user, loading, session } = useAuth();
 
   if (loading) {
     return (
@@ -18,7 +18,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     );
   }
 
-  if (!user) {
+  // If no user or no session (unconfirmed email usually results in no session)
+  if (!user || !session) {
     return <Navigate to="/login" replace />;
   }
 
