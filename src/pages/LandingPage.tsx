@@ -1,7 +1,6 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
-  ArrowRight, Award, CheckCircle, Globe, ChevronRight, Menu, X
+  ArrowRight, Award, CheckCircle, Globe, ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -9,9 +8,10 @@ import { SEO } from "@/components/SEO";
 import logo from "@/assets/logo.jpg";
 import { LANDING_STATS, WHY_JOIN_CARDS, FEATURE_SECTIONS, FOOTER_LINKS } from "@/config/landing";
 
+import { MarketingNavbar } from "@/components/MarketingNavbar";
+
 const LandingPage = () => {
   const navigate = useNavigate();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-background">
@@ -19,51 +19,8 @@ const LandingPage = () => {
         title="Even Playground | Elevate Your Game"
         description="The centralized platform for athletes, institutions, and fans to track performance and verified sports data."
       />
-      {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
-        <div className="container flex items-center justify-between h-16">
-          <div className="flex items-center gap-2">
-            <img src={logo} alt="Even Playground" className="h-8 w-8 rounded" />
-            <span className="font-display font-bold text-xl text-foreground">Even Playground</span>
-          </div>
-          <div className="hidden md:flex items-center gap-8">
-            <a href="#why" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Why Join</a>
-            <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Features</a>
-            <a href="#stats" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Stats</a>
-            <Button variant="ghost" size="sm" onClick={() => navigate("/login")}>Sign In</Button>
-            <Button variant="hero" size="sm" onClick={() => navigate("/login")}>Get Started</Button>
-          </div>
-          <button className="md:hidden p-2 text-foreground" onClick={() => setMobileMenuOpen(true)}>
-            <Menu className="h-6 w-6" />
-          </button>
-        </div>
-
-        {/* Mobile Menu */}
-        <AnimatePresence>
-          {mobileMenuOpen && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="md:hidden bg-background border-b border-border overflow-hidden"
-            >
-              <div className="container py-4 flex flex-col gap-4">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-display font-semibold text-foreground">Menu</span>
-                  <button onClick={() => setMobileMenuOpen(false)} className="p-1"><X className="h-5 w-5 text-muted-foreground" /></button>
-                </div>
-                <a href="#why" onClick={() => setMobileMenuOpen(false)} className="text-sm text-foreground hover:text-primary transition-colors py-2 border-b border-border/50">Why Join</a>
-                <a href="#features" onClick={() => setMobileMenuOpen(false)} className="text-sm text-foreground hover:text-primary transition-colors py-2 border-b border-border/50">Features</a>
-                <a href="#stats" onClick={() => setMobileMenuOpen(false)} className="text-sm text-foreground hover:text-primary transition-colors py-2 border-b border-border/50">Stats</a>
-                <div className="flex flex-col gap-2 pt-2">
-                  <Button variant="outline" size="sm" className="w-full" onClick={() => navigate("/login")}>Sign In</Button>
-                  <Button variant="hero" size="sm" className="w-full" onClick={() => navigate("/login")}>Get Started</Button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </nav>
+      
+      <MarketingNavbar />
 
       {/* Hero */}
       <section className="relative pt-32 pb-20 md:pt-44 md:pb-32 overflow-hidden">

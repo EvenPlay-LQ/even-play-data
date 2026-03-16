@@ -13,6 +13,9 @@ import LoadingScreen from "@/components/ui/LoadingScreen";
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
+const WhyJoin = lazy(() => import("./pages/WhyJoin"));
+const Features = lazy(() => import("./pages/Features"));
+const Stats = lazy(() => import("./pages/Stats"));
 const BuzzPage = lazy(() => import("./pages/BuzzPage"));
 const CommunityPage = lazy(() => import("./pages/CommunityPage"));
 const ZonePage = lazy(() => import("./pages/ZonePage"));
@@ -48,6 +51,9 @@ const App = () => (
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
+                <Route path="/why-join" element={<WhyJoin />} />
+                <Route path="/features" element={<Features />} />
+                <Route path="/stats" element={<Stats />} />
 
                 {/* Community Layer (protected) */}
                 <Route path="/buzz" element={<ProtectedRoute><BuzzPage /></ProtectedRoute>} />
