@@ -109,38 +109,43 @@ const AthleteDashboard = () => {
 
         {/* ═══ Hero Profile Card ═══ */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl bg-gradient-hero p-6 shadow-elevated">
-          <div className="flex items-start gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+          className="rounded-2xl bg-gradient-hero p-5 md:p-6 shadow-elevated">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
+            <div className="w-20 h-20 sm:w-16 sm:h-16 rounded-2xl bg-primary/20 flex items-center justify-center flex-shrink-0 border-2 border-primary/20 shadow-glow">
               {profile?.avatar ? (
                 <img src={profile.avatar} alt="avatar" className="w-full h-full object-cover rounded-2xl" />
               ) : (
-                <span className="font-display font-bold text-2xl text-primary">
-                  {(profile?.name || "A").split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
+                <span className="font-display font-bold text-3xl sm:text-2xl text-primary">
+                  {(profile?.name || "A").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                 </span>
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="font-display font-bold text-xl text-primary-foreground">{profile?.name || "Athlete"}</h1>
-              <p className="text-primary-foreground/60 text-sm">
-                {athlete.position ? `${athlete.position} · ` : ""}{athlete.sport}
+              <h1 className="font-display font-bold text-2xl sm:text-xl text-primary-foreground truncate">{profile?.name || "Athlete"}</h1>
+              <p className="text-primary-foreground/80 text-sm font-medium">
+                {athlete.sport}{athlete.position ? ` · ${athlete.position}` : ""}
               </p>
               {athlete.country && <p className="text-primary-foreground/40 text-xs mt-0.5">{athlete.country}</p>}
             </div>
-            <div className="flex flex-col items-end gap-2">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/20">
+            <div className="flex flex-col items-center sm:items-end gap-2 mt-2 sm:mt-0">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/20 border border-primary/30">
                 <Zap className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-semibold text-primary">Lvl {athlete.level}</span>
+                <span className="text-xs font-bold text-primary">LVL {athlete.level}</span>
               </div>
             </div>
           </div>
-          <div className="mt-5">
-            <div className="flex justify-between text-xs text-primary-foreground/50 mb-1.5">
-              <span>{levelName}</span>
-              <span>{athlete.xp_points} / {xpToNext} XP</span>
+          <div className="mt-6 sm:mt-5">
+            <div className="flex justify-between text-[11px] sm:text-xs text-primary-foreground/60 mb-2">
+              <span className="font-medium uppercase tracking-wider">{levelName}</span>
+              <span className="font-semibold">{athlete.xp_points} / {xpToNext} XP</span>
             </div>
-            <div className="h-2 rounded-full bg-primary-foreground/10">
-              <div className="h-full rounded-full bg-gradient-energy transition-all" style={{ width: `${xpPercent}%` }} />
+            <div className="h-2 rounded-full bg-primary-foreground/10 overflow-hidden">
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: `${xpPercent}%` }}
+                transition={{ duration: 1, ease: "easeOut" }}
+                className="h-full rounded-full bg-gradient-energy" 
+              />
             </div>
           </div>
         </motion.div>

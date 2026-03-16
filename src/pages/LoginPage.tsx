@@ -206,17 +206,17 @@ const LoginPage = () => {
 
               {/* Role selector (signup only) */}
               {mode === "signup" && (
-                <div className="grid grid-cols-2 gap-3 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                   {([
                     { value: "athlete", label: "Athlete", sub: "Track performance", Icon: User },
                     { value: "institution", label: "Institution", sub: "Manage teams", Icon: Building2 },
                   ] as const).map(({ value, label, sub, Icon }) => (
                     <button key={value} type="button" onClick={() => setRole(value)}
-                      className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${role === value ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/30"}`}>
-                      <Icon className={`h-5 w-5 ${role === value ? "text-primary" : "text-muted-foreground"}`} />
+                      className={`flex items-center sm:flex-col sm:items-start md:flex-row md:items-center gap-3 p-3 sm:p-4 rounded-xl border-2 transition-all ${role === value ? "border-primary bg-primary/5 shadow-sm" : "border-border hover:border-muted-foreground/30"}`}>
+                      <Icon className={`h-5 w-5 flex-shrink-0 ${role === value ? "text-primary" : "text-muted-foreground"}`} />
                       <div className="text-left">
-                        <div className={`text-sm font-semibold ${role === value ? "text-foreground" : "text-muted-foreground"}`}>{label}</div>
-                        <div className="text-xs text-muted-foreground">{sub}</div>
+                        <div className={`text-sm font-semibold truncate ${role === value ? "text-foreground" : "text-muted-foreground"}`}>{label}</div>
+                        <div className="text-xs text-muted-foreground truncate">{sub}</div>
                       </div>
                     </button>
                   ))}

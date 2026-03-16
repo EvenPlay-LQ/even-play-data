@@ -275,9 +275,9 @@ const AthleteMatches = () => {
           </div>
         )}
 
-        {/* Match Table */}
+        {/* Match Table / Cards */}
         {filtered.length === 0 ? (
-          <div className="text-center py-20">
+          <div className="text-center py-20 px-4 bg-card rounded-xl border border-dashed border-border">
             <Trophy className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
             <h3 className="font-display font-semibold text-foreground mb-1">
               {matches.length === 0 ? "Add Your First Match" : "No matches match your filter"}
@@ -287,9 +287,9 @@ const AthleteMatches = () => {
             </p>
           </div>
         ) : (
-          <div className="bg-card rounded-xl border border-border shadow-card overflow-hidden">
-            {/* Table Header */}
-            <div className="grid grid-cols-12 gap-2 px-4 py-3 border-b border-border bg-muted/30 text-xs font-semibold text-muted-foreground">
+          <div className="space-y-4">
+            {/* Desktop Header */}
+            <div className="hidden md:grid grid-cols-12 gap-2 px-6 py-4 bg-card rounded-t-xl border border-border text-xs font-bold text-muted-foreground uppercase tracking-wider">
               {[
                 { key: "opponent", label: "Opponent", span: 3 },
                 { key: "match_date", label: "Date", span: 2 },
@@ -298,44 +298,77 @@ const AthleteMatches = () => {
                 { key: "rating", label: "Rating", span: 2 },
               ].map(col => (
                 <button key={col.key} onClick={() => toggleSort(col.key as SortKey)}
-                  className={`col-span-${col.span} flex items-center gap-1 hover:text-foreground transition-colors text-left`}>
+                  className={`col-span-${col.span} flex items-center gap-1.5 hover:text-foreground transition-colors`}>
                   {col.label} <SortIcon col={col.key as SortKey} />
                 </button>
               ))}
               <div className="col-span-1" />
             </div>
 
-            <div className="divide-y divide-border">
+            <div className="grid gap-3 md:gap-0 md:bg-card md:border md:border-t-0 md:border-border md:rounded-b-xl md:divide-y md:divide-border overflow-hidden">
               {filtered.map((match, i) => {
                 const rc = RESULT_CONFIG[match.result as Result] || RESULT_CONFIG.draw;
                 const ResultIcon = rc.icon;
                 return (
-                  <motion.div key={match.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
-                    className="grid grid-cols-12 gap-2 px-4 py-3 items-center hover:bg-muted/20 transition-colors">
-                    <div className="col-span-3 min-w-0">
-                      <div className="text-sm font-semibold text-foreground truncate">vs {match.opponent}</div>
-                      {match.score && <div className="text-xs text-muted-foreground">{match.score}</div>}
+                  <motion.div 
+                    key={match.id} 
+                    initial={{ opacity: 0, y: 10 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    transition={{ delay: i * 0.03 }}
+                    className="group bg-card md:bg-transparent rounded-xl md:rounded-none border md:border-0 border-border p-4 md:px-6 md:py-4 flex flex-col md:grid md:grid-cols-12 md:gap-2 md:items-center hover:bg-muted/30 transition-all shadow-sm md:shadow-none"
+                  >
+                    {/* Mobile Header (Opponent + Date) */}
+                    <div className="flex items-start justify-between md:col-span-3 mb-4 md:mb-0">
+                      <div className="min-w-0">
+                        <div className="text-base md:text-sm font-bold text-foreground truncate">vs {match.opponent}</div>
+                        <div className="text-xs text-muted-foreground mt-0.5 md:hidden">
+                          {new Date(match.match_date).toLocaleDateString("en", { month: "short", day: "numeric", year: "numeric" })}
+                        </div>
+                      </div>
+                      <div className="md:hidden">
+                         <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full ${rc.bg} ${rc.color} border border-current/10`}>
+                          <ResultIcon className="h-3 w-3" /> {rc.label.toUpperCase()}
+                        </span>
+                      </div>
                     </div>
-                    <div className="col-span-2 text-xs text-muted-foreground">
+
+                    {/* Date (Desktop Only) */}
+                    <div className="hidden md:block md:col-span-2 text-xs text-muted-foreground font-medium">
                       {new Date(match.match_date).toLocaleDateString("en", { month: "short", day: "numeric", year: "2-digit" })}
                     </div>
-                    <div className="col-span-2">
-                      <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${rc.bg} ${rc.color}`}>
+
+                    {/* Result (Desktop Only) */}
+                    <div className="hidden md:block md:col-span-2">
+                      <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${rc.bg} ${rc.color} border border-current/10`}>
                         <ResultIcon className="h-3 w-3" /> {rc.label}
                       </span>
                     </div>
-                    <div className="col-span-2 text-sm font-medium text-foreground">
-                      {match.goals}G / {match.assists}A
+
+                    {/* Mobile Grid (Stats + Rating) */}
+                    <div className="grid grid-cols-3 gap-2 py-3 border-y border-border md:border-0 md:py-0 md:col-span-4 mb-4 md:mb-0">
+                      <div className="text-center md:text-left">
+                        <div className="text-[10px] text-muted-foreground uppercase mb-0.5 md:hidden">Goals</div>
+                        <div className="text-sm font-bold text-foreground">{match.goals}</div>
+                      </div>
+                      <div className="text-center md:text-left">
+                        <div className="text-[10px] text-muted-foreground uppercase mb-0.5 md:hidden">Assists</div>
+                        <div className="text-sm font-bold text-foreground">{match.assists}</div>
+                      </div>
+                      <div className="text-center md:flex md:items-center md:justify-start">
+                        <div className="text-[10px] text-muted-foreground uppercase mb-0.5 md:hidden">Rating</div>
+                        <span className={`text-base md:text-sm font-display font-bold ${Number(match.rating) >= 8 ? "text-stat-green" : Number(match.rating) >= 6 ? "text-gold" : "text-stat-red"}`}>
+                          {Number(match.rating).toFixed(1)}
+                        </span>
+                      </div>
                     </div>
-                    <div className="col-span-2">
-                      <span className={`font-display font-bold ${Number(match.rating) >= 8 ? "text-stat-green" : Number(match.rating) >= 6 ? "text-gold" : "text-stat-red"}`}>
-                        {Number(match.rating).toFixed(1)}
-                      </span>
-                    </div>
-                    <div className="col-span-1 flex justify-end">
+
+                    {/* Footer / Actions */}
+                    <div className="flex items-center justify-between mt-auto md:mt-0 md:col-span-1 md:justify-end">
+                      {match.score && <div className="text-xs font-semibold bg-muted px-2 py-0.5 rounded md:hidden">{match.score}</div>}
+                      <div className="hidden md:block text-xs font-medium text-muted-foreground mr-4 truncate">{match.score}</div>
                       <button onClick={() => handleDelete(match.id)}
-                        className="text-muted-foreground hover:text-destructive transition-colors p-1">
-                        <Trash2 className="h-3.5 w-3.5" />
+                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all p-2 rounded-lg ml-auto md:ml-0">
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                   </motion.div>

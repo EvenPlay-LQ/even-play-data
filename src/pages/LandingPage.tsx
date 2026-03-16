@@ -73,32 +73,32 @@ const LandingPage = () => {
           <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-gold/10 rounded-full blur-3xl" />
           <div className="absolute top-1/2 right-1/3 w-48 h-48 bg-stat-blue/5 rounded-full blur-2xl" />
         </div>
-        <div className="container relative z-10">
+        <div className="container relative z-10 px-6">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
             className="max-w-3xl mx-auto text-center"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-8">
-              <Globe className="h-3.5 w-3.5 text-primary" />
-              <span className="text-xs font-medium text-primary">Join the Ultimate Sports Community</span>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-8 max-w-full">
+              <Globe className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+              <span className="text-[10px] sm:text-xs font-medium text-primary uppercase tracking-wider truncate">Join the Ultimate Sports Community</span>
             </div>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold text-primary-foreground mb-6 leading-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold text-primary-foreground mb-6 leading-[1.1] tracking-tight">
               Where Sports Data{" "}
-              <span className="text-gradient-energy">Meets Truth</span>
+              <span className="text-gradient-energy block sm:inline">Meets Truth</span>
             </h1>
-            <p className="text-lg md:text-xl text-primary-foreground/70 mb-10 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-primary-foreground/70 mb-10 max-w-2xl mx-auto leading-relaxed">
               The centralized platform that aggregates, verifies, and distributes sports performance data for athletes, institutions, and fans worldwide.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="hero" size="lg" className="text-base" onClick={() => navigate("/login")}>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-stretch sm:items-center">
+              <Button variant="hero" size="lg" className="text-base h-14 sm:h-auto" onClick={() => navigate("/login")}>
                 Join as Athlete <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
               <Button
                 variant="hero-outline"
                 size="lg"
-                className="text-base border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+                className="text-base h-14 sm:h-auto border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
                 onClick={() => navigate("/login")}
               >
                 Register Institution
@@ -110,8 +110,8 @@ const LandingPage = () => {
 
       {/* Stats Bar */}
       <section id="stats" className="py-12 bg-card border-y border-border">
-        <div className="container">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="container px-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
             {LANDING_STATS.map((stat, i) => (
               <motion.div
                 key={stat.label}
@@ -119,11 +119,13 @@ const LandingPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="text-center"
+                className="text-center group"
               >
-                <stat.icon className="h-6 w-6 mx-auto mb-2 text-primary" />
-                <div className="text-3xl md:text-4xl font-display font-bold text-gradient-energy">{stat.value}</div>
-                <div className="text-sm text-muted-foreground mt-1">{stat.label}</div>
+                <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/10 transition-colors">
+                  <stat.icon className="h-6 w-6 text-primary" />
+                </div>
+                <div className="text-3xl md:text-4xl lg:text-5xl font-display font-bold text-gradient-energy mb-1">{stat.value}</div>
+                <div className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest">{stat.label}</div>
               </motion.div>
             ))}
           </div>
@@ -131,22 +133,22 @@ const LandingPage = () => {
       </section>
 
       {/* Why Join */}
-      <section id="why" className="py-20 md:py-32">
-        <div className="container">
+      <section id="why" className="py-20 md:py-32 overflow-hidden">
+        <div className="container px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-4">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold text-foreground mb-4">
               Why Join Even Playground?
             </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
+            <p className="text-base md:text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
               Whether you're an athlete, fan, coach, or official — there's a place for you.
             </p>
           </motion.div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {WHY_JOIN_CARDS.map((item, i) => (
               <motion.div
                 key={item.title}
@@ -154,12 +156,12 @@ const LandingPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="group p-6 rounded-2xl bg-card border border-border shadow-card hover:shadow-elevated hover:border-primary/20 transition-all duration-300"
+                className="group p-6 rounded-2xl bg-card border border-border shadow-card hover:shadow-elevated hover:border-primary/20 transition-all duration-300 flex flex-col items-center text-center sm:items-start sm:text-left"
               >
-                <div className={`w-12 h-12 rounded-xl ${item.color.split(" ")[0]} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                  <item.icon className={`h-6 w-6 ${item.color.split(" ")[1]}`} />
+                <div className={`w-14 h-14 rounded-2xl ${item.color.split(" ")[0]} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-sm`}>
+                  <item.icon className={`h-7 w-7 ${item.color.split(" ")[1]}`} />
                 </div>
-                <h3 className="font-display font-semibold text-lg text-foreground mb-2">{item.title}</h3>
+                <h3 className="font-display font-bold text-xl text-foreground mb-3">{item.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
               </motion.div>
             ))}
@@ -169,21 +171,21 @@ const LandingPage = () => {
 
       {/* See What's Inside */}
       <section id="features" className="py-20 md:py-32 bg-muted/30">
-        <div className="container">
+        <div className="container px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-4">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold text-foreground mb-4">
               See What's Inside
             </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
+            <p className="text-base md:text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
               Three powerful sections to explore the world of sports data.
             </p>
           </motion.div>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {FEATURE_SECTIONS.map((feature, i) => (
               <motion.div
                 key={feature.title}
@@ -191,17 +193,17 @@ const LandingPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.15 }}
-                className="relative overflow-hidden rounded-2xl bg-card border border-border shadow-elevated group"
+                className="relative overflow-hidden rounded-2xl bg-card border border-border shadow-elevated group flex flex-col h-full"
               >
                 <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="p-8">
-                  <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-6">
+                <div className="p-8 flex flex-col flex-1">
+                  <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                     <feature.icon className="h-7 w-7 text-primary" />
                   </div>
                   <h3 className="font-display font-bold text-xl text-foreground mb-3">{feature.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed mb-6">{feature.description}</p>
-                  <Button variant="ghost" size="sm" className="text-primary p-0 h-auto hover:bg-transparent" onClick={() => navigate("/login")}>
-                    Explore <ChevronRight className="ml-1 h-4 w-4" />
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-8 flex-1">{feature.description}</p>
+                  <Button variant="ghost" size="sm" className="text-primary p-0 h-auto hover:bg-transparent justify-start w-fit group/btn" onClick={() => navigate("/login")}>
+                    Explore <ChevronRight className="ml-1 h-4 w-4 transform group-hover/btn:translate-x-1 transition-transform" />
                   </Button>
                 </div>
               </motion.div>
@@ -212,28 +214,28 @@ const LandingPage = () => {
 
       {/* Featured Article */}
       <section className="py-20 md:py-32">
-        <div className="container">
+        <div className="container px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="max-w-4xl mx-auto"
           >
-            <div className="rounded-2xl bg-gradient-hero p-8 md:p-12 shadow-elevated relative overflow-hidden">
+            <div className="rounded-2xl bg-gradient-hero p-8 md:p-12 shadow-elevated relative overflow-hidden text-center sm:text-left">
               <div className="absolute top-0 right-0 w-64 h-64 bg-energy/10 rounded-full blur-3xl" />
               <div className="relative z-10">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 mb-4">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 mb-6 mx-auto sm:mx-0">
                   <Award className="h-3.5 w-3.5 text-primary" />
-                  <span className="text-xs font-medium text-primary">Featured Story</span>
+                  <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Featured Story</span>
                 </div>
-                <h3 className="text-2xl md:text-3xl font-display font-bold text-primary-foreground mb-3">
+                <h3 className="text-2xl md:text-3xl lg:text-4xl font-display font-bold text-primary-foreground mb-4 leading-tight">
                   Youth Athletes Breaking Records Across Southern Africa
                 </h3>
-                <p className="text-primary-foreground/60 mb-6 max-w-2xl">
+                <p className="text-base sm:text-lg text-primary-foreground/70 mb-8 max-w-2xl leading-relaxed">
                   From school-level to academy standouts, a new generation of verified talent is emerging. Even Playground tracks every stat, every milestone, every breakthrough.
                 </p>
-                <div className="flex items-center gap-6 text-xs text-primary-foreground/40">
-                  <span className="flex items-center gap-1"><CheckCircle className="h-3.5 w-3.5" /> 2.4K views</span>
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 sm:gap-6 text-[10px] sm:text-xs font-medium text-primary-foreground/50 uppercase tracking-widest">
+                  <span className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5" /> 2.4K views</span>
                   <span>48 comments</span>
                   <span>312 likes</span>
                 </div>

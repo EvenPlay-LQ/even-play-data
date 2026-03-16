@@ -71,25 +71,25 @@ const DashboardLayout = ({ children, role }: DashboardLayoutProps) => {
       </header>
 
       {/* Content */}
-      <main className="flex-1 container py-6 pb-24 md:pb-6 md:ml-16">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-6 md:pl-20">
         {children}
       </main>
 
       {/* Bottom Nav (mobile) */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-xl border-t border-border md:hidden">
-        <div className="flex items-center justify-around h-16">
-          {tabs.slice(0, 5).map((tab) => {
+        <div className="flex items-center justify-around h-16 px-2">
+          {tabs.map((tab) => {
             const isActive = location.pathname === tab.path;
             return (
               <button
                 key={tab.path}
                 onClick={() => navigate(tab.path)}
-                className={`flex flex-col items-center gap-0.5 px-2 py-1.5 transition-colors ${
+                className={`flex flex-col items-center justify-center gap-1 min-w-[60px] py-1.5 transition-colors ${
                   isActive ? "text-primary" : "text-muted-foreground"
                 }`}
               >
                 <tab.icon className="h-5 w-5" />
-                <span className="text-[10px] font-medium">{tab.label}</span>
+                <span className="text-[10px] font-medium leading-none">{tab.label}</span>
               </button>
             );
           })}
@@ -97,20 +97,20 @@ const DashboardLayout = ({ children, role }: DashboardLayoutProps) => {
       </nav>
 
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex fixed left-0 top-14 bottom-0 w-16 bg-card border-r border-border z-40 flex-col items-center pt-4 gap-2">
+      <div className="hidden md:flex fixed left-0 top-14 bottom-0 w-20 bg-card border-r border-border z-40 flex-col items-center pt-6 gap-3">
         {tabs.map((tab) => {
           const isActive = location.pathname === tab.path;
           return (
             <button
               key={tab.path}
               onClick={() => navigate(tab.path)}
-              className={`flex flex-col items-center gap-0.5 p-2 rounded-lg transition-colors w-12 ${
-                isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              className={`flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all w-16 ${
+                isActive ? "bg-primary/10 text-primary shadow-glow" : "text-muted-foreground hover:text-foreground hover:bg-muted"
               }`}
               title={tab.label}
             >
               <tab.icon className="h-5 w-5" />
-              <span className="text-[9px] font-medium">{tab.label}</span>
+              <span className="text-[10px] font-medium">{tab.label}</span>
             </button>
           );
         })}
