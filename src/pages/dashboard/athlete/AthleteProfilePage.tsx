@@ -81,7 +81,10 @@ const AthleteProfilePage = () => {
   }, [user]);
 
   const handleSave = async () => {
-    if (!athlete || !profile) return;
+    if (!athlete || !profile) {
+      toast({ title: "Error", description: "Profile data not found. Please refresh and try again.", variant: "destructive" });
+      return;
+    }
     setSaving(true);
     const [profileResult, athleteResult] = await Promise.all([
       supabase.from("profiles").update({ name, bio } as any).eq("id", user!.id),
