@@ -45,7 +45,7 @@ const AthleteHighlights = () => {
           .select("*")
           .eq("athlete_id", athleteData.id)
           .order("created_at", { ascending: false });
-        setMedia((data || []) as MediaItem[]);
+        setMedia((data || []) as unknown as MediaItem[]);
       }
       setLoading(false);
     };
