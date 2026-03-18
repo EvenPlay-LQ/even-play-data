@@ -33,7 +33,7 @@ const SignupWizard = () => {
 
   // Institution-specific
   const [institutionName, setInstitutionName] = useState("");
-  const [city, setCity] = useState("");
+  const [province, setProvince] = useState("");
 
   useEffect(() => {
     if (!user) {
