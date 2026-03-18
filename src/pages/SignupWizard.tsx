@@ -99,7 +99,7 @@ const SignupWizard = () => {
         const { error: instErr } = await supabase.from("institutions").upsert({
           profile_id: user.id,
           institution_name: institutionName || name,
-          city: city || null,
+          province: city || null,
         }, { onConflict: "profile_id" });
 
         if (instErr) {
@@ -210,8 +210,8 @@ const SignupWizard = () => {
                     )}
                     {role === "institution" && (
                       <div>
-                        <Label htmlFor="city">City / Location</Label>
-                        <Input id="city" value={city} onChange={e => setCity(e.target.value)} placeholder="e.g. Johannesburg" className="mt-1" />
+                        <Label htmlFor="city">Province / Region</Label>
+                        <Input id="city" value={city} onChange={e => setCity(e.target.value)} placeholder="e.g. Gauteng" className="mt-1" />
                       </div>
                     )}
                     <div>

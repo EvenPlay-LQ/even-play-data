@@ -73,7 +73,7 @@ const AthleteProfilePage = () => {
           .select("*")
           .eq("athlete_id", athleteData.id)
           .order("start_date", { ascending: false });
-        setClubHistory((clubs || []) as ClubHistoryEntry[]);
+        setClubHistory((clubs || []) as unknown as ClubHistoryEntry[]);
       }
       setLoading(false);
     };
@@ -81,7 +81,10 @@ const AthleteProfilePage = () => {
   }, [user]);
 
   const handleSave = async () => {
-    if (!athlete || !profile) return;
+    if (!athlete || !profile) {
+      toast({ title: "Error", description: "Profile data not found. Please refresh and try again.", variant: "destructive" });
+      return;
+    }
     setSaving(true);
     const [profileResult, athleteResult] = await Promise.all([
       supabase.from("profiles").update({ name, bio } as any).eq("id", user!.id),
@@ -103,7 +106,7 @@ const AthleteProfilePage = () => {
       .single();
     if (error) { handleQueryError(error, "Failed to add club."); }
     else {
-      setClubHistory([data as ClubHistoryEntry, ...clubHistory]);
+      setClubHistory([data as unknown as ClubHistoryEntry, ...clubHistory]);
       setNewClub({ club_name: "", start_date: "", end_date: "", notes: "" });
       setShowClubForm(false);
       toast({ title: "Club added!" });
