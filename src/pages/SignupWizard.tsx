@@ -99,7 +99,7 @@ const SignupWizard = () => {
         const { error: instErr } = await supabase.from("institutions").upsert({
           profile_id: user.id,
           institution_name: institutionName || name,
-          province: city || null,
+          province: province || null,
         }, { onConflict: "profile_id" });
 
         if (instErr) {
