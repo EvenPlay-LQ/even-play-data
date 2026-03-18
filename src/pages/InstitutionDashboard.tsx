@@ -225,41 +225,48 @@ const InstitutionDashboard = () => {
 
         {/* Add Athlete Form */}
         <div className="bg-card rounded-xl p-5 border border-border shadow-card mb-6">
-          <h2 className="font-display font-semibold text-foreground mb-3">Add New Athlete</h2>
+          <h2 className="font-display font-semibold text-foreground mb-3">Add / Update Athlete Record</h2>
+          <p className="text-xs text-muted-foreground mb-3">
+            This creates or updates your own athlete record linked to this institution.
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <input
-              placeholder="First Name"
-              value={newAthlete.first_name}
-              onChange={(e) => setNewAthlete({ ...newAthlete, first_name: e.target.value })}
-              className="input-field"
+              placeholder="Sport (e.g. Football)"
+              value={newAthlete.sport}
+              onChange={(e) => setNewAthlete({ ...newAthlete, sport: e.target.value })}
+              className="w-full border border-border rounded-md p-2 bg-background text-foreground text-sm"
             />
             <input
-              placeholder="Last Name"
-              value={newAthlete.last_name}
-              onChange={(e) => setNewAthlete({ ...newAthlete, last_name: e.target.value })}
-              className="input-field"
-            />
-            <input
-              placeholder="DOB (YYYY-MM-DD)"
-              value={newAthlete.dob}
-              onChange={(e) => setNewAthlete({ ...newAthlete, dob: e.target.value })}
-              className="input-field"
-            />
-            <input
-              placeholder="Position"
+              placeholder="Position (e.g. Striker)"
               value={newAthlete.position}
               onChange={(e) => setNewAthlete({ ...newAthlete, position: e.target.value })}
-              className="input-field"
+              className="w-full border border-border rounded-md p-2 bg-background text-foreground text-sm"
+            />
+            <input
+              placeholder="Date of Birth (YYYY-MM-DD)"
+              value={newAthlete.date_of_birth}
+              onChange={(e) => setNewAthlete({ ...newAthlete, date_of_birth: e.target.value })}
+              className="w-full border border-border rounded-md p-2 bg-background text-foreground text-sm"
             />
             <input
               placeholder="Province / Region"
               value={newAthlete.province}
               onChange={(e) => setNewAthlete({ ...newAthlete, province: e.target.value })}
-              className="input-field"
+              className="w-full border border-border rounded-md p-2 bg-background text-foreground text-sm"
+            />
+            <input
+              placeholder="Country"
+              value={newAthlete.country}
+              onChange={(e) => setNewAthlete({ ...newAthlete, country: e.target.value })}
+              className="w-full border border-border rounded-md p-2 bg-background text-foreground text-sm"
             />
           </div>
-          <button className="btn-primary mt-3" onClick={handleAddAthlete} disabled={saving}>
-            {saving ? "Saving..." : "Add Athlete"}
+          <button
+            className="mt-3 inline-flex items-center justify-center rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:pointer-events-none transition-colors"
+            onClick={handleAddAthlete}
+            disabled={saving || !newAthlete.sport}
+          >
+            {saving ? "Saving..." : "Save Athlete"}
           </button>
         </div>
 
