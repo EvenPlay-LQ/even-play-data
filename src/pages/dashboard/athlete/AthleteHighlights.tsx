@@ -84,7 +84,7 @@ const AthleteHighlights = () => {
 
     if (insertError) { handleQueryError(insertError); }
     else {
-      setMedia([newItem as MediaItem, ...media]);
+      setMedia([newItem as unknown as MediaItem, ...media]);
       setSelectedFile(null);
       setPreview(null);
       setDescription("");

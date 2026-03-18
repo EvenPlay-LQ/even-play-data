@@ -106,7 +106,7 @@ const AthleteProfilePage = () => {
       .single();
     if (error) { handleQueryError(error, "Failed to add club."); }
     else {
-      setClubHistory([data as ClubHistoryEntry, ...clubHistory]);
+      setClubHistory([data as unknown as ClubHistoryEntry, ...clubHistory]);
       setNewClub({ club_name: "", start_date: "", end_date: "", notes: "" });
       setShowClubForm(false);
       toast({ title: "Club added!" });
