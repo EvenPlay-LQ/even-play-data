@@ -120,23 +120,24 @@ const InstitutionDashboard = () => {
     try {
       const { data, error } = await supabase
         .from("athletes")
-        .insert([
+        .upsert(
           {
             profile_id: user.id,
             institution_id: institution.id,
-            first_name: newAthlete.first_name,
-            last_name: newAthlete.last_name,
-            dob: newAthlete.dob,
-            position: newAthlete.position,
-            province: newAthlete.province,
+            sport: newAthlete.sport || "Football",
+            position: newAthlete.position || null,
+            province: newAthlete.province || null,
+            country: newAthlete.country || null,
+            date_of_birth: newAthlete.date_of_birth || null,
           },
-        ])
+          { onConflict: "profile_id" }
+        )
         .select();
 
       if (error) {
-        console.error("Insert athlete error:", error);
+        console.error("Upsert athlete error:", error);
         toast({
-          title: "Error adding athlete",
+          title: "Error saving athlete",
           description: error.message,
           variant: "destructive",
         });
@@ -144,15 +145,20 @@ const InstitutionDashboard = () => {
         return;
       }
 
-      setAthletes((prev) => [...prev, ...(data || [])]);
+      // Refresh athlete list
+      const { data: athData } = await supabase
+        .from("athletes")
+        .select("*, profiles(name)")
+        .eq("institution_id", institution.id)
+        .order("performance_score", { ascending: false });
+      if (athData) setAthletes(athData);
 
       toast({
-        title: "Athlete added",
-        description: `${newAthlete.first_name} ${newAthlete.last_name} added successfully!`,
-        variant: "default",
+        title: "Athlete saved",
+        description: "Athlete record saved successfully!",
       });
 
-      setNewAthlete({ first_name: "", last_name: "", dob: "", position: "", province: "" });
+      setNewAthlete({ sport: "", position: "", province: "", country: "", date_of_birth: "" });
     } catch (err) {
       console.error("Unexpected error:", err);
       toast({
