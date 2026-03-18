@@ -131,7 +131,6 @@ const InstitutionDashboard = () => {
             province: newAthlete.province,
           },
         ])
-        .onConflict("profile_id")
         .select();
 
       if (error) {
