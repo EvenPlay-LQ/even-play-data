@@ -20,11 +20,11 @@ const InstitutionDashboard = () => {
   const [saving, setSaving] = useState(false);
 
   const [newAthlete, setNewAthlete] = useState({
-    first_name: "",
-    last_name: "",
-    dob: "",
+    sport: "",
     position: "",
     province: "",
+    country: "",
+    date_of_birth: "",
   });
 
   // ------------------------------
