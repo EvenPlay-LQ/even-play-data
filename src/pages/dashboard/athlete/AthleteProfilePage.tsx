@@ -73,7 +73,7 @@ const AthleteProfilePage = () => {
           .select("*")
           .eq("athlete_id", athleteData.id)
           .order("start_date", { ascending: false });
-        setClubHistory((clubs || []) as ClubHistoryEntry[]);
+        setClubHistory((clubs || []) as unknown as ClubHistoryEntry[]);
       }
       setLoading(false);
     };
