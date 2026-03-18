@@ -76,31 +76,13 @@ const InstitutionAthletes = () => {
     if (!newAthlete.name || !newAthlete.email || !institution) return;
     setSaving(true);
 
-    // 1. Invite user via email (creates a Supabase auth user)
-    const { data: signUpData, error: authError } = await supabase.auth.admin?.inviteUserByEmail?.(newAthlete.email) || { data: null, error: null };
-
-    // If no admin API, create profile manually (check if profile with email exists)
-    // Simplified MVP: Create via inserting a profile + athlete row
-    const { data: profileData, error: profileErr } = await supabase.from("profiles")
-      .insert([{ id: crypto.randomUUID(), name: newAthlete.name, user_type: "athlete" } as any])
-      .select().single();
-
-    if (profileErr) { handleQueryError(profileErr, "Failed to create athlete profile."); setSaving(false); return; }
-
-    const { data: athleteData, error: athleteErr } = await supabase.from("athletes").insert([{
-      profile_id: (profileData as any).id,
-      institution_id: institution.id,
-      sport: newAthlete.sport,
-      position: newAthlete.position,
-    }]).select("*, profiles(name, avatar)").single();
-
-    if (athleteErr) { handleQueryError(athleteErr, "Failed to create athlete."); }
-    else {
-      setAthletes([athleteData, ...athletes]);
-      setNewAthlete({ name: "", email: "", sport: "Football", position: "" });
-      setCreateOpen(false);
-      toast({ title: "Athlete profile created!", description: `${newAthlete.name} has been added to your roster.` });
-    }
+    // NOTE: Institutions cannot directly create profiles/athletes due to RLS.
+    // Athletes must sign up themselves. This action is not supported in the current security model.
+    toast({
+      title: "Not supported",
+      description: "Athletes must register themselves via the signup flow. You can then link them to your institution.",
+      variant: "destructive",
+    });
     setSaving(false);
   };
 

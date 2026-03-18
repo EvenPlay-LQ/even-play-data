@@ -210,8 +210,8 @@ const SignupWizard = () => {
                     )}
                     {role === "institution" && (
                       <div>
-                        <Label htmlFor="city">Province / Region</Label>
-                        <Input id="city" value={city} onChange={e => setCity(e.target.value)} placeholder="e.g. Gauteng" className="mt-1" />
+                        <Label htmlFor="province">Province / Region</Label>
+                        <Input id="province" value={province} onChange={e => setProvince(e.target.value)} placeholder="e.g. Gauteng" className="mt-1" />
                       </div>
                     )}
                     <div>
