@@ -33,7 +33,7 @@ const SignupWizard = () => {
 
   // Institution-specific
   const [institutionName, setInstitutionName] = useState("");
-  const [city, setCity] = useState("");
+  const [province, setProvince] = useState("");
 
   useEffect(() => {
     if (!user) {
@@ -99,7 +99,7 @@ const SignupWizard = () => {
         const { error: instErr } = await supabase.from("institutions").upsert({
           profile_id: user.id,
           institution_name: institutionName || name,
-          province: city || null,
+          province: province || null,
         }, { onConflict: "profile_id" });
 
         if (instErr) {
@@ -210,8 +210,8 @@ const SignupWizard = () => {
                     )}
                     {role === "institution" && (
                       <div>
-                        <Label htmlFor="city">Province / Region</Label>
-                        <Input id="city" value={city} onChange={e => setCity(e.target.value)} placeholder="e.g. Gauteng" className="mt-1" />
+                        <Label htmlFor="province">Province / Region</Label>
+                        <Input id="province" value={province} onChange={e => setProvince(e.target.value)} placeholder="e.g. Gauteng" className="mt-1" />
                       </div>
                     )}
                     <div>
