@@ -114,7 +114,9 @@ const AthleteAnalytics = () => {
     const { data, error } = await supabase.from("performance_metrics" as any)
       .insert([{ ...form, athlete_id: athlete.id }])
       .select().single();
-    if (error) { handleQueryError(error); }
+    if (error) { 
+      handleQueryError(error, "Unable to save your performance record. Please ensure your profile is complete and try again."); 
+    }
     else {
       setMetrics([...metrics, data]);
       setOpen(false);
