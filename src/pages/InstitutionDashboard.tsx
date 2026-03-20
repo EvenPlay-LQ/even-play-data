@@ -7,10 +7,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { handleQueryError } from "@/lib/queryHelpers";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 
 const InstitutionDashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [institution, setInstitution] = useState<any>(null);
   const [athletes, setAthletes] = useState<any[]>([]);
@@ -197,9 +200,12 @@ const InstitutionDashboard = () => {
         <div className="md:ml-16 flex flex-col items-center justify-center py-20 text-center">
           <Users className="h-12 w-12 text-muted-foreground mb-4" />
           <h2 className="font-display font-bold text-xl text-foreground mb-2">No Institution Profile</h2>
-          <p className="text-sm text-muted-foreground max-w-sm">
+          <p className="text-sm text-muted-foreground max-w-sm mb-6">
             Your institution profile hasn't been set up yet. Complete your registration to get started.
           </p>
+          <Button onClick={() => navigate("/setup")} variant="hero">
+            Complete Registration
+          </Button>
         </div>
       </DashboardLayout>
     );

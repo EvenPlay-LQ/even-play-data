@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Home, Calendar, Users, BarChart3, User, Shield, LogOut, Trophy, Video,
-  Building2, CheckCircle, FileText
+  Building2, CheckCircle, FileText, ShieldCheck, Activity, ScrollText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -10,7 +10,7 @@ import logo from "@/assets/logo.jpg";
 
 interface DashboardLayoutProps {
   children: ReactNode;
-  role: "athlete" | "institution";
+  role: "athlete" | "institution" | "master_admin" | "parent";
 }
 
 const athleteTabs = [
@@ -31,11 +31,29 @@ const institutionTabs = [
   { icon: BarChart3, label: "Analytics", path: "/dashboard/institution/analytics" },
 ];
 
+const parentTabs = [
+  { icon: Home, label: "Overview", path: "/dashboard/parent" },
+  { icon: Users, label: "Athletes", path: "/dashboard/parent" }, // Linked athletes are on the home page for now
+  { icon: Activity, label: "Activity", path: "/dashboard/parent" },
+];
+
+const masterAdminTabs = [
+  { icon: Home, label: "Overview", path: "/admin" },
+  { icon: Users, label: "Users", path: "/admin/users" },
+  { icon: Activity, label: "Diagnostics", path: "/admin/diagnostics" },
+  { icon: ScrollText, label: "Audit", path: "/admin/audit" },
+];
+
 const DashboardLayout = ({ children, role }: DashboardLayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut } = useAuth();
-  const tabs = role === "athlete" ? athleteTabs : institutionTabs;
+  
+  const tabs = 
+    role === "master_admin" ? masterAdminTabs : 
+    role === "athlete" ? athleteTabs : 
+    role === "parent" ? parentTabs : 
+    institutionTabs;
 
   const handleSignOut = async () => {
     await signOut();
@@ -53,8 +71,12 @@ const DashboardLayout = ({ children, role }: DashboardLayoutProps) => {
               <span className="font-display font-bold text-foreground">Even Playground</span>
             </div>
             <div className="hidden md:flex items-center gap-1 ml-2">
-              <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium capitalize">
-                {role} Dashboard
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                role === "master_admin" 
+                  ? "bg-red-500/20 text-red-500 border border-red-500/20" 
+                  : "bg-primary/10 text-primary"
+              }`}>
+                {role === "master_admin" ? "Master Admin" : `${role} Dashboard`}
               </span>
             </div>
           </div>

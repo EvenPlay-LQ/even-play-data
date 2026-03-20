@@ -34,7 +34,15 @@ const InstitutionTeams = lazy(() => import("./pages/dashboard/institution/Instit
 const InstitutionMatches = lazy(() => import("./pages/dashboard/institution/InstitutionMatches"));
 const InstitutionVerifications = lazy(() => import("./pages/dashboard/institution/InstitutionVerifications"));
 const InstitutionAnalytics = lazy(() => import("./pages/dashboard/institution/InstitutionAnalytics"));
+const ParentDashboard = lazy(() => import("./pages/ParentDashboard"));
+const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+
+// Admin Pages
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
+const AdminDiagnostics = lazy(() => import("./pages/admin/AdminDiagnostics"));
+const AdminAuditLog = lazy(() => import("./pages/admin/AdminAuditLog"));
 
 const queryClient = new QueryClient();
 
@@ -62,23 +70,33 @@ const App = () => (
                 <Route path="/community" element={<ProtectedRoute><CommunityPage /></ProtectedRoute>} />
                 <Route path="/zone" element={<ProtectedRoute><ZonePage /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/setup" element={<ProtectedRoute><SignupWizard /></ProtectedRoute>} />
 
                 {/* Athlete Dashboard */}
-                <Route path="/dashboard/athlete" element={<ProtectedRoute><AthleteDashboard /></ProtectedRoute>} />
-                <Route path="/dashboard/athlete/matches" element={<ProtectedRoute><AthleteMatches /></ProtectedRoute>} />
-                <Route path="/dashboard/athlete/analytics" element={<ProtectedRoute><AthleteAnalytics /></ProtectedRoute>} />
-                <Route path="/dashboard/athlete/achievements" element={<ProtectedRoute><AthleteAchievements /></ProtectedRoute>} />
-                <Route path="/dashboard/athlete/highlights" element={<ProtectedRoute><AthleteHighlights /></ProtectedRoute>} />
-                <Route path="/dashboard/athlete/profile" element={<ProtectedRoute><AthleteProfilePage /></ProtectedRoute>} />
+                <Route path="/dashboard/athlete" element={<ProtectedRoute requiredRole="athlete"><AthleteDashboard /></ProtectedRoute>} />
+                <Route path="/dashboard/athlete/matches" element={<ProtectedRoute requiredRole="athlete"><AthleteMatches /></ProtectedRoute>} />
+                <Route path="/dashboard/athlete/analytics" element={<ProtectedRoute requiredRole="athlete"><AthleteAnalytics /></ProtectedRoute>} />
+                <Route path="/dashboard/athlete/achievements" element={<ProtectedRoute requiredRole="athlete"><AthleteAchievements /></ProtectedRoute>} />
+                <Route path="/dashboard/athlete/highlights" element={<ProtectedRoute requiredRole="athlete"><AthleteHighlights /></ProtectedRoute>} />
+                <Route path="/dashboard/athlete/profile" element={<ProtectedRoute requiredRole="athlete"><AthleteProfilePage /></ProtectedRoute>} />
 
                 {/* Institution Dashboard */}
-                <Route path="/dashboard/institution" element={<ProtectedRoute><InstitutionDashboard /></ProtectedRoute>} />
-                <Route path="/dashboard/institution/athletes" element={<ProtectedRoute><InstitutionAthletes /></ProtectedRoute>} />
-                <Route path="/dashboard/institution/teams" element={<ProtectedRoute><InstitutionTeams /></ProtectedRoute>} />
-                <Route path="/dashboard/institution/matches" element={<ProtectedRoute><InstitutionMatches /></ProtectedRoute>} />
-                <Route path="/dashboard/institution/verifications" element={<ProtectedRoute><InstitutionVerifications /></ProtectedRoute>} />
-                <Route path="/dashboard/institution/analytics" element={<ProtectedRoute><InstitutionAnalytics /></ProtectedRoute>} />
+                <Route path="/dashboard/institution" element={<ProtectedRoute requiredRole="institution"><InstitutionDashboard /></ProtectedRoute>} />
+                <Route path="/dashboard/institution/athletes" element={<ProtectedRoute requiredRole="institution"><InstitutionAthletes /></ProtectedRoute>} />
+                <Route path="/dashboard/institution/teams" element={<ProtectedRoute requiredRole="institution"><InstitutionTeams /></ProtectedRoute>} />
+                <Route path="/dashboard/institution/matches" element={<ProtectedRoute requiredRole="institution"><InstitutionMatches /></ProtectedRoute>} />
+                <Route path="/dashboard/institution/verifications" element={<ProtectedRoute requiredRole="institution"><InstitutionVerifications /></ProtectedRoute>} />
+                <Route path="/dashboard/institution/analytics" element={<ProtectedRoute requiredRole="institution"><InstitutionAnalytics /></ProtectedRoute>} />
+
+                {/* Parent Dashboard */}
+                <Route path="/dashboard/parent" element={<ProtectedRoute requiredRole="parent"><ParentDashboard /></ProtectedRoute>} />
+
+                {/* Master Admin Console */}
+                <Route path="/admin" element={<ProtectedRoute requiredRole="master_admin"><AdminDashboard /></ProtectedRoute>} />
+                <Route path="/admin/users" element={<ProtectedRoute requiredRole="master_admin"><AdminUsers /></ProtectedRoute>} />
+                <Route path="/admin/diagnostics" element={<ProtectedRoute requiredRole="master_admin"><AdminDiagnostics /></ProtectedRoute>} />
+                <Route path="/admin/audit" element={<ProtectedRoute requiredRole="master_admin"><AdminAuditLog /></ProtectedRoute>} />
 
                 <Route path="*" element={<NotFound />} />
               </Routes>

@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Search, Users, Zap, Plus, Star, Image, Loader2 } from "lucide-react";
+import { Search, Users, Zap, Plus, Star, Image, Loader2, Info, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import {
 import {
   Tabs, TabsContent, TabsList, TabsTrigger,
 } from "@/components/ui/tabs";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -27,6 +28,7 @@ interface NewAthleteForm {
 }
 
 const InstitutionAthletes = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -46,6 +48,7 @@ const InstitutionAthletes = () => {
   const [selectedAthlete, setSelectedAthlete] = useState<any>(null);
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackRating, setFeedbackRating] = useState(4);
+  const [feedbackCategory, setFeedbackCategory] = useState("General");
 
   // Media Upload Dialog
   const [mediaOpen, setMediaOpen] = useState(false);
@@ -76,13 +79,44 @@ const InstitutionAthletes = () => {
     if (!newAthlete.name || !newAthlete.email || !institution) return;
     setSaving(true);
 
-    // NOTE: Institutions cannot directly create profiles/athletes due to RLS.
-    // Athletes must sign up themselves. This action is not supported in the current security model.
-    toast({
-      title: "Not supported",
-      description: "Athletes must register themselves via the signup flow. You can then link them to your institution.",
-      variant: "destructive",
-    });
+    // 1. Invite user via email (creates a Supabase auth user)
+    const { data: signUpData, error: authError } = await supabase.auth.admin?.inviteUserByEmail?.(newAthlete.email) || { data: null, error: null };
+
+    // If no admin API, create profile manually (check if profile with email exists)
+    // 2. Create Profile row (shadow profile)
+    const profileId = crypto.randomUUID();
+    const { error: profileErr } = await supabase.from("profiles")
+      .insert([{ 
+        id: profileId, 
+        name: newAthlete.name, 
+        user_type: "athlete" 
+      } as any]);
+
+    if (profileErr) { handleQueryError(profileErr, "Failed to create athlete profile."); setSaving(false); return; }
+
+    // 3. Create User Role (manual since trigger won't fly without auth.users)
+    const { error: roleErr } = await supabase.from("user_roles" as any).insert([{
+      user_id: profileId,
+      role: "athlete"
+    }]);
+    
+    if (roleErr) { handleQueryError(roleErr, "Failed to assign athlete role."); }
+
+    // 4. Create Athlete record linked to institution
+    const { data: athleteData, error: athleteErr } = await supabase.from("athletes").insert([{
+      profile_id: profileId,
+      institution_id: institution.id,
+      sport: newAthlete.sport,
+      position: newAthlete.position,
+    }]).select("*, profiles(name, avatar)").single();
+
+    if (athleteErr) { handleQueryError(athleteErr, "Failed to create athlete record."); }
+    else {
+      setAthletes([athleteData, ...athletes]);
+      setNewAthlete({ name: "", email: "", sport: "Football", position: "" });
+      setCreateOpen(false);
+      toast({ title: "Athlete profile created!", description: `${newAthlete.name} has been added to your roster.` });
+    }
     setSaving(false);
   };
 
@@ -94,12 +128,14 @@ const InstitutionAthletes = () => {
       institution_id: institution.id,
       feedback_text: feedbackText,
       rating: feedbackRating,
+      category: feedbackCategory,
     }]);
     if (error) { handleQueryError(error); }
     else {
       setFeedbackOpen(false);
       setFeedbackText("");
       setFeedbackRating(4);
+      setFeedbackCategory("General");
       toast({ title: "Feedback submitted!", description: `Feedback for ${selectedAthlete.profiles?.name} has been saved.` });
     }
     setSaving(false);
@@ -217,17 +253,20 @@ const InstitutionAthletes = () => {
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold text-foreground">{ath.profiles?.name || "Athlete"}</div>
-                  <div className="text-xs text-muted-foreground">{ath.position || "—"} · {ath.sport}</div>
+                  <h3 className="text-sm font-semibold text-foreground truncate">{ath.profiles?.name || "Unknown"}</h3>
+                  <p className="text-xs text-muted-foreground">{ath.sport} · {ath.position}</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="text-right mr-2">
-                    <div className="text-base font-display font-bold text-foreground">{Number(ath.performance_score).toFixed(0)}</div>
-                    <div className="flex items-center gap-1 justify-end">
-                      <Zap className="h-3 w-3 text-primary" />
-                      <span className="text-[10px] text-muted-foreground">{getLevelName(ath.level)}</span>
-                    </div>
+                <div className="text-right mr-2">
+                  <div className="text-base font-display font-bold text-foreground">{Number(ath.performance_score).toFixed(0)}</div>
+                  <div className="flex items-center gap-1 justify-end">
+                    <Zap className="h-3 w-3 text-primary" />
+                    <span className="text-[10px] text-muted-foreground">{getLevelName(ath.level)}</span>
                   </div>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => navigate(`/profile?id=${ath.profile_id}`)}>
+                    <User className="h-4 w-4 text-muted-foreground" />
+                  </Button>
                   {/* Media Upload */}
                   <Dialog open={mediaOpen && selectedAthlete?.id === ath.id} onOpenChange={(o) => { setMediaOpen(o); if (o) setSelectedAthlete(ath); }}>
                     <DialogTrigger asChild>
@@ -264,19 +303,40 @@ const InstitutionAthletes = () => {
                       <DialogHeader><DialogTitle>Coach Feedback for {ath.profiles?.name}</DialogTitle></DialogHeader>
                       <div className="space-y-4 pt-2">
                         <div>
-                          <Label>Rating (1–5)</Label>
-                          <div className="flex gap-2 mt-2">
-                            {[1, 2, 3, 4, 5].map(r => (
-                              <button key={r} onClick={() => setFeedbackRating(r)}
-                                className={`w-10 h-10 rounded-full border-2 font-bold text-sm transition-all ${r <= feedbackRating ? "bg-primary border-primary text-primary-foreground" : "border-border text-muted-foreground"}`}>
-                                {r}
-                              </button>
+                          <Label>Feedback Category</Label>
+                          <select
+                            className="mt-1 w-full border border-border rounded-md p-2 bg-background text-foreground text-sm"
+                            value={feedbackCategory}
+                            onChange={e => setFeedbackCategory(e.target.value)}
+                          >
+                            {["General", "Technical Skills", "Tactical Awareness", "Physical Conditioning", "Mental & Attitude"].map(c => (
+                              <option key={c} value={c}>{c}</option>
                             ))}
-                          </div>
+                          </select>
                         </div>
                         <div>
-                          <Label>Feedback</Label>
-                          <Textarea className="mt-1 resize-none" rows={4} placeholder="Your observations and coaching notes..." value={feedbackText} onChange={e => setFeedbackText(e.target.value)} />
+                          <Label>Session Rating (1–5)</Label>
+                          <div className="flex gap-2 mt-2">
+                            {([1, 2, 3, 4, 5] as const).map(r => {
+                              const labels: Record<number, string> = { 1: "Poor", 2: "Below Avg", 3: "Average", 4: "Good", 5: "Excellent" };
+                              return (
+                                <button key={r} onClick={() => setFeedbackRating(r)} title={labels[r]}
+                                  className={`w-10 h-10 rounded-full border-2 font-bold text-sm transition-all flex flex-col items-center justify-center gap-0.5 ${
+                                    r <= feedbackRating ? "bg-primary border-primary text-primary-foreground" : "border-border text-muted-foreground"
+                                  }`}>
+                                  {r}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
+                            <Info className="h-3 w-3" />
+                            {({ 1: "Poor", 2: "Below Average", 3: "Average", 4: "Good", 5: "Excellent" } as Record<number,string>)[feedbackRating]} session
+                          </p>
+                        </div>
+                        <div>
+                          <Label>Coaching Notes</Label>
+                          <Textarea className="mt-1 resize-none" rows={4} placeholder="e.g. Strong pressing in first half, needs to improve positional awareness in defence..." value={feedbackText} onChange={e => setFeedbackText(e.target.value)} />
                         </div>
                         <Button className="w-full" onClick={handleAddFeedback} disabled={saving || !feedbackText}>
                           {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} Submit Feedback

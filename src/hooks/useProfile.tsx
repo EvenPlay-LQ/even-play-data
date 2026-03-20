@@ -8,18 +8,18 @@ interface Profile {
   avatar: string | null;
   bio: string;
   favorite_sport: string;
-  user_type: "athlete" | "institution" | "fan";
+  user_type: "athlete" | "institution" | "fan" | "master_admin";
   reputation: number;
   created_at: string;
   updated_at: string;
 }
 
 interface UserRole {
-  role: "athlete" | "institution" | "coach" | "referee" | "scout" | "fan";
+  role: "athlete" | "institution" | "coach" | "referee" | "scout" | "fan" | "master_admin";
 }
 
 export const useProfile = () => {
-  const { user } = useAuth();
+  const { user, isMasterAdmin } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [roles, setRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,18 +34,26 @@ export const useProfile = () => {
 
     const fetchProfile = async () => {
       setLoading(true);
-      const [profileRes, rolesRes] = await Promise.all([
-        supabase.from("profiles").select("*").eq("id", user.id).single(),
-        supabase.from("user_roles").select("role").eq("user_id", user.id),
-      ]);
+      const profileRes = await supabase.from("profiles").select("*").eq("id", user.id).single();
 
-      if (profileRes.data) setProfile(profileRes.data as unknown as Profile);
-      if (rolesRes.data) setRoles((rolesRes.data as unknown as UserRole[]).map((r) => r.role));
+      if (profileRes.data) {
+        const p = profileRes.data as unknown as Profile;
+        setProfile(p);
+        // Map user_type from profile to roles to keep the hook signature compatible
+        const derivedRoles: string[] = [p.user_type];
+        if (isMasterAdmin && !derivedRoles.includes("master_admin")) {
+          derivedRoles.push("master_admin");
+        }
+        setRoles(derivedRoles);
+      } else {
+        setProfile(null);
+        setRoles(isMasterAdmin ? ["master_admin"] : []);
+      }
       setLoading(false);
     };
 
     fetchProfile();
-  }, [user]);
+  }, [user, isMasterAdmin]);
 
   const updateProfile = async (updates: Partial<Profile>) => {
     if (!user) return { error: new Error("Not authenticated") };
@@ -56,8 +64,8 @@ export const useProfile = () => {
     return { error };
   };
 
-  const hasRole = (role: string) => roles.includes(role);
-  const primaryRole = roles[0] || "fan";
+  const hasRole = (role: string) => roles.includes(role) || (role !== "master_admin" && isMasterAdmin);
+  const primaryRole = isMasterAdmin ? "master_admin" : roles[0] || (profile?.user_type) || "fan";
 
-  return { profile, roles, primaryRole, hasRole, loading, updateProfile };
+  return { profile, roles, primaryRole, hasRole, isMasterAdmin, loading, updateProfile };
 };

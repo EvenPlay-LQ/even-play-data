@@ -30,10 +30,29 @@ const SignupWizard = () => {
   // Athlete-specific
   const [sport, setSport] = useState("Football");
   const [position, setPosition] = useState("");
+  const [squad, setSquad] = useState("");
+  const [positionAbbreviation, setPositionAbbreviation] = useState("");
+  const [nationality, setNationality] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [heightCm, setHeightCm] = useState("");
+  const [weightKg, setWeightKg] = useState("");
+  const [mysafaId, setMysafaId] = useState("");
+  const [fifaId, setFifaId] = useState("");
+  const [playingStyle, setPlayingStyle] = useState("");
 
   // Institution-specific
   const [institutionName, setInstitutionName] = useState("");
+  const [city, setCity] = useState("");
+  const [institutionType, setInstitutionType] = useState("club");
+  const [safaAffiliation, setSafaAffiliation] = useState("");
+  const [sasaRegistration, setSasaRegistration] = useState("");
   const [province, setProvince] = useState("");
+  const [websiteUrl, setWebsiteUrl] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+
+  // Parent-specific
+  const [parentPhone, setParentPhone] = useState("");
+  const [relationship, setRelationship] = useState("parent");
 
   useEffect(() => {
     if (!user) {
@@ -89,23 +108,40 @@ const SignupWizard = () => {
           profile_id: user.id,
           sport: sport || "General",
           position: position || "Player",
+          squad: squad || null,
+          position_abbreviation: positionAbbreviation || null,
+          nationality: nationality || null,
+          date_of_birth: dateOfBirth || null,
+          height_cm: heightCm ? parseFloat(heightCm) : null,
+          weight_kg: weightKg ? parseFloat(weightKg) : null,
+          mysafa_id: mysafaId || null,
+          fifa_id: fifaId || null,
+          playing_style: playingStyle || null,
         }, { onConflict: "profile_id" });
         
-        if (athleteErr) {
-          console.error("[SignupWizard] Athlete upsert error:", athleteErr);
-          throw athleteErr;
-        }
+        if (athleteErr) throw athleteErr;
       } else if (role === "institution") {
         const { error: instErr } = await supabase.from("institutions").upsert({
           profile_id: user.id,
           institution_name: institutionName || name,
+          city: city || null,
+          institution_type: institutionType,
+          safa_affiliation_number: safaAffiliation || null,
+          sasa_registration_number: sasaRegistration || null,
           province: province || null,
+          website_url: websiteUrl || null,
+          contact_phone: contactPhone || null,
         }, { onConflict: "profile_id" });
 
-        if (instErr) {
-          console.error("[SignupWizard] Institution upsert error:", instErr);
-          throw instErr;
-        }
+        if (instErr) throw instErr;
+      } else if (role === "fan") {
+        const { error: parentErr } = await supabase.from("parents" as any).upsert({
+          profile_id: user.id,
+          contact_phone: parentPhone || null,
+          relationship_to_child: relationship || "parent",
+        }, { onConflict: "profile_id" });
+
+        if (parentErr) throw parentErr;
       }
 
       toast({ title: "Welcome to Even Playground! 🎉", description: "Your profile is ready." });
@@ -114,6 +150,7 @@ const SignupWizard = () => {
       setTimeout(() => {
         if (role === "athlete") navigate("/dashboard/athlete");
         else if (role === "institution") navigate("/dashboard/institution");
+        else if (role === "fan") navigate("/dashboard/parent");
         else navigate("/buzz");
       }, 500);
 
@@ -170,7 +207,7 @@ const SignupWizard = () => {
                     {[
                       { value: "athlete", label: "Athlete", sub: "Track stats, build your profile, get scouted.", Icon: Trophy, color: "text-energy", bg: "bg-energy/10" },
                       { value: "institution", label: "Institution / Club", sub: "Manage teams, verify matches, scout talent.", Icon: Building2, color: "text-stat-blue", bg: "bg-stat-blue/10" },
-                      { value: "fan", label: "Fan / Supporter", sub: "Follow athletes, engage with the community.", Icon: User, color: "text-gold", bg: "bg-gold/10" },
+                      { value: "fan", label: "Parent / Spectator", sub: "Follow athletes, monitor progress, engage with the community.", Icon: User, color: "text-gold", bg: "bg-gold/10" },
                     ].map(({ value, label, sub, Icon, color, bg }) => (
                       <button key={value} onClick={() => setRole(value as UserRole)}
                         className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all ${role === value ? "border-primary bg-primary/5" : "border-border hover:border-primary/30"}`}>
@@ -224,34 +261,94 @@ const SignupWizard = () => {
 
               {/* ── Step 3: Role-specific ── */}
               {step === 3 && (
-                <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+                <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
                   <div>
                     <h2 className="text-2xl font-display font-bold text-foreground">Almost there</h2>
-                    <p className="text-muted-foreground mt-1">
-                      {role === "athlete" ? "Tell us about your game." : "Your profile is ready to be created."}
-                    </p>
+                    <p className="text-muted-foreground mt-1">Provide some additional details.</p>
                   </div>
                   {role === "athlete" ? (
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="sport">Primary Sport</Label>
-                        <select id="sport" value={sport} onChange={e => setSport(e.target.value)}
-                          className="mt-1 w-full border border-border rounded-md p-2 bg-background text-foreground text-sm">
-                          {SPORT_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-                        </select>
+                    <div className="space-y-4 pb-2">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="sport">Primary Sport</Label>
+                          <select id="sport" value={sport} onChange={e => setSport(e.target.value)} className="mt-1 w-full border border-border rounded-md p-2 bg-background text-foreground text-sm">
+                            {SPORT_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <Label htmlFor="position">Position</Label>
+                          <Input id="position" value={position} onChange={e => setPosition(e.target.value)} placeholder="e.g. Striker" className="mt-1" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="heightCm">Height (cm)</Label>
+                          <Input id="heightCm" type="number" value={heightCm} onChange={e => setHeightCm(e.target.value)} placeholder="180" className="mt-1" />
+                        </div>
+                        <div>
+                          <Label htmlFor="weightKg">Weight (kg)</Label>
+                          <Input id="weightKg" type="number" value={weightKg} onChange={e => setWeightKg(e.target.value)} placeholder="75" className="mt-1" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="nationality">Nationality</Label>
+                          <Input id="nationality" value={nationality} onChange={e => setNationality(e.target.value)} placeholder="e.g. ZA" className="mt-1" />
+                        </div>
+                        <div>
+                          <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                          <Input id="dateOfBirth" type="date" value={dateOfBirth} onChange={e => setDateOfBirth(e.target.value)} className="mt-1" />
+                        </div>
                       </div>
                       <div>
-                        <Label htmlFor="position">Position</Label>
-                        <Input id="position" value={position} onChange={e => setPosition(e.target.value)} placeholder="e.g. Striker" className="mt-1" />
+                        <Label htmlFor="playingStyle">Playing Style / Description</Label>
+                        <Input id="playingStyle" value={playingStyle} onChange={e => setPlayingStyle(e.target.value)} placeholder="e.g. Box-to-box midfielder" className="mt-1" />
+                      </div>
+                    </div>
+                  ) : role === "institution" ? (
+                    <div className="space-y-4 pb-2">
+                      <div>
+                        <Label htmlFor="institutionType">Institution Type</Label>
+                        <select id="institutionType" value={institutionType} onChange={e => setInstitutionType(e.target.value)} className="mt-1 w-full border border-border rounded-md p-2 bg-background text-foreground text-sm">
+                          <option value="school">School</option>
+                          <option value="club">Club</option>
+                          <option value="academy">Academy</option>
+                          <option value="federation">Federation</option>
+                        </select>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="province">Province / State</Label>
+                          <Input id="province" value={province} onChange={e => setProvince(e.target.value)} placeholder="e.g. Gauteng" className="mt-1" />
+                        </div>
+                        <div>
+                          <Label htmlFor="contactPhone">Contact Phone</Label>
+                          <Input id="contactPhone" type="tel" value={contactPhone} onChange={e => setContactPhone(e.target.value)} placeholder="+27..." className="mt-1" />
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="websiteUrl">Website URL</Label>
+                        <Input id="websiteUrl" value={websiteUrl} onChange={e => setWebsiteUrl(e.target.value)} placeholder="https://..." className="mt-1" />
                       </div>
                     </div>
                   ) : (
-                    <div className="py-8 text-center">
-                      <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                        <CheckCircle className="h-8 w-8 text-primary" />
+                    <div className="space-y-4 pb-2">
+                      <div>
+                        <Label htmlFor="parentPhone">Contact Phone</Label>
+                        <Input id="parentPhone" type="tel" value={parentPhone} onChange={e => setParentPhone(e.target.value)} placeholder="+27..." className="mt-1" />
                       </div>
-                      <p className="text-foreground font-semibold">All set!</p>
-                      <p className="text-muted-foreground text-sm mt-1">Click "Complete Setup" to create your profile.</p>
+                      <div>
+                        <Label htmlFor="relationship">Relationship to Child</Label>
+                        <select id="relationship" value={relationship} onChange={e => setRelationship(e.target.value)} className="mt-1 w-full border border-border rounded-md p-2 bg-background text-foreground text-sm">
+                          <option value="parent">Parent</option>
+                          <option value="guardian">Guardian</option>
+                          <option value="spectator">Spectator / Fan</option>
+                        </select>
+                      </div>
+                      <div className="py-4 text-center">
+                        <CheckCircle className="h-8 w-8 text-primary mx-auto mb-2" />
+                        <p className="text-sm text-muted-foreground">You can link your child's profile from your dashboard later.</p>
+                      </div>
                     </div>
                   )}
                 </motion.div>

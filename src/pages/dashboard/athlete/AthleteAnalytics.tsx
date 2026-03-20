@@ -5,8 +5,13 @@ import {
 } from "lucide-react";
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend
+  Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend
 } from "recharts";
+import {
+  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger
+} from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
+import { performanceMetricSchema } from "@/lib/validations";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,30 +28,34 @@ import { useToast } from "@/hooks/use-toast";
 import { handleQueryError } from "@/lib/queryHelpers";
 
 interface MetricForm {
-  speed: number;
-  endurance: number;
-  strength: number;
-  reaction_time: number;
-  agility: number;
-  training_hours_per_week: number;
+  sprint_40m_s?: number;
+  vo2_max?: number;
+  bench_press_1rm_kg?: number;
+  squat_1rm_kg?: number;
+  illinois_agility_s?: number;
+  vertical_jump_cm?: number;
+  reaction_time?: number;
+  training_hours_per_week?: number;
   recorded_at: string;
 }
 
 const defaultMetricForm: MetricForm = {
-  speed: 70,
-  endurance: 70,
-  strength: 70,
+  sprint_40m_s: undefined,
+  vo2_max: undefined,
+  bench_press_1rm_kg: undefined,
+  squat_1rm_kg: undefined,
+  illinois_agility_s: undefined,
+  vertical_jump_cm: undefined,
   reaction_time: 0.35,
-  agility: 70,
   training_hours_per_week: 10,
   recorded_at: new Date().toISOString().split("T")[0],
 };
 
 const CHART_COLORS = {
-  speed: "#F97316",
-  endurance: "#3B82F6",
-  strength: "#A855F7",
-  agility: "#EC4899",
+  sprint_40m_s: "#F97316",
+  vo2_max: "#3B82F6",
+  bench_press_1rm_kg: "#A855F7",
+  vertical_jump_cm: "#EC4899",
 };
 
 const PIE_COLORS = ["#22C55E", "#EAB308", "#EF4444"];
@@ -89,6 +98,18 @@ const AthleteAnalytics = () => {
 
   const handleAddMetrics = async () => {
     if (!athlete) return;
+    
+    // Validate with Zod
+    const result = performanceMetricSchema.safeParse(form);
+    if (!result.success) {
+      toast({ 
+        title: "Validation Error", 
+        description: result.error.issues[0].message,
+        variant: "destructive"
+      });
+      return;
+    }
+
     setSaving(true);
     const { data, error } = await supabase.from("performance_metrics" as any)
       .insert([{ ...form, athlete_id: athlete.id }])
@@ -131,12 +152,12 @@ const AthleteAnalytics = () => {
     goals: m.goals || 0,
   }));
 
-  const metricsChartData = metrics.map((m) => ({
+  const metricsChartData = metrics.slice(-12).map((m) => ({
     date: new Date(m.recorded_at).toLocaleDateString("en", { month: "short", day: "numeric" }),
-    speed: m.speed,
-    endurance: m.endurance,
-    strength: m.strength,
-    agility: m.agility,
+    sprint_40m_s: m.sprint_40m_s,
+    vo2_max: m.vo2_max,
+    bench_press_1rm_kg: m.bench_press_1rm_kg,
+    vertical_jump_cm: m.vertical_jump_cm,
   }));
 
   const pieData = [
@@ -160,35 +181,117 @@ const AthleteAnalytics = () => {
             <DialogTrigger asChild>
               <Button variant="outline"><Plus className="h-4 w-4 mr-1" /> Record Metrics</Button>
             </DialogTrigger>
-            <DialogContent className="max-h-[90vh] overflow-y-auto">
-              <DialogHeader><DialogTitle>Record Performance Metrics</DialogTitle></DialogHeader>
-              <div className="space-y-4 pt-2">
-                <div>
-                  <Label>Date</Label>
-                  <Input type="date" className="mt-1" value={form.recorded_at} onChange={e => setForm({ ...form, recorded_at: e.target.value })} />
-                </div>
-                {([
-                  { key: "speed", label: "Speed (0–100)", max: 100, step: 1 },
-                  { key: "endurance", label: "Endurance (0–100)", max: 100, step: 1 },
-                  { key: "strength", label: "Strength (0–100)", max: 100, step: 1 },
-                  { key: "agility", label: "Agility (0–100)", max: 100, step: 1 },
-                  { key: "reaction_time", label: "Reaction Time (seconds)", max: 1, step: 0.01 },
-                  { key: "training_hours_per_week", label: "Training Hours / Week", max: 40, step: 0.5 },
-                ] as const).map(f => (
-                  <div key={f.key}>
-                    <div className="flex justify-between">
-                      <Label>{f.label}</Label>
-                      <span className="text-sm font-semibold text-foreground">{(form as any)[f.key]}</span>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader><DialogTitle>Record Industry-Standard Metrics</DialogTitle></DialogHeader>
+              <TooltipProvider>
+                <div className="space-y-6 pt-2">
+                  <div className="bg-muted/30 p-4 rounded-lg border border-border">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">General Info</Label>
+                    <div className="mt-3">
+                      <Label>Test Date</Label>
+                      <Input type="date" className="mt-1" value={form.recorded_at} onChange={e => setForm({ ...form, recorded_at: e.target.value })} />
+                      <p className="text-[10px] text-muted-foreground mt-1">Select the date these tests were performed.</p>
                     </div>
-                    <input type="range" min={0} max={f.max} step={f.step} value={(form as any)[f.key]}
-                      onChange={e => setForm({ ...form, [f.key]: Number(e.target.value) })}
-                      className="w-full mt-2 accent-primary" />
                   </div>
-                ))}
-                <Button className="w-full" onClick={handleAddMetrics} disabled={saving}>
-                  {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} Save Metrics
-                </Button>
-              </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Speed & Agility */}
+                    <div className="space-y-4">
+                      <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Speed & Agility</Label>
+                      
+                      <div className="bg-card p-4 rounded-xl border border-border space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Label className="flex items-center gap-1.5">
+                            40m Sprint (s)
+                            <Tooltip>
+                              <TooltipTrigger><Info className="h-3.5 w-3.5 text-muted-foreground" /></TooltipTrigger>
+                              <TooltipContent><p className="max-w-xs">Measures explosive speed and acceleration from a standing start.</p></TooltipContent>
+                            </Tooltip>
+                          </Label>
+                        </div>
+                        <Input type="number" step="0.01" placeholder="e.g. 4.85" value={form.sprint_40m_s || ""} onChange={e => setForm({ ...form, sprint_40m_s: Number(e.target.value) })} />
+                        <p className="text-[10px] text-muted-foreground">Typical range: 4.5s - 6.5s.</p>
+                      </div>
+
+                      <div className="bg-card p-4 rounded-xl border border-border space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Label className="flex items-center gap-1.5">
+                            Illinois Agility (s)
+                            <Tooltip>
+                              <TooltipTrigger><Info className="h-3.5 w-3.5 text-muted-foreground" /></TooltipTrigger>
+                              <TooltipContent><p className="max-w-xs">Standardized test for change of direction speed and maneuverability.</p></TooltipContent>
+                            </Tooltip>
+                          </Label>
+                        </div>
+                        <Input type="number" step="0.01" placeholder="e.g. 15.20" value={form.illinois_agility_s || ""} onChange={e => setForm({ ...form, illinois_agility_s: Number(e.target.value) })} />
+                        <p className="text-[10px] text-muted-foreground">Typical range: 14s - 20s.</p>
+                      </div>
+                    </div>
+
+                    {/* Strength & Power */}
+                    <div className="space-y-4">
+                      <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Strength & Power</Label>
+                      
+                      <div className="bg-card p-4 rounded-xl border border-border space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Label className="flex items-center gap-1.5">
+                            1RM Bench Press (kg)
+                            <Tooltip>
+                              <TooltipTrigger><Info className="h-3.5 w-3.5 text-muted-foreground" /></TooltipTrigger>
+                              <TooltipContent><p className="max-w-xs">One-Rep Maximum: The maximum weight you can lift for a single repetition.</p></TooltipContent>
+                            </Tooltip>
+                          </Label>
+                        </div>
+                        <Input type="number" placeholder="e.g. 80" value={form.bench_press_1rm_kg || ""} onChange={e => setForm({ ...form, bench_press_1rm_kg: Number(e.target.value) })} />
+                        <p className="text-[10px] text-muted-foreground">Enter your verified peak lift.</p>
+                      </div>
+
+                      <div className="bg-card p-4 rounded-xl border border-border space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Label className="flex items-center gap-1.5">
+                            Vertical Jump (cm)
+                            <Tooltip>
+                              <TooltipTrigger><Info className="h-3.5 w-3.5 text-muted-foreground" /></TooltipTrigger>
+                              <TooltipContent><p className="max-w-xs">Measures explosive lower body power and leaping ability.</p></TooltipContent>
+                            </Tooltip>
+                          </Label>
+                        </div>
+                        <Input type="number" placeholder="e.g. 65" value={form.vertical_jump_cm || ""} onChange={e => setForm({ ...form, vertical_jump_cm: Number(e.target.value) })} />
+                        <p className="text-[10px] text-muted-foreground">Best jump out of 3 attempts.</p>
+                      </div>
+                    </div>
+
+                    {/* Aerobic & Training */}
+                    <div className="md:col-span-2 space-y-4">
+                      <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Aerobic & Training</Label>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="bg-card p-4 rounded-xl border border-border space-y-3">
+                          <Label className="flex items-center gap-1.5">
+                            VO2 Max (ml/kg/min)
+                            <Tooltip>
+                              <TooltipTrigger><Info className="h-3.5 w-3.5 text-muted-foreground" /></TooltipTrigger>
+                              <TooltipContent><p className="max-w-xs">Measures the maximum amount of oxygen you can utilize during intense exercise.</p></TooltipContent>
+                            </Tooltip>
+                          </Label>
+                          <Input type="number" step="0.1" placeholder="e.g. 52.5" value={form.vo2_max || ""} onChange={e => setForm({ ...form, vo2_max: Number(e.target.value) })} />
+                          <p className="text-[10px] text-muted-foreground">Professional athletes range 55 - 85.</p>
+                        </div>
+
+                        <div className="bg-card p-4 rounded-xl border border-border space-y-3">
+                          <Label>Training Hours / Week</Label>
+                          <Input type="number" step="0.5" placeholder="e.g. 12" value={form.training_hours_per_week || ""} onChange={e => setForm({ ...form, training_hours_per_week: Number(e.target.value) })} />
+                          <p className="text-[10px] text-muted-foreground">Total structured training time.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button className="w-full h-12 text-base font-bold shadow-elevated" onClick={handleAddMetrics} disabled={saving}>
+                    {saving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Zap className="mr-2 h-5 w-5" />}
+                    Save Performance Record
+                  </Button>
+                </div>
+              </TooltipProvider>
             </DialogContent>
           </Dialog>
         </div>
@@ -227,7 +330,7 @@ const AthleteAnalytics = () => {
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
                     <YAxis domain={[0, 10]} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
-                    <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
+                    <RechartsTooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
                     <Line type="monotone" dataKey="rating" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4, fill: "hsl(var(--primary))" }} name="Rating" />
                   </LineChart>
                 </ResponsiveContainer>
@@ -244,7 +347,7 @@ const AthleteAnalytics = () => {
                       <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
                         {pieData.map((_, idx) => <Cell key={idx} fill={PIE_COLORS[idx]} />)}
                       </Pie>
-                      <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
+                      <RechartsTooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -258,7 +361,7 @@ const AthleteAnalytics = () => {
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
                       <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} allowDecimals={false} />
-                      <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
+                      <RechartsTooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
                       <Bar dataKey="goals" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Goals" />
                     </BarChart>
                   </ResponsiveContainer>
@@ -277,10 +380,11 @@ const AthleteAnalytics = () => {
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis dataKey="date" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
                     <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
-                    <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
+                    <RechartsTooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
                     <Legend />
                     {Object.entries(CHART_COLORS).map(([key, color]) => (
-                      <Line key={key} type="monotone" dataKey={key} stroke={color} strokeWidth={2} dot={false} name={key.charAt(0).toUpperCase() + key.slice(1)} />
+                      <Line key={key} type="monotone" dataKey={key} stroke={color} strokeWidth={2} dot={false} 
+                        name={key.replace(/_/g, " ").replace(" s", "(s)").replace(" kg", "(kg)").toUpperCase()} />
                     ))}
                   </LineChart>
                 </ResponsiveContainer>
@@ -293,19 +397,19 @@ const AthleteAnalytics = () => {
                 <h2 className="font-display font-semibold text-foreground mb-4 flex items-center gap-2">
                   <Zap className="h-4 w-4 text-primary" /> Current Fitness Snapshot
                 </h2>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {[
-                    { label: "Speed", value: latestMetrics.speed, max: 100 },
-                    { label: "Endurance", value: latestMetrics.endurance, max: 100 },
-                    { label: "Strength", value: latestMetrics.strength, max: 100 },
-                    { label: "Agility", value: latestMetrics.agility, max: 100 },
+                    { label: "40m Sprint", value: latestMetrics.sprint_40m_s, unit: "s", max: 10, inverse: true },
+                    { label: "VO2 Max", value: latestMetrics.vo2_max, unit: " ml/kg", max: 100 },
+                    { label: "1RM Bench", value: latestMetrics.bench_press_1rm_kg, unit: "kg", max: 200 },
+                    { label: "Vert Jump", value: latestMetrics.vertical_jump_cm, unit: "cm", max: 120 },
                   ].map(m => (
                     <div key={m.label}>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-muted-foreground">{m.label}</span>
-                        <span className="font-semibold text-foreground">{m.value}</span>
+                      <div className="flex justify-between text-xs mb-1.5 align-bottom">
+                        <span className="text-muted-foreground font-medium">{m.label}</span>
+                        <span className="font-display font-bold text-foreground">{m.value || "—"}<span className="text-[10px] ml-0.5 font-normal text-muted-foreground">{m.unit}</span></span>
                       </div>
-                      <Progress value={Math.min((m.value / m.max) * 100, 100)} className="h-2" />
+                      <Progress value={m.value ? (m.inverse ? (1 - (m.value / m.max)) * 100 : (m.value / m.max) * 100) : 0} className="h-1.5" />
                     </div>
                   ))}
                   <div className="flex items-center justify-between pt-2 border-t border-border mt-2">

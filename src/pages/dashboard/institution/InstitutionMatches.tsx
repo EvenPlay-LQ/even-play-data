@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, Plus, X, Loader2, ClipboardList } from "lucide-react";
+import { Calendar, Plus, Loader2, ClipboardList, Info } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,10 +14,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { handleQueryError } from "@/lib/queryHelpers";
+import { PERFORMANCE_KPIS } from "@/config/constants";
 
 interface Athlete { id: string; profiles?: { name: string }; sport: string; position: string | null; }
-interface MatchReportForm { athlete_id: string; match_date: string; opponent: string; goals: number; assists: number; rating: number; notes: string; }
-interface PerformanceTestForm { athlete_id: string; metric_name: string; value: number; unit: string; test_date: string; }
+interface MatchReportForm { athlete_id: string; match_date: string; opponent: string; goals: number; assists: number; minutes_played: number; rating: number; notes: string; }
+interface PerformanceTestForm { athlete_id: string; kpi_id: string; value: number; unit: string; test_date: string; }
+
+const RATING_LABELS: Record<number, string> = {
+  1: "Very Poor", 2: "Poor", 3: "Below Average", 4: "Below Average",
+  5: "Average", 6: "Average", 7: "Good", 8: "Very Good", 9: "Excellent", 10: "Outstanding",
+};
 
 const InstitutionMatches = () => {
   const { user } = useAuth();
@@ -31,10 +37,10 @@ const InstitutionMatches = () => {
   const [saving, setSaving] = useState(false);
 
   const [matchForm, setMatchForm] = useState<MatchReportForm>({
-    athlete_id: "", match_date: "", opponent: "", goals: 0, assists: 0, rating: 7, notes: ""
+    athlete_id: "", match_date: "", opponent: "", goals: 0, assists: 0, minutes_played: 90, rating: 7, notes: ""
   });
   const [testForm, setTestForm] = useState<PerformanceTestForm>({
-    athlete_id: "", metric_name: "", value: 0, unit: "", test_date: new Date().toISOString().split("T")[0]
+    athlete_id: "", kpi_id: "", value: 0, unit: "", test_date: new Date().toISOString().split("T")[0]
   });
   const [matchOpen, setMatchOpen] = useState(false);
   const [testOpen, setTestOpen] = useState(false);
@@ -86,13 +92,13 @@ const InstitutionMatches = () => {
       goals: matchForm.goals,
       assists: matchForm.assists,
       rating: matchForm.rating,
-      minutes_played: 90,
+      minutes_played: matchForm.minutes_played,
     }]).select("*, athletes(profiles(name))").single();
 
     if (statErr) { handleQueryError(statErr, "Failed to add match stats."); }
     else {
       setMatchReports([statData, ...matchReports]);
-      setMatchForm({ athlete_id: "", match_date: "", opponent: "", goals: 0, assists: 0, rating: 7, notes: "" });
+      setMatchForm({ athlete_id: "", match_date: "", opponent: "", goals: 0, assists: 0, minutes_played: 90, rating: 7, notes: "" });
       setMatchOpen(false);
       toast({ title: "Match report added!" });
     }
@@ -100,16 +106,21 @@ const InstitutionMatches = () => {
   };
 
   const handleAddPerfTest = async () => {
-    if (!institution || !testForm.athlete_id || !testForm.metric_name) return;
+    if (!institution || !testForm.athlete_id || !testForm.kpi_id) return;
     setSaving(true);
+    const selectedKpi = PERFORMANCE_KPIS.find(k => k.id === testForm.kpi_id);
     const { data, error } = await supabase.from("performance_tests" as any).insert([{
-      ...testForm,
+      athlete_id: testForm.athlete_id,
+      metric_name: selectedKpi?.label ?? testForm.kpi_id,
+      value: testForm.value,
+      unit: selectedKpi?.unit ?? testForm.unit,
+      test_date: testForm.test_date,
       institution_id: institution.id,
     }]).select("*, athletes(profiles(name))").single();
     if (error) { handleQueryError(error, "Failed to add test."); }
     else {
       setPerfTests([data, ...perfTests]);
-      setTestForm({ athlete_id: "", metric_name: "", value: 0, unit: "", test_date: new Date().toISOString().split("T")[0] });
+      setTestForm({ athlete_id: "", kpi_id: "", value: 0, unit: "", test_date: new Date().toISOString().split("T")[0] });
       setTestOpen(false);
       toast({ title: "Performance test recorded!" });
     }
@@ -148,20 +159,26 @@ const InstitutionMatches = () => {
                       <Input type="date" className="mt-1" value={matchForm.match_date} onChange={e => setMatchForm({ ...matchForm, match_date: e.target.value })} />
                     </div>
                     <div>
-                      <Label>Opponent</Label>
-                      <Input className="mt-1" placeholder="e.g. City FC" value={matchForm.opponent} onChange={e => setMatchForm({ ...matchForm, opponent: e.target.value })} />
+                      <Label>Opponent / Competition</Label>
+                      <Input className="mt-1" placeholder="e.g. City FC · League Cup" value={matchForm.opponent} onChange={e => setMatchForm({ ...matchForm, opponent: e.target.value })} />
                     </div>
                     <div>
-                      <Label>Goals</Label>
-                      <Input type="number" min="0" className="mt-1" value={matchForm.goals} onChange={e => setMatchForm({ ...matchForm, goals: Number(e.target.value) })} />
+                      <Label>Goals Scored</Label>
+                      <Input type="number" min="0" max="20" className="mt-1" value={matchForm.goals} onChange={e => setMatchForm({ ...matchForm, goals: Number(e.target.value) })} />
                     </div>
                     <div>
                       <Label>Assists</Label>
-                      <Input type="number" min="0" className="mt-1" value={matchForm.assists} onChange={e => setMatchForm({ ...matchForm, assists: Number(e.target.value) })} />
+                      <Input type="number" min="0" max="20" className="mt-1" value={matchForm.assists} onChange={e => setMatchForm({ ...matchForm, assists: Number(e.target.value) })} />
                     </div>
-                    <div className="col-span-2">
-                      <Label>Rating (1–10)</Label>
-                      <Input type="number" min="1" max="10" step="0.1" className="mt-1" value={matchForm.rating} onChange={e => setMatchForm({ ...matchForm, rating: Number(e.target.value) })} />
+                    <div>
+                      <Label>Minutes Played</Label>
+                      <Input type="number" min="0" max="120" className="mt-1" placeholder="e.g. 90" value={matchForm.minutes_played} onChange={e => setMatchForm({ ...matchForm, minutes_played: Number(e.target.value) })} />
+                      <p className="text-[11px] text-muted-foreground mt-1">Standard = 90, extra time = up to 120</p>
+                    </div>
+                    <div>
+                      <Label>Player Rating (1–10)</Label>
+                      <Input type="number" min="1" max="10" step="0.5" className="mt-1" value={matchForm.rating} onChange={e => setMatchForm({ ...matchForm, rating: Number(e.target.value) })} />
+                      <p className="text-[11px] text-muted-foreground mt-1">{RATING_LABELS[Math.round(matchForm.rating)] ?? ""} · {matchForm.rating}/10</p>
                     </div>
                   </div>
                   <div>
@@ -192,23 +209,41 @@ const InstitutionMatches = () => {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="col-span-2">
-                      <Label>Metric Name</Label>
-                      <Input className="mt-1" placeholder="e.g. 40m Sprint, Vertical Jump" value={testForm.metric_name} onChange={e => setTestForm({ ...testForm, metric_name: e.target.value })} />
+                      <Label>KPI / Metric</Label>
+                      <select
+                        className="mt-1 w-full border border-border rounded-md p-2 bg-background text-foreground text-sm"
+                        value={testForm.kpi_id}
+                        onChange={e => {
+                          const kpi = PERFORMANCE_KPIS.find(k => k.id === e.target.value);
+                          setTestForm({ ...testForm, kpi_id: e.target.value, unit: kpi?.unit ?? "" });
+                        }}
+                      >
+                        <option value="">Select a standardized KPI…</option>
+                        {PERFORMANCE_KPIS.map(k => (
+                          <option key={k.id} value={k.id}>{k.label} ({k.unit}) — {k.category}</option>
+                        ))}
+                      </select>
+                      {testForm.kpi_id && (
+                        <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
+                          <Info className="h-3 w-3" />
+                          {PERFORMANCE_KPIS.find(k => k.id === testForm.kpi_id)?.description}
+                        </p>
+                      )}
                     </div>
                     <div>
-                      <Label>Value</Label>
+                      <Label>Result Value</Label>
                       <Input type="number" step="0.01" className="mt-1" value={testForm.value} onChange={e => setTestForm({ ...testForm, value: Number(e.target.value) })} />
                     </div>
                     <div>
                       <Label>Unit</Label>
-                      <Input className="mt-1" placeholder="e.g. sec, cm, kg" value={testForm.unit} onChange={e => setTestForm({ ...testForm, unit: e.target.value })} />
+                      <Input className="mt-1" readOnly value={testForm.unit} placeholder="Auto-filled" />
                     </div>
                     <div className="col-span-2">
                       <Label>Test Date</Label>
                       <Input type="date" className="mt-1" value={testForm.test_date} onChange={e => setTestForm({ ...testForm, test_date: e.target.value })} />
                     </div>
                   </div>
-                  <Button className="w-full" onClick={handleAddPerfTest} disabled={saving || !testForm.athlete_id || !testForm.metric_name}>
+                  <Button className="w-full" onClick={handleAddPerfTest} disabled={saving || !testForm.athlete_id || !testForm.kpi_id}>
                     {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} Save Test Result
                   </Button>
                 </div>

@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { loginSchema, signupSchema, forgotPasswordSchema } from "@/lib/validations";
 
 type AuthMode = "login" | "signup" | "forgot" | "verify";
-type UserRole = "athlete" | "institution";
+type UserRole = "athlete" | "institution" | "fan";
 
 const LoginPage = () => {
   const [mode, setMode] = useState<AuthMode>("login");
@@ -112,7 +112,10 @@ const LoginPage = () => {
         }
 
         // Role-based routing
-        switch (profile.user_type) {
+        switch (profile.user_type as string) {
+          case "master_admin":
+            navigate("/admin");
+            break;
           case "institution":
             navigate("/dashboard/institution");
             break;
@@ -210,6 +213,7 @@ const LoginPage = () => {
                   {([
                     { value: "athlete", label: "Athlete", sub: "Track performance", Icon: User },
                     { value: "institution", label: "Institution", sub: "Manage teams", Icon: Building2 },
+                    { value: "fan", label: "Parent / Fan", sub: "Follow & support", Icon: CheckCircle },
                   ] as const).map(({ value, label, sub, Icon }) => (
                     <button key={value} type="button" onClick={() => setRole(value)}
                       className={`flex items-center sm:flex-col sm:items-start md:flex-row md:items-center gap-3 p-3 sm:p-4 rounded-xl border-2 transition-all ${role === value ? "border-primary bg-primary/5 shadow-sm" : "border-border hover:border-muted-foreground/30"}`}>
@@ -239,7 +243,7 @@ const LoginPage = () => {
                 {mode !== "forgot" && (
                   <div>
                     <Label htmlFor="password">Password</Label>
-                    <Input id="password" type="password" placeholder="••••••••" className="mt-1.5" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
+                    <Input id="password" type="password" placeholder="••••••••" className="mt-1.5" value={password} onChange={e => setPassword(e.target.value)} required minLength={mode === "signup" ? 8 : 1} />
                     {errors.password && <p className="text-xs text-destructive mt-1">{errors.password}</p>}
                   </div>
                 )}

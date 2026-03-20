@@ -6,6 +6,7 @@ interface AuthContextType {
   session: Session | null;
   user: User | null;
   loading: boolean;
+  isMasterAdmin: boolean;
   signUp: (email: string, password: string, metadata?: Record<string, unknown>) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -17,6 +18,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isMasterAdmin, setIsMasterAdmin] = useState(false);
+
+  const checkMasterAdmin = async (userId: string) => {
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", "master_admin" as any)
+      .maybeSingle();
+    setIsMasterAdmin(!!data);
+  };
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -24,6 +36,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        if (session?.user) {
+          // Defer to avoid Supabase deadlock during auth state change
+          setTimeout(() => checkMasterAdmin(session.user.id), 0);
+        } else {
+          setIsMasterAdmin(false);
+        }
       }
     );
 
@@ -31,6 +49,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      if (session?.user) {
+        checkMasterAdmin(session.user.id);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -67,10 +88,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    setIsMasterAdmin(false);
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ session, user, loading, isMasterAdmin, signUp, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );

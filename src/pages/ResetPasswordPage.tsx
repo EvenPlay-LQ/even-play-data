@@ -92,7 +92,7 @@ const ResetPasswordPage = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength={6}
+                minLength={8}
               />
               {errors.password && <p className="text-xs text-destructive mt-1">{errors.password}</p>}
             </div>
@@ -106,7 +106,7 @@ const ResetPasswordPage = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                minLength={6}
+                minLength={8}
               />
               {errors.confirmPassword && <p className="text-xs text-destructive mt-1">{errors.confirmPassword}</p>}
             </div>
