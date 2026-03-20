@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Save, Loader2, Plus, Trash2, Building2, CalendarDays, ChevronDown, ChevronUp } from "lucide-react";
+import { User, Save, Loader2, Plus, Trash2, Building2, CalendarDays, ChevronDown, ChevronUp, Upload } from "lucide-react";
+import FileUpload from "@/components/FileUpload";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
