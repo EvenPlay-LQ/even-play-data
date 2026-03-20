@@ -284,7 +284,6 @@ const AthleteProfilePage = () => {
             maxSizeMB={10}
             folder="profile-docs"
             onUploadComplete={(files) => {
-              console.log("Uploaded files:", files);
             }}
           />
         </div>

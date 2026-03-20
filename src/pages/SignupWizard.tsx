@@ -84,7 +84,6 @@ const SignupWizard = () => {
     setSaving(true);
 
     try {
-      console.log("[SignupWizard] Starting setup for role:", role);
 
       // 1. Upsert the profile row (trigger may have already created it, but we update with wizard info)
       const { error: profileError } = await supabase

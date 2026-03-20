@@ -25,7 +25,7 @@ const ParentDashboard = () => {
       const { data: parentData, error: parentErr } = await supabase
         .from("parents" as any)
         .select("*")
-        .eq("profile_id", user.id)
+        .eq("user_id", user.id)
         .maybeSingle();
       
       if (parentData && !parentErr) {
@@ -33,13 +33,25 @@ const ParentDashboard = () => {
         setParent(p);
         
         // 2. Fetch linked athletes
+        // We join profiles (for name/avatar) and then join athletes (for stats)
         const { data: links } = await (supabase
-          .from("parent_athletes" as any)
-          .select("athlete_id, athletes(*, profiles(name, avatar))")
-          .eq("parent_id", p.id) as any);
+          .from("parent_athlete_links" as any)
+          .select("athlete_user_id, athlete:profiles!athlete_user_id(name, avatar, athletes(*))")
+          .eq("parent_user_id", user.id) as any);
         
         if (links) {
-          setLinkedAthletes(links.map((l: any) => l.athletes));
+          setLinkedAthletes(links.map((l: any) => {
+            const athleteProfile = l.athlete;
+            const athleteData = athleteProfile.athletes?.[0] || athleteProfile.athletes;
+            return {
+              ...athleteData,
+              profile_id: l.athlete_user_id,
+              profiles: {
+                name: athleteProfile.name,
+                avatar: athleteProfile.avatar
+              }
+            };
+          }));
         }
       }
       setLoading(false);
