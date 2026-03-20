@@ -112,15 +112,14 @@ const AthleteProfilePage = () => {
     
     setSaving(true);
     try {
-      // 1. Upsert Profile
+      // 1. Update Profile (using update instead of upsert to avoid RLS INSERT conflicts for existing rows)
       const { error: profileError } = await supabase
         .from("profiles")
-        .upsert({
-          id: user.id,
+        .update({
           name: name.trim(),
           bio: bio.trim(),
-          updated_at: new Date().toISOString(),
-        }, { onConflict: "id" });
+        })
+        .eq("id", user.id);
 
       if (profileError) throw profileError;
 
@@ -134,7 +133,6 @@ const AthleteProfilePage = () => {
           province: province || null,
           country: country || null,
           date_of_birth: dob || null,
-          updated_at: new Date().toISOString(),
         }, { onConflict: "profile_id" });
 
       if (athleteError) throw athleteError;
