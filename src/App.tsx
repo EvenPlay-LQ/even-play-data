@@ -51,6 +51,7 @@ const App = () => (
                 {/* Public */}
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/auth/callback" element={<AuthCallbackPage />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/why-join" element={<WhyJoin />} />
                 <Route path="/features" element={<Features />} />

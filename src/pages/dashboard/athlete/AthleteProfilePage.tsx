@@ -270,6 +270,24 @@ const AthleteProfilePage = () => {
             </div>
           )}
         </div>
+
+        {/* Document Upload Card */}
+        <div className="bg-card rounded-xl p-6 border border-border shadow-card">
+          <h2 className="font-display font-semibold text-foreground flex items-center gap-2 mb-4">
+            <Upload className="h-4 w-4 text-primary" /> Documents & Media
+          </h2>
+          <p className="text-xs text-muted-foreground mb-4">
+            Upload certificates, ID documents, performance reports, or photos for your profile.
+          </p>
+          <FileUpload
+            maxFiles={10}
+            maxSizeMB={10}
+            folder="profile-docs"
+            onUploadComplete={(files) => {
+              console.log("Uploaded files:", files);
+            }}
+          />
+        </div>
       </div>
     </DashboardLayout>
   );
