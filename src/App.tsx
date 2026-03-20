@@ -12,6 +12,7 @@ import LoadingScreen from "@/components/ui/LoadingScreen";
 // Code Splitting - Lazy Loading Pages
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
+const AuthCallbackPage = lazy(() => import("./pages/AuthCallbackPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 const WhyJoin = lazy(() => import("./pages/WhyJoin"));
 const Features = lazy(() => import("./pages/Features"));
