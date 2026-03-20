@@ -3,10 +3,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import logo from "@/assets/logo.jpg";
 
 export const MarketingNavbar = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { getDashboardPath } = useProfile();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
@@ -32,8 +36,14 @@ export const MarketingNavbar = () => {
               {link.label}
             </Link>
           ))}
-          <Button variant="ghost" size="sm" onClick={() => navigate("/login")}>Sign In</Button>
-          <Button variant="hero" size="sm" onClick={() => navigate("/login")}>Get Started</Button>
+          {user ? (
+            <Button variant="hero" size="sm" onClick={() => navigate(getDashboardPath())}>Dashboard</Button>
+          ) : (
+            <>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/login")}>Sign In</Button>
+              <Button variant="hero" size="sm" onClick={() => navigate("/login")}>Get Started</Button>
+            </>
+          )}
         </div>
         <button className="md:hidden p-2 text-foreground" onClick={() => setMobileMenuOpen(true)}>
           <Menu className="h-6 w-6" />
@@ -67,12 +77,20 @@ export const MarketingNavbar = () => {
                 </Link>
               ))}
               <div className="flex flex-col gap-2 pt-2">
-                <Button variant="outline" size="sm" className="w-full" onClick={() => navigate("/login")}>
-                  Sign In
-                </Button>
-                <Button variant="hero" size="sm" className="w-full" onClick={() => navigate("/login")}>
-                  Get Started
-                </Button>
+                {user ? (
+                  <Button variant="hero" size="sm" className="w-full" onClick={() => { setMobileMenuOpen(false); navigate(getDashboardPath()); }}>
+                    Dashboard
+                  </Button>
+                ) : (
+                  <>
+                    <Button variant="outline" size="sm" className="w-full" onClick={() => { setMobileMenuOpen(false); navigate("/login"); }}>
+                      Sign In
+                    </Button>
+                    <Button variant="hero" size="sm" className="w-full" onClick={() => { setMobileMenuOpen(false); navigate("/login"); }}>
+                      Get Started
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>

@@ -67,5 +67,17 @@ export const useProfile = () => {
   const hasRole = (role: string) => roles.includes(role) || (role !== "master_admin" && isMasterAdmin);
   const primaryRole = isMasterAdmin ? "master_admin" : roles[0] || (profile?.user_type) || "fan";
 
-  return { profile, roles, primaryRole, hasRole, isMasterAdmin, loading, updateProfile };
+  const getDashboardPath = () => {
+    if (isMasterAdmin) return "/admin";
+    if (!profile || !profile.user_type) return "/setup";
+    
+    switch (profile.user_type) {
+      case "athlete": return "/dashboard/athlete";
+      case "institution": return "/dashboard/institution";
+      case "fan": return "/dashboard/parent";
+      default: return "/setup";
+    }
+  };
+
+  return { profile, roles, primaryRole, hasRole, isMasterAdmin, loading, updateProfile, getDashboardPath };
 };

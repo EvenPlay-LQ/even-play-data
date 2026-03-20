@@ -4,18 +4,23 @@ import { motion } from "framer-motion";
 import { Loader2, CheckCircle2, Zap } from "lucide-react";
 import { SEO } from "@/components/SEO";
 
+import { useProfile } from "@/hooks/useProfile";
+
 const AuthCallback = () => {
   const navigate = useNavigate();
+  const { loading, getDashboardPath } = useProfile();
 
   useEffect(() => {
+    if (loading) return;
+
     // Small delay to allow Supabase to process the hash/session
     // and to show the beautiful branded screen
     const timer = setTimeout(() => {
-      navigate("/setup");
-    }, 2500);
+      navigate(getDashboardPath());
+    }, 2000);
 
     return () => clearTimeout(timer);
-  }, [navigate]);
+  }, [navigate, loading, getDashboardPath]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 relative overflow-hidden">

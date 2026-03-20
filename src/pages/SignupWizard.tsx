@@ -10,12 +10,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SEO } from "@/components/SEO";
+import { useProfile } from "@/hooks/useProfile";
 import { SPORT_OPTIONS } from "@/config/constants";
 
 type UserRole = "athlete" | "institution" | "fan";
 
 const SignupWizard = () => {
   const { user } = useAuth();
+  const { isMasterAdmin, getDashboardPath, loading: profileLoading } = useProfile();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -59,6 +61,15 @@ const SignupWizard = () => {
       navigate("/login");
       return;
     }
+
+    if (!profileLoading) {
+      const dashboard = getDashboardPath();
+      if (dashboard !== "/setup") {
+        navigate(dashboard);
+        return;
+      }
+    }
+
     const metaName = user.user_metadata?.name || user.user_metadata?.full_name;
     if (metaName) setName(metaName);
 
@@ -67,7 +78,7 @@ const SignupWizard = () => {
     if (metaRole && ["athlete", "institution", "fan"].includes(metaRole)) {
       setRole(metaRole);
     }
-  }, [user, navigate]);
+  }, [user, navigate, profileLoading, getDashboardPath]);
 
   const handleCompleteSetup = async () => {
     if (!user || !role) {
