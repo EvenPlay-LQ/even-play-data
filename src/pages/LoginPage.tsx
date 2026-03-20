@@ -53,13 +53,27 @@ const LoginPage = () => {
         return;
       }
       setSubmitting(true);
+      console.log(`[Auth] Attempting password reset for: ${email}`);
+      console.log(`[Auth] Redirect URL: ${window.location.origin}/reset-password`);
+      
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
+
       if (error) {
-        toast({ title: "Error", description: error.message, variant: "destructive" });
+        console.error("[Auth] Reset password error:", error);
+        toast({ 
+          title: "Reset failed", 
+          description: error.message + (error.status === 429 ? " (Too many requests, try again later)" : ""), 
+          variant: "destructive" 
+        });
       } else {
-        toast({ title: "Check your email", description: "We've sent a password reset link." });
+        console.log("[Auth] Reset email instruction sent successfully.");
+        toast({ 
+          title: "Check your email", 
+          description: "If an account exists for this email, we've sent a password reset link." 
+        });
+        // Stay on form but show success state or back to login
         setMode("login");
         setView("form");
       }

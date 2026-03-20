@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import GuestRoute from "@/components/GuestRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 
@@ -57,8 +58,8 @@ const App = () => (
             <Suspense fallback={<LoadingScreen />}>
               <Routes>
                 {/* Public */}
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/login" element={<LoginPage />} />
+                <Route path="/" element={<GuestRoute><LandingPage /></GuestRoute>} />
+                <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
                 <Route path="/auth/callback" element={<AuthCallbackPage />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/why-join" element={<WhyJoin />} />
