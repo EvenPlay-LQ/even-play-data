@@ -23,6 +23,7 @@ const SignupWizard = () => {
 
   const [step, setStep] = useState(1);
   const [role, setRole] = useState<UserRole | null>(null);
+  const [initialized, setInitialized] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // Profile data
@@ -75,10 +76,14 @@ const SignupWizard = () => {
 
     // Auto-fill role from metadata if set during signup
     const metaRole = user.user_metadata?.user_type as UserRole | undefined;
-    if (metaRole && ["athlete", "institution", "fan"].includes(metaRole)) {
+    if (metaRole && ["athlete", "institution", "fan"].includes(metaRole) && !initialized) {
       setRole(metaRole);
+      setStep(2); // Skip Step 1 (Role Selection)
+      setInitialized(true);
+    } else if (!initialized) {
+      setInitialized(true);
     }
-  }, [user, navigate, profileLoading, getDashboardPath]);
+  }, [user, navigate, profileLoading, getDashboardPath, initialized]);
 
   const handleCompleteSetup = async () => {
     if (!user || !role) {
@@ -368,7 +373,7 @@ const SignupWizard = () => {
 
             {/* Navigation buttons */}
             <div className="mt-8 pt-6 border-t border-border flex justify-between">
-              <Button variant="ghost" onClick={() => setStep(step - 1)} disabled={step === 1 || saving}>
+              <Button variant="ghost" onClick={() => setStep(step - 1)} disabled={(step === 1 && !user.user_metadata?.user_type) || step === 1 || (step === 2 && !!user.user_metadata?.user_type) || saving}>
                 Back
               </Button>
               <Button variant="hero"

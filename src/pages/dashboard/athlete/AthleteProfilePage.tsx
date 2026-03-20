@@ -81,21 +81,7 @@ const AthleteProfilePage = () => {
     load();
   }, [user]);
 
-  const handleSave = async () => {
-    if (!athlete || !profile) {
-      toast({ title: "Error", description: "Profile data not found. Please refresh and try again.", variant: "destructive" });
-      return;
-    }
-    setSaving(true);
-    const [profileResult, athleteResult] = await Promise.all([
-      supabase.from("profiles").update({ name, bio } as any).eq("id", user!.id),
-      supabase.from("athletes").update({ sport, position, province, country, date_of_birth: dob || null } as any).eq("id", athlete.id),
-    ]);
-    if (profileResult.error) handleQueryError(profileResult.error, "Failed to update profile.");
-    else if (athleteResult.error) handleQueryError(athleteResult.error, "Failed to update athlete info.");
-    else toast({ title: "Profile saved!", description: "Your changes have been saved." });
-    setSaving(false);
-  };
+
 
   const handleAddClub = async () => {
     if (!newClub.club_name || !newClub.start_date || !athlete) return;
@@ -119,6 +105,53 @@ const AthleteProfilePage = () => {
     const { error } = await supabase.from("club_history" as any).delete().eq("id", id);
     if (error) handleQueryError(error);
     else setClubHistory(clubHistory.filter(c => c.id !== id));
+  };
+
+  const handleSave = async () => {
+    if (!user) return;
+    
+    setSaving(true);
+    try {
+      // 1. Upsert Profile
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .upsert({
+          id: user.id,
+          name: name.trim(),
+          bio: bio.trim(),
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "id" });
+
+      if (profileError) throw profileError;
+
+      // 2. Upsert Athlete
+      const { error: athleteError } = await supabase
+        .from("athletes")
+        .upsert({
+          profile_id: user.id,
+          sport: sport || "General",
+          position: position || "Player",
+          province: province || null,
+          country: country || null,
+          date_of_birth: dob || null,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "profile_id" });
+
+      if (athleteError) throw athleteError;
+
+      toast({ title: "Profile saved!", description: "Your changes have been successfully updated." });
+      
+      // Refresh local state if it was a new record
+      if (!athlete) {
+        const { data: newAthlete } = await supabase.from("athletes").select("*").eq("profile_id", user.id).maybeSingle();
+        if (newAthlete) setAthlete(newAthlete);
+      }
+    } catch (error: any) {
+      console.error("[AthleteProfile] Save error:", error);
+      toast({ title: "Save failed", description: error.message || "An unexpected error occurred.", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) {
@@ -185,7 +218,7 @@ const AthleteProfilePage = () => {
               placeholder="Write a short bio about your career, style of play, and goals..."
             />
           </div>
-          <Button onClick={handleSave} disabled={saving} className="w-full">
+          <Button onClick={handleSave} disabled={saving} variant="hero" className="w-full">
             {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
             Save Profile
           </Button>

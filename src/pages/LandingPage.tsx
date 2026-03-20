@@ -49,14 +49,14 @@ const LandingPage = () => {
               The centralized platform that aggregates, verifies, and distributes sports performance data for athletes, institutions, and fans worldwide.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-stretch sm:items-center">
-              <Button variant="hero" size="lg" className="text-base h-14 sm:h-auto" onClick={() => navigate("/login")}>
+              <Button variant="hero" size="lg" className="text-base h-14 sm:h-auto" onClick={() => navigate("/login?mode=signup")}>
                 Join as Athlete <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
               <Button
                 variant="hero-outline"
                 size="lg"
                 className="text-base h-14 sm:h-auto border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
-                onClick={() => navigate("/login")}
+                onClick={() => navigate("/login?mode=signup")}
               >
                 Register Institution
               </Button>
@@ -216,7 +216,7 @@ const LandingPage = () => {
             <p className="text-primary-foreground/70 mb-8 max-w-lg mx-auto">
               Join thousands of athletes and institutions already using Even Playground to track, verify, and showcase sports performance.
             </p>
-            <Button variant="hero" size="lg" onClick={() => navigate("/login")}>
+            <Button variant="hero" size="lg" onClick={() => navigate("/login?mode=signup")}>
               Get Started Free <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </motion.div>

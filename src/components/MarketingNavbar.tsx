@@ -40,8 +40,8 @@ export const MarketingNavbar = () => {
             <Button variant="hero" size="sm" onClick={() => navigate(getDashboardPath())}>Dashboard</Button>
           ) : (
             <>
-              <Button variant="ghost" size="sm" onClick={() => navigate("/login")}>Sign In</Button>
-              <Button variant="hero" size="sm" onClick={() => navigate("/login")}>Get Started</Button>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/login?mode=login")}>Sign In</Button>
+              <Button variant="hero" size="sm" onClick={() => navigate("/login?mode=signup")}>Get Started</Button>
             </>
           )}
         </div>
@@ -83,10 +83,10 @@ export const MarketingNavbar = () => {
                   </Button>
                 ) : (
                   <>
-                    <Button variant="outline" size="sm" className="w-full" onClick={() => { setMobileMenuOpen(false); navigate("/login"); }}>
+                    <Button variant="outline" size="sm" className="w-full" onClick={() => { setMobileMenuOpen(false); navigate("/login?mode=login"); }}>
                       Sign In
                     </Button>
-                    <Button variant="hero" size="sm" className="w-full" onClick={() => { setMobileMenuOpen(false); navigate("/login"); }}>
+                    <Button variant="hero" size="sm" className="w-full" onClick={() => { setMobileMenuOpen(false); navigate("/login?mode=signup"); }}>
                       Get Started
                     </Button>
                   </>
