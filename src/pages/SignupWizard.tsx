@@ -136,10 +136,10 @@ const SignupWizard = () => {
         if (instErr) throw instErr;
       } else if (role === "fan") {
         const { error: parentErr } = await supabase.from("parents" as any).upsert({
-          profile_id: user.id,
+          user_id: user.id,
           contact_phone: parentPhone || null,
           relationship_to_child: relationship || "parent",
-        }, { onConflict: "profile_id" });
+        }, { onConflict: "user_id" });
 
         if (parentErr) throw parentErr;
       }
