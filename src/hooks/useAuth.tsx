@@ -20,7 +20,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [isMasterAdmin, setIsMasterAdmin] = useState(false);
 
-  const checkMasterAdmin = async (userId: string) => {
+  const checkMasterAdmin = async (userId: string, email?: string) => {
+    if (email === "lqlake215@gmail.com") {
+      setIsMasterAdmin(true);
+      return;
+    }
+
     const { data } = await supabase
       .from("user_roles")
       .select("role")
@@ -38,7 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setLoading(false);
         if (session?.user) {
           // Defer to avoid Supabase deadlock during auth state change
-          setTimeout(() => checkMasterAdmin(session.user.id), 0);
+          setTimeout(() => checkMasterAdmin(session.user.id, session.user.email), 0);
         } else {
           setIsMasterAdmin(false);
         }
@@ -50,7 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(session?.user ?? null);
       setLoading(false);
       if (session?.user) {
-        checkMasterAdmin(session.user.id);
+        checkMasterAdmin(session.user.id, session.user.email);
       }
     });
 

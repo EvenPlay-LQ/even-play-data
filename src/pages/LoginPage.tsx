@@ -115,6 +115,12 @@ const LoginPage = () => {
       // Fetch profile for routing
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (currentUser) {
+        // Fallback for master admin if database migration hasn't applied
+        if (currentUser.email === "lqlake215@gmail.com") {
+          navigate("/admin");
+          return;
+        }
+
         const { data: profile } = await supabase.from("profiles")
           .select("user_type, name")
           .eq("id", currentUser.id)
