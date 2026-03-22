@@ -94,7 +94,10 @@ const AthleteMatches = () => {
       .from("athlete_matches" as any)
       .insert([{ ...form, athlete_id: athlete.id }])
       .select().single();
-    if (error) { handleQueryError(error, "Failed to add match."); }
+    if (error) { 
+      console.error("[AthleteMatches] Insert error:", error);
+      handleQueryError(error, error.message || "Failed to add match."); 
+    }
     else {
       setMatches([data, ...matches]);
       setForm(defaultForm);
