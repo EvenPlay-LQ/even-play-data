@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { BUZZ_CATEGORIES } from "@/config/constants";
 import { postSchema } from "@/lib/validations";
 import { handleQueryError } from "@/lib/queryHelpers";
+import RssFeedWidget from "@/components/RssFeedWidget";
 
 interface Post {
   id: string;
@@ -103,7 +104,7 @@ const BuzzPage = () => {
 
   return (
     <AppLayout>
-      <div className="space-y-6 max-w-4xl">
+      <div className="space-y-6 max-w-4xl pb-20">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-display font-bold text-foreground mb-1">Buzz</h1>
@@ -191,6 +192,9 @@ const BuzzPage = () => {
           </div>
         )}
       </div>
+
+      {/* RSS Live Feed Widget */}
+      <RssFeedWidget />
 
       {/* Create Post Dialog */}
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
