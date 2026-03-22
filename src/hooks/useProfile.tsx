@@ -10,12 +10,10 @@ interface Profile {
   favorite_sport: string;
   user_type: "athlete" | "institution" | "fan" | "master_admin";
   reputation: number;
+  setup_complete: boolean;
+  popia_consent: boolean;
   created_at: string;
   updated_at: string;
-}
-
-interface UserRole {
-  role: "athlete" | "institution" | "coach" | "referee" | "scout" | "fan" | "master_admin";
 }
 
 export const useProfile = () => {
@@ -39,7 +37,6 @@ export const useProfile = () => {
       if (profileRes.data) {
         const p = profileRes.data as unknown as Profile;
         setProfile(p);
-        // Map user_type from profile to roles to keep the hook signature compatible
         const derivedRoles: string[] = [p.user_type];
         if (isMasterAdmin && !derivedRoles.includes("master_admin")) {
           derivedRoles.push("master_admin");
@@ -66,11 +63,13 @@ export const useProfile = () => {
 
   const hasRole = (role: string) => roles.includes(role) || (role !== "master_admin" && isMasterAdmin);
   const primaryRole = isMasterAdmin ? "master_admin" : roles[0] || (profile?.user_type) || "fan";
+  const setupComplete = isMasterAdmin || (profile?.setup_complete === true);
 
   const getDashboardPath = () => {
     if (isMasterAdmin) return "/admin";
-    if (!profile || !profile.user_type) return "/setup";
-    
+    if (!profile) return "/setup";
+    if (!profile.setup_complete) return "/setup";
+
     switch (profile.user_type) {
       case "athlete": return "/dashboard/athlete";
       case "institution": return "/dashboard/institution";
@@ -79,5 +78,5 @@ export const useProfile = () => {
     }
   };
 
-  return { profile, roles, primaryRole, hasRole, isMasterAdmin, loading, updateProfile, getDashboardPath };
+  return { profile, roles, primaryRole, hasRole, isMasterAdmin, loading, updateProfile, getDashboardPath, setupComplete };
 };
