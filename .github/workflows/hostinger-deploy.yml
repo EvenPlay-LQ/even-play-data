@@ -36,5 +36,8 @@ jobs:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        server-dir: /public_html/ # Target directory on Hostinger
-        local-dir: ./dist/ # Source directory from Vite build
+        protocol: ftp        # Use plain FTP (Hostinger standard)
+        port: 21             # Standard FTP port
+        security: loose      # Accept Hostinger self-signed certs
+        server-dir: /public_html/
+        local-dir: ./dist/
