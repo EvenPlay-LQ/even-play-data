@@ -97,6 +97,8 @@ const LoginPage = () => {
       if (error) {
         if (error.message?.includes("already registered")) {
           toast({ title: "Email already registered", description: "Try signing in instead.", variant: "destructive" });
+        } else if (error.message?.includes("rate limit") || error.message?.includes("email rate")) {
+          toast({ title: "Too many sign-up attempts", description: "Email sending is temporarily rate-limited. Please wait a few minutes and try again.", variant: "destructive" });
         } else {
           toast({ title: "Signup failed", description: error.message, variant: "destructive" });
         }
