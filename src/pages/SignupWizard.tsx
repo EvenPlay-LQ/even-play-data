@@ -159,7 +159,7 @@ const SignupWizard = () => {
       // 2. Role-specific records
       if (role === "athlete") {
         // T2 Split: Use RPC to find/create an athlete record and claim it
-        const { data: claimData, error: claimErr } = await supabase.rpc("find_or_create_athlete", {
+        const { data: claimData, error: claimErr } = await (supabase.rpc as any)("find_or_create_athlete", {
           _full_name: name.trim(),
           _dob: dateOfBirth || null,
           _sport: sport || "Football",
@@ -169,7 +169,7 @@ const SignupWizard = () => {
         if (claimErr) throw claimErr;
 
         // Update the claimed athlete with additional wizard details
-        const athleteId = claimData?.athlete_id;
+        const athleteId = (claimData as any)?.athlete_id;
         if (athleteId) {
           const { error: updateErr } = await supabase.from("athletes").update({
             profile_id: user.id,
@@ -198,17 +198,17 @@ const SignupWizard = () => {
           province: province || null,
           website_url: websiteUrl || null,
           contact_phone: contactPhone || null,
-        }, { onConflict: "profile_id" }).select("id").single();
+        }, { onConflict: "profile_id" } as any).select("id").single();
         if (instErr) throw instErr;
         if (instData) setInstitutionId(instData.id);
 
       } else if (role === "fan") {
         // Create parent record
-        const { error: parentErr } = await supabase.from("parents").upsert({
+        const { error: parentErr } = await supabase.from("parents" as any).upsert({
           profile_id: user.id,
           contact_phone: parentPhone || null,
           relationship_to_child: relationship || "parent",
-        }, { onConflict: "profile_id" });
+        }, { onConflict: "profile_id" } as any);
         if (parentErr) throw parentErr;
 
         // T2 Split: Create stub athlete record for child (no shadow profile required)
@@ -219,15 +219,18 @@ const SignupWizard = () => {
             position: childPosition || "Player",
             date_of_birth: childDob || null,
             status: "stub"
-          }).select("id").single();
+          } as any).select("id").single();
 
           if (!childAthleteErr && childAthlete) {
             // Link via parent_athletes junction (Standardized name)
-            await supabase.from("parent_athletes").insert({
-              parent_id: (await supabase.from("parents").select("id").eq("profile_id", user.id).single()).data?.id,
-              athlete_id: childAthlete.id,
-              relationship: relationship,
-            });
+            const { data: pData } = await supabase.from("parents" as any).select("id").eq("profile_id", user.id).single();
+            if (pData) {
+              await supabase.from("parent_athletes" as any).insert({
+                parent_id: (pData as any).id,
+                athlete_id: childAthlete.id,
+                relationship: relationship,
+              });
+            }
           }
         }
       }
@@ -266,7 +269,7 @@ const SignupWizard = () => {
         position: ath_position || "Player",
         date_of_birth: ath_dob || null,
         status: "stub"
-      });
+      } as any);
       toast({ title: "Athlete created!", description: `${ath_name} has been added to your roster as a stub profile.` });
       setAthName(""); setAthSport("Football"); setAthPosition(""); setAthDob("");
     } catch (e: any) {
@@ -331,11 +334,11 @@ const SignupWizard = () => {
                         <div className={`w-12 h-12 rounded-full ${bg} flex items-center justify-center ${color} flex-shrink-0`}>
                           <Icon className="w-6 h-6" />
                         </div>
-                        <div>
+                        <div className="flex-1 min-w-0">
                           <div className="font-semibold text-foreground">{label}</div>
-                          <div className="text-sm text-muted-foreground">{sub}</div>
+                          <div className="text-[11px] text-muted-foreground leading-tight">{sub}</div>
                         </div>
-                        {role === value && <CheckCircle className="ml-auto h-5 w-5 text-primary" />}
+                        {role === value && <CheckCircle className="ml-auto h-5 w-5 text-primary flex-shrink-0" />}
                       </button>
                     ))}
                   </div>
@@ -561,8 +564,8 @@ const SignupWizard = () => {
               {step === 3 && role === "fan" && (
                 <motion.div key="p-step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
                   <div>
-                    <h2 className="text-2xl font-display font-bold text-foreground">Child's Athlete Profile</h2>
-                    <p className="text-muted-foreground mt-1 text-sm">Create an athlete profile for your child. You can update details later.</p>
+                    <h2 className="text-2xl font-display font-bold text-foreground">Link or Create Profile</h2>
+                    <p className="text-muted-foreground mt-1 text-sm">Create an athlete profile for your child or link to an existing institution record.</p>
                   </div>
                   <div className="space-y-4">
                     <div>
