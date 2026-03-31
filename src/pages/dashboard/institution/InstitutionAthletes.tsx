@@ -66,7 +66,10 @@ const InstitutionAthletes = () => {
     if (inst) {
       setInstitution(inst);
       const { data, error } = await supabase.from("athletes")
-        .select("*, profiles(name, avatar)")
+        .select(`
+          *,
+          profiles (name, avatar)
+        `)
         .eq("institution_id", inst.id)
         .order("performance_score", { ascending: false });
       if (error) handleQueryError(error);
@@ -79,45 +82,32 @@ const InstitutionAthletes = () => {
     if (!newAthlete.name || !newAthlete.email || !institution) return;
     setSaving(true);
 
-    // 1. Invite user via email (creates a Supabase auth user)
-    const { data: signUpData, error: authError } = await supabase.auth.admin?.inviteUserByEmail?.(newAthlete.email) || { data: null, error: null };
+    try {
+      // T2 Split: Create a Stub athlete directly without a shadow profile.
+      // The athlete will claim this record later using the find_or_create_athlete RPC.
+      const { data: athleteData, error: athleteErr } = await supabase.from("athletes").insert([{
+        full_name: newAthlete.name.trim(),
+        contact_email: newAthlete.email.trim(),
+        institution_id: institution.id,
+        sport: newAthlete.sport,
+        position: newAthlete.position,
+        status: "stub" // Explicitly marking as stub
+      }]).select("*, profiles(name, avatar)").single();
 
-    // If no admin API, create profile manually (check if profile with email exists)
-    // 2. Create Profile row (shadow profile)
-    const profileId = crypto.randomUUID();
-    const { error: profileErr } = await supabase.from("profiles")
-      .insert([{ 
-        id: profileId, 
-        name: newAthlete.name, 
-        user_type: "athlete" 
-      } as any]);
+      if (athleteErr) throw athleteErr;
 
-    if (profileErr) { handleQueryError(profileErr, "Failed to create athlete profile."); setSaving(false); return; }
-
-    // 3. Create User Role (manual since trigger won't fly without auth.users)
-    const { error: roleErr } = await supabase.from("user_roles" as any).insert([{
-      user_id: profileId,
-      role: "athlete"
-    }]);
-    
-    if (roleErr) { handleQueryError(roleErr, "Failed to assign athlete role."); }
-
-    // 4. Create Athlete record linked to institution
-    const { data: athleteData, error: athleteErr } = await supabase.from("athletes").insert([{
-      profile_id: profileId,
-      institution_id: institution.id,
-      sport: newAthlete.sport,
-      position: newAthlete.position,
-    }]).select("*, profiles(name, avatar)").single();
-
-    if (athleteErr) { handleQueryError(athleteErr, "Failed to create athlete record."); }
-    else {
       setAthletes([athleteData, ...athletes]);
       setNewAthlete({ name: "", email: "", sport: "Football", position: "" });
       setCreateOpen(false);
-      toast({ title: "Athlete profile created!", description: `${newAthlete.name} has been added to your roster.` });
+      toast({ 
+        title: "Athlete created!", 
+        description: `${newAthlete.name} has been added to your roster as a stub. They can claim this profile when they sign up.` 
+      });
+    } catch (error: any) {
+      handleQueryError(error, "Failed to create athlete record.");
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const handleAddFeedback = async () => {
@@ -249,12 +239,12 @@ const InstitutionAthletes = () => {
                 className="bg-card rounded-xl p-4 border border-border shadow-card flex items-center gap-4">
                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <span className="font-display font-semibold text-sm text-primary">
-                    {(ath.profiles?.name || "A").split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
+                    {(ath.profiles?.name || ath.full_name || "A").split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-semibold text-foreground truncate">{ath.profiles?.name || "Unknown"}</h3>
-                  <p className="text-xs text-muted-foreground">{ath.sport} · {ath.position}</p>
+                  <h3 className="text-sm font-semibold text-foreground truncate">{ath.profiles?.name || ath.full_name || "Unknown"}</h3>
+                  <p className="text-xs text-muted-foreground">{ath.sport} · {ath.position} {ath.status === 'stub' && '· (Stub)'}</p>
                 </div>
                 <div className="text-right mr-2">
                   <div className="text-base font-display font-bold text-foreground">{Number(ath.performance_score).toFixed(0)}</div>
@@ -264,7 +254,9 @@ const InstitutionAthletes = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => navigate(`/profile?id=${ath.profile_id}`)}>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" 
+                    onClick={() => navigate(`/profile?id=${ath.profile_id || ath.id}`)}
+                    disabled={!ath.profile_id}>
                     <User className="h-4 w-4 text-muted-foreground" />
                   </Button>
                   {/* Media Upload */}

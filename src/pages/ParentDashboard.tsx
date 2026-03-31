@@ -23,33 +23,35 @@ const ParentDashboard = () => {
       
       // 1. Fetch parent record
       const { data: parentData, error: parentErr } = await supabase
-        .from("parents" as any)
+        .from("parents")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("profile_id", user.id)
         .maybeSingle();
       
       if (parentData && !parentErr) {
-        const p = parentData as any;
-        setParent(p);
+        setParent(parentData);
         
-        // 2. Fetch linked athletes
-        // We join profiles (for name/avatar) and then join athletes (for stats)
-        const { data: links } = await (supabase
-          .from("parent_athlete_links" as any)
-          .select("athlete_user_id, athlete:profiles!athlete_user_id(name, avatar, athletes(*))")
-          .eq("parent_user_id", user.id) as any);
+        // 2. Fetch linked athletes via standardized parent_athletes junction
+        const { data: links, error: linksErr } = await supabase
+          .from("parent_athletes")
+          .select(`
+            athlete_id,
+            relationship,
+            athlete:athletes (
+              *,
+              profiles (name, avatar)
+            )
+          `)
+          .eq("parent_id", parentData.id);
         
-        if (links) {
+        if (!linksErr && links) {
           setLinkedAthletes(links.map((l: any) => {
-            const athleteProfile = l.athlete;
-            const athleteData = athleteProfile.athletes?.[0] || athleteProfile.athletes;
+            const athleteData = l.athlete;
             return {
               ...athleteData,
-              profile_id: l.athlete_user_id,
-              profiles: {
-                name: athleteProfile.name,
-                avatar: athleteProfile.avatar
-              }
+              // Fallback to athlete.full_name if profile is null (Stub)
+              displayName: athleteData.profiles?.name || athleteData.full_name,
+              displayAvatar: athleteData.profiles?.avatar || null
             };
           }));
         }
@@ -127,31 +129,32 @@ const ParentDashboard = () => {
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold">
-                        {athlete.profiles?.avatar ? (
-                          <img src={athlete.profiles.avatar} className="w-full h-full object-cover rounded-xl" />
+                        {athlete.displayAvatar ? (
+                          <img src={athlete.displayAvatar} className="w-full h-full object-cover rounded-xl" />
                         ) : (
-                          athlete.profiles?.name?.charAt(0) || "A"
+                          athlete.displayName?.charAt(0) || "A"
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-foreground truncate">{athlete.profiles?.name}</h3>
+                        <h3 className="font-semibold text-foreground truncate">{athlete.displayName}</h3>
                         <p className="text-xs text-muted-foreground">{athlete.sport} · {athlete.position}</p>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm font-bold text-primary">{Number(athlete.performance_score).toFixed(0)}</div>
+                        <div className="text-sm font-bold text-primary">{Number(athlete.performance_score || 0).toFixed(0)}</div>
                         <div className="text-[10px] text-muted-foreground">Score</div>
                       </div>
                     </div>
                     <div className="mt-4 pt-4 border-t border-border flex justify-between items-center">
                       <div className="flex items-center gap-1.5">
                         <Trophy className="h-3 w-3 text-gold" />
-                        <span className="text-[10px] text-muted-foreground">Lvl {athlete.level}</span>
+                        <span className="text-[10px] text-muted-foreground">Lvl {athlete.level || 1}</span>
                       </div>
                       <button 
-                        onClick={() => navigate(`/profile?id=${athlete.profile_id}`)}
+                        onClick={() => navigate(`/profile?id=${athlete.profile_id || athlete.id}`)}
                         className="text-xs text-primary font-medium flex items-center gap-1 group-hover:underline"
+                        disabled={!athlete.profile_id}
                       >
-                        View Full Profile <ChevronRight className="h-3 w-3" />
+                        {athlete.profile_id ? "View Full Profile" : "Unclaimed Profile"} <ChevronRight className="h-3 w-3" />
                       </button>
                     </div>
                   </motion.div>

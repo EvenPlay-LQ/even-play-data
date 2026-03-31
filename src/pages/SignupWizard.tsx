@@ -158,20 +158,34 @@ const SignupWizard = () => {
 
       // 2. Role-specific records
       if (role === "athlete") {
-        const { error: athleteErr } = await supabase.from("athletes").upsert({
-          profile_id: user.id,
-          sport: sport || "Football",
-          position: position || "Player",
-          squad: squad || null,
-          nationality: nationality || null,
-          date_of_birth: dateOfBirth || null,
-          height_cm: heightCm ? parseFloat(heightCm) : null,
-          weight_kg: weightKg ? parseFloat(weightKg) : null,
-          mysafa_id: mysafaId || null,
-          fifa_id: fifaId || null,
-          playing_style: playingStyle || null,
-        }, { onConflict: "profile_id" });
-        if (athleteErr) throw athleteErr;
+        // T2 Split: Use RPC to find/create an athlete record and claim it
+        const { data: claimData, error: claimErr } = await supabase.rpc("find_or_create_athlete", {
+          _full_name: name.trim(),
+          _dob: dateOfBirth || null,
+          _sport: sport || "Football",
+          _contact_email: user.email || null
+        });
+
+        if (claimErr) throw claimErr;
+
+        // Update the claimed athlete with additional wizard details
+        const athleteId = claimData?.athlete_id;
+        if (athleteId) {
+          const { error: updateErr } = await supabase.from("athletes").update({
+            profile_id: user.id,
+            status: "claimed",
+            position: position || "Player",
+            squad: squad || null,
+            nationality: nationality || null,
+            height_cm: heightCm ? parseFloat(heightCm) : null,
+            weight_kg: weightKg ? parseFloat(weightKg) : null,
+            mysafa_id: mysafaId || null,
+            fifa_id: fifaId || null,
+            playing_style: playingStyle || null,
+          }).eq("id", athleteId);
+          
+          if (updateErr) throw updateErr;
+        }
 
       } else if (role === "institution") {
         const { data: instData, error: instErr } = await supabase.from("institutions").upsert({
@@ -190,50 +204,30 @@ const SignupWizard = () => {
 
       } else if (role === "fan") {
         // Create parent record
-        const { error: parentErr } = await supabase.from("parents" as any).upsert({
-          user_id: user.id,
+        const { error: parentErr } = await supabase.from("parents").upsert({
+          profile_id: user.id,
           contact_phone: parentPhone || null,
           relationship_to_child: relationship || "parent",
-        }, { onConflict: "user_id" });
+        }, { onConflict: "profile_id" });
         if (parentErr) throw parentErr;
 
-        // Create stub athlete profile for child (if name provided)
+        // T2 Split: Create stub athlete record for child (no shadow profile required)
         if (childName.trim()) {
-          // Create a placeholder profile for the child
-          const childEmail = `child_${Date.now()}_${user.id}@evenplay.internal`;
-          const { data: { user: childUser }, error: childAuthErr } = await supabase.auth.admin?.createUser
-            ? { data: { user: null }, error: null }
-            : { data: { user: null }, error: null };
-          
-          // Instead, create an athlete stub without an auth user
-          // We'll use the institution's athlete-creation approach: insert directly
-          const { data: childProfile, error: childProfileErr } = await supabase.from("profiles").insert({
-            id: crypto.randomUUID(),
-            name: childName.trim(),
-            user_type: "athlete",
-            setup_complete: false, // stub - not a real auth user yet
+          const { data: childAthlete, error: childAthleteErr } = await supabase.from("athletes").insert({
+            full_name: childName.trim(),
+            sport: childSport || "Football",
+            position: childPosition || "Player",
+            date_of_birth: childDob || null,
+            status: "stub"
           }).select("id").single();
 
-          if (!childProfileErr && childProfile) {
-            const { error: childAthleteErr } = await supabase.from("athletes").insert({
-              profile_id: childProfile.id,
-              sport: childSport || "Football",
-              position: childPosition || "Player",
-              date_of_birth: childDob || null,
+          if (!childAthleteErr && childAthlete) {
+            // Link via parent_athletes junction (Standardized name)
+            await supabase.from("parent_athletes").insert({
+              parent_id: (await supabase.from("parents").select("id").eq("profile_id", user.id).single()).data?.id,
+              athlete_id: childAthlete.id,
+              relationship: relationship,
             });
-            // Link via parent_athlete_links
-            if (!childAthleteErr) {
-              const { data: childAthleteRow } = await supabase.from("athletes")
-                .select("id").eq("profile_id", childProfile.id).single();
-              if (childAthleteRow) {
-                await supabase.from("parent_athlete_links" as any).insert({
-                  parent_user_id: user.id,
-                  athlete_user_id: childProfile.id,
-                  athlete_id: childAthleteRow.id,
-                  relationship: relationship,
-                });
-              }
-            }
           }
         }
       }
@@ -264,24 +258,19 @@ const SignupWizard = () => {
     if (!ath_name.trim() || !institutionId) return;
     setAddingAthlete(true);
     try {
-      const newProfileId = crypto.randomUUID();
-      await supabase.from("profiles").insert({
-        id: newProfileId,
-        name: ath_name.trim(),
-        user_type: "athlete",
-        setup_complete: false,
-      });
+      // T2 Split: Create stub record directly without a dummy profile
       await supabase.from("athletes").insert({
-        profile_id: newProfileId,
+        full_name: ath_name.trim(),
         institution_id: institutionId,
         sport: ath_sport || "Football",
         position: ath_position || "Player",
         date_of_birth: ath_dob || null,
+        status: "stub"
       });
-      toast({ title: "Athlete added!", description: `${ath_name} has been linked to your institution.` });
+      toast({ title: "Athlete created!", description: `${ath_name} has been added to your roster as a stub profile.` });
       setAthName(""); setAthSport("Football"); setAthPosition(""); setAthDob("");
     } catch (e: any) {
-      toast({ title: "Failed to add athlete", description: e?.message, variant: "destructive" });
+      toast({ title: "Failed to create athlete", description: e?.message, variant: "destructive" });
     } finally {
       setAddingAthlete(false);
     }

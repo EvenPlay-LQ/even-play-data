@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 
@@ -11,6 +11,7 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const { user, loading: authLoading, session } = useAuth();
   const { profile, loading: profileLoading, isMasterAdmin, setupComplete } = useProfile();
+  const location = useLocation();
 
   if (authLoading || (user && !profile && profileLoading)) {
     return (
@@ -25,7 +26,7 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   }
 
   // Enforce wizard completion — redirect to /setup if wizard not complete
-  if (!setupComplete) {
+  if (!setupComplete && location.pathname !== "/setup") {
     return <Navigate to="/setup" replace />;
   }
 
