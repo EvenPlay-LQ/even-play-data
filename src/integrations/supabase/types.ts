@@ -47,52 +47,258 @@ export type Database = {
             referencedRelation: "athletes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "achievements_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "public_athlete_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_audit_logs: {
+        Row: {
+          action: string
+          actor_id: string
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: string | null
+          target_entity: string | null
+          target_entity_id: string | null
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_id: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          target_entity?: string | null
+          target_entity_id?: string | null
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          target_entity?: string | null
+          target_entity_id?: string | null
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
+      athlete_invites: {
+        Row: {
+          athlete_id: string
+          created_at: string | null
+          email_sent_to: string | null
+          expires_at: string
+          id: string
+          invited_by: string | null
+          invited_by_role: string
+          status: string
+          token: string
+        }
+        Insert: {
+          athlete_id: string
+          created_at?: string | null
+          email_sent_to?: string | null
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          invited_by_role: string
+          status?: string
+          token?: string
+        }
+        Update: {
+          athlete_id?: string
+          created_at?: string | null
+          email_sent_to?: string | null
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          invited_by_role?: string
+          status?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "athlete_invites_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "athlete_invites_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "public_athlete_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "athlete_invites_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      athlete_matches: {
+        Row: {
+          assists: number | null
+          athlete_id: string
+          created_at: string | null
+          goals: number | null
+          id: string
+          match_date: string
+          minutes_played: number | null
+          notes: string | null
+          opponent: string
+          rating: number | null
+          result: string | null
+          score: string | null
+        }
+        Insert: {
+          assists?: number | null
+          athlete_id: string
+          created_at?: string | null
+          goals?: number | null
+          id?: string
+          match_date: string
+          minutes_played?: number | null
+          notes?: string | null
+          opponent: string
+          rating?: number | null
+          result?: string | null
+          score?: string | null
+        }
+        Update: {
+          assists?: number | null
+          athlete_id?: string
+          created_at?: string | null
+          goals?: number | null
+          id?: string
+          match_date?: string
+          minutes_played?: number | null
+          notes?: string | null
+          opponent?: string
+          rating?: number | null
+          result?: string | null
+          score?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "athlete_matches_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "athlete_matches_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "public_athlete_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       athletes: {
         Row: {
+          claimed_by: string | null
+          contact_email: string | null
           country: string | null
           created_at: string
           date_of_birth: string | null
+          fifa_id: string | null
+          full_name: string | null
+          height_cm: number | null
           id: string
           institution_id: string | null
+          invited_at: string | null
           level: number
+          mysafa_id: string | null
+          nationality: string | null
           performance_score: number
+          playing_style: string | null
           position: string | null
-          profile_id: string
+          position_abbreviation: string | null
+          possible_duplicate: boolean
+          profile_id: string | null
+          profile_slug: string | null
           province: string | null
           sport: string
+          squad: string | null
+          status: Database["public"]["Enums"]["athlete_status"]
           updated_at: string
+          weight_kg: number | null
           xp_points: number
         }
         Insert: {
+          claimed_by?: string | null
+          contact_email?: string | null
           country?: string | null
           created_at?: string
           date_of_birth?: string | null
+          fifa_id?: string | null
+          full_name?: string | null
+          height_cm?: number | null
           id?: string
           institution_id?: string | null
+          invited_at?: string | null
           level?: number
+          mysafa_id?: string | null
+          nationality?: string | null
           performance_score?: number
+          playing_style?: string | null
           position?: string | null
-          profile_id: string
+          position_abbreviation?: string | null
+          possible_duplicate?: boolean
+          profile_id?: string | null
+          profile_slug?: string | null
           province?: string | null
           sport?: string
+          squad?: string | null
+          status?: Database["public"]["Enums"]["athlete_status"]
           updated_at?: string
+          weight_kg?: number | null
           xp_points?: number
         }
         Update: {
+          claimed_by?: string | null
+          contact_email?: string | null
           country?: string | null
           created_at?: string
           date_of_birth?: string | null
+          fifa_id?: string | null
+          full_name?: string | null
+          height_cm?: number | null
           id?: string
           institution_id?: string | null
+          invited_at?: string | null
           level?: number
+          mysafa_id?: string | null
+          nationality?: string | null
           performance_score?: number
+          playing_style?: string | null
           position?: string | null
-          profile_id?: string
+          position_abbreviation?: string | null
+          possible_duplicate?: boolean
+          profile_id?: string | null
+          profile_slug?: string | null
           province?: string | null
           sport?: string
+          squad?: string | null
+          status?: Database["public"]["Enums"]["athlete_status"]
           updated_at?: string
+          weight_kg?: number | null
           xp_points?: number
         }
         Relationships: [
@@ -146,6 +352,103 @@ export type Database = {
             columns: ["performed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      club_history: {
+        Row: {
+          athlete_id: string
+          club_name: string
+          created_at: string | null
+          end_date: string | null
+          id: string
+          notes: string | null
+          start_date: string
+        }
+        Insert: {
+          athlete_id: string
+          club_name: string
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          start_date: string
+        }
+        Update: {
+          athlete_id?: string
+          club_name?: string
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_history_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_history_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "public_athlete_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_feedback: {
+        Row: {
+          athlete_id: string
+          category: string | null
+          created_at: string | null
+          feedback_text: string
+          id: string
+          institution_id: string | null
+          rating: number | null
+        }
+        Insert: {
+          athlete_id: string
+          category?: string | null
+          created_at?: string | null
+          feedback_text: string
+          id?: string
+          institution_id?: string | null
+          rating?: number | null
+        }
+        Update: {
+          athlete_id?: string
+          category?: string | null
+          created_at?: string | null
+          feedback_text?: string
+          id?: string
+          institution_id?: string | null
+          rating?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_feedback_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_feedback_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "public_athlete_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_feedback_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
             referencedColumns: ["id"]
           },
         ]
@@ -245,8 +548,12 @@ export type Database = {
           profile_id: string
           province: string | null
           registration_number: string | null
+          safa_affiliation_number: string | null
+          sasa_registration_number: string | null
+          sport_codes: string[] | null
           updated_at: string
           website: string | null
+          website_url: string | null
         }
         Insert: {
           contact_email?: string | null
@@ -262,8 +569,12 @@ export type Database = {
           profile_id: string
           province?: string | null
           registration_number?: string | null
+          safa_affiliation_number?: string | null
+          sasa_registration_number?: string | null
+          sport_codes?: string[] | null
           updated_at?: string
           website?: string | null
+          website_url?: string | null
         }
         Update: {
           contact_email?: string | null
@@ -279,8 +590,12 @@ export type Database = {
           profile_id?: string
           province?: string | null
           registration_number?: string | null
+          safa_affiliation_number?: string | null
+          sasa_registration_number?: string | null
+          sport_codes?: string[] | null
           updated_at?: string
           website?: string | null
+          website_url?: string | null
         }
         Relationships: [
           {
@@ -368,6 +683,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "match_stats_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "public_athlete_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "match_stats_match_id_fkey"
             columns: ["match_id"]
             isOneToOne: false
@@ -426,6 +748,48 @@ export type Database = {
             columns: ["home_team_id"]
             isOneToOne: false
             referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      media_gallery: {
+        Row: {
+          athlete_id: string
+          created_at: string | null
+          description: string | null
+          file_url: string
+          id: string
+          media_type: string | null
+        }
+        Insert: {
+          athlete_id: string
+          created_at?: string | null
+          description?: string | null
+          file_url: string
+          id?: string
+          media_type?: string | null
+        }
+        Update: {
+          athlete_id?: string
+          created_at?: string | null
+          description?: string | null
+          file_url?: string
+          id?: string
+          media_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_gallery_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_gallery_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "public_athlete_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -501,6 +865,201 @@ export type Database = {
           },
         ]
       }
+      parent_athletes: {
+        Row: {
+          athlete_id: string
+          created_at: string
+          id: string
+          parent_id: string
+        }
+        Insert: {
+          athlete_id: string
+          created_at?: string
+          id?: string
+          parent_id: string
+        }
+        Update: {
+          athlete_id?: string
+          created_at?: string
+          id?: string
+          parent_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_athletes_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parent_athletes_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "public_athlete_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parent_athletes_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "parents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parents: {
+        Row: {
+          contact_phone: string | null
+          created_at: string
+          id: string
+          profile_id: string
+          relationship_to_child: string | null
+          updated_at: string
+        }
+        Insert: {
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          profile_id: string
+          relationship_to_child?: string | null
+          updated_at?: string
+        }
+        Update: {
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          profile_id?: string
+          relationship_to_child?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parents_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      performance_metrics: {
+        Row: {
+          agility: number | null
+          athlete_id: string
+          bench_press_1rm_kg: number | null
+          created_at: string | null
+          endurance: number | null
+          id: string
+          illinois_agility_s: number | null
+          reaction_time: number | null
+          recorded_at: string | null
+          speed: number | null
+          sprint_40m_s: number | null
+          squat_1rm_kg: number | null
+          strength: number | null
+          training_hours_per_week: number | null
+          vertical_jump_cm: number | null
+          vo2_max: number | null
+        }
+        Insert: {
+          agility?: number | null
+          athlete_id: string
+          bench_press_1rm_kg?: number | null
+          created_at?: string | null
+          endurance?: number | null
+          id?: string
+          illinois_agility_s?: number | null
+          reaction_time?: number | null
+          recorded_at?: string | null
+          speed?: number | null
+          sprint_40m_s?: number | null
+          squat_1rm_kg?: number | null
+          strength?: number | null
+          training_hours_per_week?: number | null
+          vertical_jump_cm?: number | null
+          vo2_max?: number | null
+        }
+        Update: {
+          agility?: number | null
+          athlete_id?: string
+          bench_press_1rm_kg?: number | null
+          created_at?: string | null
+          endurance?: number | null
+          id?: string
+          illinois_agility_s?: number | null
+          reaction_time?: number | null
+          recorded_at?: string | null
+          speed?: number | null
+          sprint_40m_s?: number | null
+          squat_1rm_kg?: number | null
+          strength?: number | null
+          training_hours_per_week?: number | null
+          vertical_jump_cm?: number | null
+          vo2_max?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performance_metrics_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_metrics_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "public_athlete_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      performance_tests: {
+        Row: {
+          athlete_id: string
+          created_at: string | null
+          id: string
+          test_date: string | null
+          test_name: string
+          test_unit: string | null
+          test_value: number
+        }
+        Insert: {
+          athlete_id: string
+          created_at?: string | null
+          id?: string
+          test_date?: string | null
+          test_name: string
+          test_unit?: string | null
+          test_value: number
+        }
+        Update: {
+          athlete_id?: string
+          created_at?: string | null
+          id?: string
+          test_date?: string | null
+          test_name?: string
+          test_unit?: string | null
+          test_value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performance_tests_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_tests_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "public_athlete_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           author_id: string
@@ -553,7 +1112,14 @@ export type Database = {
           favorite_sport: string | null
           id: string
           name: string
+          popia_consent: boolean | null
+          popia_consent_date: string | null
+          popia_consent_version: string | null
           reputation: number
+          secondary_roles: string[] | null
+          setup_complete: boolean
+          subscription_active: boolean | null
+          subscription_tier: string | null
           updated_at: string
           user_type: Database["public"]["Enums"]["user_type"]
         }
@@ -564,7 +1130,14 @@ export type Database = {
           favorite_sport?: string | null
           id: string
           name?: string
+          popia_consent?: boolean | null
+          popia_consent_date?: string | null
+          popia_consent_version?: string | null
           reputation?: number
+          secondary_roles?: string[] | null
+          setup_complete?: boolean
+          subscription_active?: boolean | null
+          subscription_tier?: string | null
           updated_at?: string
           user_type?: Database["public"]["Enums"]["user_type"]
         }
@@ -575,7 +1148,14 @@ export type Database = {
           favorite_sport?: string | null
           id?: string
           name?: string
+          popia_consent?: boolean | null
+          popia_consent_date?: string | null
+          popia_consent_version?: string | null
           reputation?: number
+          secondary_roles?: string[] | null
+          setup_complete?: boolean
+          subscription_active?: boolean | null
+          subscription_tier?: string | null
           updated_at?: string
           user_type?: Database["public"]["Enums"]["user_type"]
         }
@@ -612,6 +1192,13 @@ export type Database = {
             columns: ["athlete_id"]
             isOneToOne: false
             referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "public_athlete_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -731,9 +1318,31 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_athlete_profiles: {
+        Row: {
+          avatar: string | null
+          bio: string | null
+          full_name: string | null
+          id: string | null
+          position: string | null
+          sport: string | null
+          status: Database["public"]["Enums"]["athlete_status"] | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      find_or_create_athlete: {
+        Args: {
+          p_created_by_role?: string
+          p_date_of_birth: string
+          p_email?: string
+          p_full_name: string
+          p_position?: string
+          p_sport: string
+        }
+        Returns: Json
+      }
       get_user_type: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["user_type"]
@@ -745,6 +1354,47 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_master_admin: { Args: { _user_id: string }; Returns: boolean }
+      test_insert_note: { Args: { test_uid: string }; Returns: string }
+      test_select_athletes: {
+        Args: { test_uid: string }
+        Returns: {
+          claimed_by: string | null
+          contact_email: string | null
+          country: string | null
+          created_at: string
+          date_of_birth: string | null
+          fifa_id: string | null
+          full_name: string | null
+          height_cm: number | null
+          id: string
+          institution_id: string | null
+          invited_at: string | null
+          level: number
+          mysafa_id: string | null
+          nationality: string | null
+          performance_score: number
+          playing_style: string | null
+          position: string | null
+          position_abbreviation: string | null
+          possible_duplicate: boolean
+          profile_id: string | null
+          profile_slug: string | null
+          province: string | null
+          sport: string
+          squad: string | null
+          status: Database["public"]["Enums"]["athlete_status"]
+          updated_at: string
+          weight_kg: number | null
+          xp_points: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "athletes"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
     }
     Enums: {
       app_role:
@@ -754,8 +1404,10 @@ export type Database = {
         | "referee"
         | "scout"
         | "fan"
+        | "master_admin"
+      athlete_status: "stub" | "invited" | "claimed" | "merged"
       match_status: "scheduled" | "live" | "completed" | "cancelled"
-      user_type: "athlete" | "institution" | "fan"
+      user_type: "athlete" | "institution" | "fan" | "master_admin"
       verification_status: "pending" | "verified" | "rejected"
     }
     CompositeTypes: {
@@ -884,9 +1536,18 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["athlete", "institution", "coach", "referee", "scout", "fan"],
+      app_role: [
+        "athlete",
+        "institution",
+        "coach",
+        "referee",
+        "scout",
+        "fan",
+        "master_admin",
+      ],
+      athlete_status: ["stub", "invited", "claimed", "merged"],
       match_status: ["scheduled", "live", "completed", "cancelled"],
-      user_type: ["athlete", "institution", "fan"],
+      user_type: ["athlete", "institution", "fan", "master_admin"],
       verification_status: ["pending", "verified", "rejected"],
     },
   },
