@@ -160,10 +160,11 @@ const SignupWizard = () => {
       if (role === "athlete") {
         // T2 Split: Use RPC to find/create an athlete record and claim it
         const { data: claimData, error: claimErr } = await (supabase.rpc as any)("find_or_create_athlete", {
-          _full_name: name.trim(),
-          _dob: dateOfBirth || null,
-          _sport: sport || "Football",
-          _contact_email: user.email || null
+          p_full_name: name.trim(),
+          p_date_of_birth: dateOfBirth || null,
+          p_sport: sport || "Football",
+          p_email: user.email || null,
+          p_position: position || null,
         });
 
         if (claimErr) throw claimErr;
