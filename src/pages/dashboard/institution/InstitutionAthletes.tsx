@@ -91,8 +91,8 @@ const InstitutionAthletes = () => {
         institution_id: institution.id,
         sport: newAthlete.sport,
         position: newAthlete.position,
-        status: "stub" // Explicitly marking as stub
-      }]).select("*, profiles(name, avatar)").single();
+        status: "stub" as const,
+      } as any]).select("*").single();
 
       if (athleteErr) throw athleteErr;
 

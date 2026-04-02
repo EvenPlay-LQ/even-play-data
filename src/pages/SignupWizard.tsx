@@ -68,7 +68,7 @@ const SignupWizard = () => {
   const [institutionName, setInstitutionName] = useState("");
   const [institutionType, setInstitutionType] = useState("club");
   const [province, setProvince] = useState("");
-  const [city, setCity] = useState("");
+  const [physicalAddress, setPhysicalAddress] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [safaAffiliation, setSafaAffiliation] = useState("");
   const [sasaRegistration, setSasaRegistration] = useState("");
@@ -160,10 +160,11 @@ const SignupWizard = () => {
       if (role === "athlete") {
         // T2 Split: Use RPC to find/create an athlete record and claim it
         const { data: claimData, error: claimErr } = await (supabase.rpc as any)("find_or_create_athlete", {
-          _full_name: name.trim(),
-          _dob: dateOfBirth || null,
-          _sport: sport || "Football",
-          _contact_email: user.email || null
+          p_full_name: name.trim(),
+          p_date_of_birth: dateOfBirth || null,
+          p_sport: sport || "Football",
+          p_email: user.email || null,
+          p_position: position || null,
         });
 
         if (claimErr) throw claimErr;
@@ -191,7 +192,7 @@ const SignupWizard = () => {
         const { data: instData, error: instErr } = await supabase.from("institutions").upsert({
           profile_id: user.id,
           institution_name: institutionName || name,
-          city: city || null,
+          physical_address: physicalAddress || null,
           institution_type: institutionType,
           safa_affiliation_number: safaAffiliation || null,
           sasa_registration_number: sasaRegistration || null,
@@ -492,8 +493,8 @@ const SignupWizard = () => {
                         <Input className="mt-1" value={province} onChange={e => setProvince(e.target.value)} placeholder="e.g. Gauteng" />
                       </div>
                       <div>
-                        <Label>City</Label>
-                        <Input className="mt-1" value={city} onChange={e => setCity(e.target.value)} placeholder="e.g. Johannesburg" />
+                        <Label>Physical Address</Label>
+                        <Input className="mt-1" value={physicalAddress} onChange={e => setPhysicalAddress(e.target.value)} placeholder="e.g. 123 Main St, Johannesburg" />
                       </div>
                     </div>
                     <div>
