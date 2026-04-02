@@ -191,7 +191,7 @@ const SignupWizard = () => {
         const { data: instData, error: instErr } = await supabase.from("institutions").upsert({
           profile_id: user.id,
           institution_name: institutionName || name,
-          city: city || null,
+          physical_address: physicalAddress || null,
           institution_type: institutionType,
           safa_affiliation_number: safaAffiliation || null,
           sasa_registration_number: sasaRegistration || null,
