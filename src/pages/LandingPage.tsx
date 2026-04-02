@@ -49,16 +49,16 @@ const LandingPage = () => {
               The ultimate source of truth for sports performance. We aggregate, verify, and distribute data for athletes, institutions, and fans worldwide.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-stretch sm:items-center">
-              <Button variant="hero" size="lg" className="text-base h-11 sm:h-auto" onClick={() => navigate("/login?mode=signup")}>
-                Join as Athlete <ArrowRight className="ml-2 h-4 w-4" />
+              <Button variant="hero" size="lg" className="text-base h-11 sm:h-auto" onClick={() => navigate("/login")}>
+                Sign In <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
               <Button
                 variant="hero-outline"
                 size="lg"
                 className="text-base h-11 sm:h-auto border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
-                onClick={() => navigate("/login?mode=signup")}
+                onClick={() => navigate("/login")}
               >
-                Join as Institution
+                Get Started
               </Button>
             </div>
           </motion.div>
