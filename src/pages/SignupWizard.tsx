@@ -492,8 +492,8 @@ const SignupWizard = () => {
                         <Input className="mt-1" value={province} onChange={e => setProvince(e.target.value)} placeholder="e.g. Gauteng" />
                       </div>
                       <div>
-                        <Label>City</Label>
-                        <Input className="mt-1" value={city} onChange={e => setCity(e.target.value)} placeholder="e.g. Johannesburg" />
+                        <Label>Physical Address</Label>
+                        <Input className="mt-1" value={physicalAddress} onChange={e => setPhysicalAddress(e.target.value)} placeholder="e.g. 123 Main St, Johannesburg" />
                       </div>
                     </div>
                     <div>

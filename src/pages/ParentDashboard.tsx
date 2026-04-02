@@ -32,17 +32,15 @@ const ParentDashboard = () => {
         setParent(parentData);
         
         // 2. Fetch linked athletes via standardized parent_athletes junction
-        const { data: links, error: linksErr } = await supabase
-          .from("parent_athletes")
+        const { data: links, error: linksErr } = await (supabase
+          .from("parent_athletes" as any)
           .select(`
             athlete_id,
-            relationship,
             athlete:athletes (
-              *,
-              profiles (name, avatar)
+              *
             )
           `)
-          .eq("parent_id", parentData.id);
+          .eq("parent_id", (parentData as any).id) as any);
         
         if (!linksErr && links) {
           setLinkedAthletes(links.map((l: any) => {
