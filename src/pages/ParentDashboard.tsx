@@ -22,10 +22,10 @@ const ParentDashboard = () => {
       setLoading(true);
       
       // 1. Fetch parent record
-      const { data: parentData, error: parentErr } = await supabase
-        .from("parents")
+      const { data: parentData, error: parentErr } = await (supabase
+        .from("parents" as any)
         .select("*")
-        .eq("profile_id", user.id)
+        .eq("profile_id", user.id) as any)
         .maybeSingle();
       
       if (parentData && !parentErr) {
