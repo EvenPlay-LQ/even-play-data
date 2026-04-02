@@ -68,7 +68,7 @@ const SignupWizard = () => {
   const [institutionName, setInstitutionName] = useState("");
   const [institutionType, setInstitutionType] = useState("club");
   const [province, setProvince] = useState("");
-  const [city, setCity] = useState("");
+  const [physicalAddress, setPhysicalAddress] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [safaAffiliation, setSafaAffiliation] = useState("");
   const [sasaRegistration, setSasaRegistration] = useState("");
