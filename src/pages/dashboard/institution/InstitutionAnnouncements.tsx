@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+const supabaseAny = supabase as any;
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { handleQueryError } from "@/lib/queryHelpers";
@@ -95,7 +96,7 @@ const InstitutionAnnouncements = () => {
     
     setSaving(true);
     try {
-      const { error } = await supabase.from("institution_announcements").insert({
+      const { error } = await supabaseAny.from("institution_announcements").insert({
         institution_id: institution.id,
         author_id: user!.id,
         title: title.trim(),
@@ -131,7 +132,7 @@ const InstitutionAnnouncements = () => {
   const handleDeleteAnnouncement = async (id: string) => {
     if (!confirm("Are you sure you want to delete this announcement?")) return;
     
-    const { error } = await supabase.from("institution_announcements").delete().eq("id", id);
+    const { error } = await supabaseAny.from("institution_announcements").delete().eq("id", id);
     
     if (error) {
       handleQueryError(error, "Failed to delete announcement.");

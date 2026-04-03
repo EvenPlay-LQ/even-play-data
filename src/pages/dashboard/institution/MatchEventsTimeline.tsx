@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+const supabaseAny = supabase as any;
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { handleQueryError } from "@/lib/queryHelpers";
@@ -185,7 +186,7 @@ const MatchEventsTimeline = () => {
     
     setSaving(true);
     try {
-      const { error } = await supabase.from("match_events").insert({
+      const { error } = await supabaseAny.from("match_events").insert({
         match_id: selectedMatch,
         event_type: newEvent.event_type,
         minute: parseInt(newEvent.minute),
@@ -222,7 +223,7 @@ const MatchEventsTimeline = () => {
   const handleDeleteEvent = async (eventId: string) => {
     if (!confirm("Delete this event?")) return;
     
-    const { error } = await supabase.from("match_events").delete().eq("id", eventId);
+    const { error } = await supabaseAny.from("match_events").delete().eq("id", eventId);
     
     if (error) {
       handleQueryError(error, "Failed to delete event.");

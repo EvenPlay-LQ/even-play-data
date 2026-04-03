@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+const supabaseAny = supabase as any;
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { handleQueryError } from "@/lib/queryHelpers";
@@ -156,17 +157,17 @@ const InstitutionTeams = () => {
     setSelectedTeam(team);
     setSquadDialogOpen(true);
     
-    const { data: roster } = await supabase.rpc("get_team_roster", { team_id_param: team.id });
+    const { data: roster } = await supabaseAny.rpc("get_team_roster", { team_id_param: team.id });
     
     if (roster) {
-      setSquadMembers(roster as SquadMember[]);
+      setSquadMembers(roster as unknown as SquadMember[]);
     }
   };
 
   const handleAddToSquad = async (athleteId: string, role: string = 'player') => {
     if (!selectedTeam) return;
     
-    const { error } = await supabase.from("team_squads").insert({
+    const { error } = await supabaseAny.from("team_squads").insert({
       team_id: selectedTeam.id,
       athlete_id: athleteId,
       squad_role: role,
