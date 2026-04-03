@@ -106,14 +106,14 @@ const FixtureScheduler = () => {
       }
       
       // Load competitions
-      const { data: compData } = await supabase
+      const { data: compData } = await (supabase as any)
         .from("competitions")
         .select("*")
         .eq("institution_id", instData.id)
         .order("competition_name");
       
       if (compData) {
-        setCompetitions(compData as unknown as Competition[]);
+        setCompetitions(compData as unknown as unknown as Competition[]);
       }
       
       // Load fixtures
@@ -124,7 +124,7 @@ const FixtureScheduler = () => {
   };
 
   const loadFixtures = async (institutionId: string) => {
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from("match_fixtures")
       .select(`
         *,
@@ -194,7 +194,7 @@ const FixtureScheduler = () => {
   };
 
   const handleUpdateScore = async (match: MatchFixture, homeScore: number, awayScore: number) => {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("match_fixtures")
       .update({
         home_score: homeScore,

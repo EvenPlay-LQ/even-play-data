@@ -118,7 +118,7 @@ const ComplianceDocuments = () => {
     const athleteIds = athleteData.map(a => a.id);
     
     // Then load documents for these athletes
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from("athlete_documents")
       .select(`
         *,
@@ -201,7 +201,7 @@ const ComplianceDocuments = () => {
   };
 
   const handleVerifyDocument = async (id: string) => {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("athlete_documents")
       .update({
         verification_status: 'verified',
