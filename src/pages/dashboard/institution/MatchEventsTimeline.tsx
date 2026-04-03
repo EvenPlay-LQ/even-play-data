@@ -132,7 +132,7 @@ const MatchEventsTimeline = () => {
         // Load recent matches if no match selected
         if (!selectedMatch) {
           const teamIds = teamData.map(t => t.id);
-          const { data: matchData } = await supabase
+          const { data: matchData } = await (supabase as any)
             .from("match_fixtures")
             .select(`
               *,
@@ -155,7 +155,7 @@ const MatchEventsTimeline = () => {
 
   const loadMatchEvents = async (matchId: string) => {
     // Load match details
-    const { data: matchData } = await supabase
+    const { data: matchData } = await (supabase as any)
       .from("match_fixtures")
       .select(`
         *,
@@ -170,7 +170,7 @@ const MatchEventsTimeline = () => {
     }
     
     // Load events
-    const { data: eventData } = await supabase
+    const { data: eventData } = await (supabase as any)
       .from("match_events")
       .select("*")
       .eq("match_id", matchId)

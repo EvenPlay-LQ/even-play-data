@@ -74,7 +74,7 @@ const InstitutionAnnouncements = () => {
     if (instData) {
       setInstitution(instData);
       
-      const { data: announcementData } = await supabase
+      const { data: announcementData } = await (supabase as any)
         .from("institution_announcements")
         .select(`
           *,

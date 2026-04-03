@@ -160,7 +160,7 @@ const InstitutionTeams = () => {
     const { data: roster } = await supabaseAny.rpc("get_team_roster", { team_id_param: team.id });
     
     if (roster) {
-      setSquadMembers(roster as unknown as SquadMember[]);
+      setSquadMembers(roster as unknown as unknown as SquadMember[]);
     }
   };
 
@@ -186,7 +186,7 @@ const InstitutionTeams = () => {
   const handleRemoveFromSquad = async (athleteId: string) => {
     if (!selectedTeam) return;
     
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("team_squads")
       .delete()
       .eq("team_id", selectedTeam.id)
