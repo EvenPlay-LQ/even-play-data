@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Users, AlertTriangle, CheckCircle, Clock, Calendar, ChevronRight } from "lucide-react";
+import { Users, AlertTriangle, CheckCircle, Clock, Calendar, ChevronRight, Megaphone, ClipboardList, Trophy, FileText } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -296,6 +296,98 @@ const InstitutionDashboard = () => {
               <div className="text-xs text-muted-foreground">{stat.label}</div>
             </motion.div>
           ))}
+        </div>
+
+        {/* Quick Actions - Phase 1 & 2 */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Phase 1 Features */}
+          <button
+            onClick={() => navigate("/dashboard/institution/attendance")}
+            className="flex items-center gap-4 bg-gradient-to-r from-blue-500/10 to-blue-600/10 hover:from-blue-500/20 hover:to-blue-600/20 border border-blue-500/30 rounded-xl p-4 transition-all group"
+          >
+            <div className="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <ClipboardList className="h-6 w-6 text-blue-600" />
+            </div>
+            <div className="text-left flex-1">
+              <h3 className="font-semibold text-foreground">Track Attendance</h3>
+              <p className="text-xs text-muted-foreground">Mark training and match attendance</p>
+            </div>
+            <ChevronRight className="h-5 w-5 text-blue-600" />
+          </button>
+
+          <button
+            onClick={() => navigate("/dashboard/institution/announcements")}
+            className="flex items-center gap-4 bg-gradient-to-r from-purple-500/10 to-purple-600/10 hover:from-purple-500/20 hover:to-purple-600/20 border border-purple-500/30 rounded-xl p-4 transition-all group"
+          >
+            <div className="w-12 h-12 rounded-lg bg-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Megaphone className="h-6 w-6 text-purple-600" />
+            </div>
+            <div className="text-left flex-1">
+              <h3 className="font-semibold text-foreground">Announcements</h3>
+              <p className="text-xs text-muted-foreground">Communicate with athletes & parents</p>
+            </div>
+            <ChevronRight className="h-5 w-5 text-purple-600" />
+          </button>
+
+          {/* Phase 2 Features */}
+          <button
+            onClick={() => navigate("/dashboard/institution/teams")}
+            className="flex items-center gap-4 bg-gradient-to-r from-green-500/10 to-green-600/10 hover:from-green-500/20 hover:to-green-600/20 border border-green-500/30 rounded-xl p-4 transition-all group"
+          >
+            <div className="w-12 h-12 rounded-lg bg-green-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Trophy className="h-6 w-6 text-green-600" />
+            </div>
+            <div className="text-left flex-1">
+              <h3 className="font-semibold text-foreground">Manage Teams</h3>
+              <p className="text-xs text-muted-foreground">Multi-squad team organization</p>
+            </div>
+            <ChevronRight className="h-5 w-5 text-green-600" />
+          </button>
+
+          <button
+            onClick={() => navigate("/dashboard/institution/matches")}
+            className="flex items-center gap-4 bg-gradient-to-r from-orange-500/10 to-orange-600/10 hover:from-orange-500/20 hover:to-orange-600/20 border border-orange-500/30 rounded-xl p-4 transition-all group"
+          >
+            <div className="w-12 h-12 rounded-lg bg-orange-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Calendar className="h-6 w-6 text-orange-600" />
+            </div>
+            <div className="text-left flex-1">
+              <h3 className="font-semibold text-foreground">Fixtures</h3>
+              <p className="text-xs text-muted-foreground">Schedule and manage matches</p>
+            </div>
+            <ChevronRight className="h-5 w-5 text-orange-600" />
+          </button>
+        </div>
+
+        {/* Additional Phase 2 Actions */}
+        <div className="grid md:grid-cols-2 gap-4">
+          <button
+            onClick={() => navigate("/dashboard/institution/compliance")}
+            className="flex items-center gap-4 bg-gradient-to-r from-red-500/10 to-red-600/10 hover:from-red-500/20 hover:to-red-600/20 border border-red-500/30 rounded-xl p-4 transition-all group"
+          >
+            <div className="w-12 h-12 rounded-lg bg-red-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <FileText className="h-6 w-6 text-red-600" />
+            </div>
+            <div className="text-left flex-1">
+              <h3 className="font-semibold text-foreground">Compliance Docs</h3>
+              <p className="text-xs text-muted-foreground">Medical forms and certificates</p>
+            </div>
+            <ChevronRight className="h-5 w-5 text-red-600" />
+          </button>
+
+          <button
+            onClick={() => navigate("/dashboard/institution/athletes")}
+            className="flex items-center gap-4 bg-gradient-to-r from-indigo-500/10 to-indigo-600/10 hover:from-indigo-500/20 hover:to-indigo-600/20 border border-indigo-500/30 rounded-xl p-4 transition-all group"
+          >
+            <div className="w-12 h-12 rounded-lg bg-indigo-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Users className="h-6 w-6 text-indigo-600" />
+            </div>
+            <div className="text-left flex-1">
+              <h3 className="font-semibold text-foreground">Athlete Roster</h3>
+              <p className="text-xs text-muted-foreground">Manage your athletes</p>
+            </div>
+            <ChevronRight className="h-5 w-5 text-indigo-600" />
+          </button>
         </div>
 
         {/* Top Athletes */}

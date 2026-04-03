@@ -83,6 +83,18 @@ const InstitutionAthletes = () => {
     setSaving(true);
 
     try {
+      // Check for duplicate email within this institution
+      const { data: existing } = await supabase
+        .from("athletes")
+        .select("id")
+        .eq("contact_email", newAthlete.email.trim().toLowerCase())
+        .eq("institution_id", institution.id)
+        .maybeSingle();
+      
+      if (existing) {
+        throw new Error(`An athlete with email "${newAthlete.email}" already exists in your institution.`);
+      }
+      
       // T2 Split: Create a Stub athlete directly without a shadow profile.
       // The athlete will claim this record later using the find_or_create_athlete RPC.
       const { data: athleteData, error: athleteErr } = await supabase.from("athletes").insert([{

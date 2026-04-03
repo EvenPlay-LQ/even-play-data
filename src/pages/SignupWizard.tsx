@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SEO } from "@/components/SEO";
@@ -25,7 +26,7 @@ type UserRole = "athlete" | "institution" | "fan";
 
 const STEPS: Record<UserRole, string[]> = {
   athlete: ["Choose Role", "Basic Info", "Sports Profile", "Your ID / Credentials", "Privacy & Consent"],
-  institution: ["Choose Role", "Contact Info", "Institution Details", "Registrations", "Privacy & Consent"],
+  institution: ["Choose Role", "Contact Info", "Institution Details", "Privacy & Consent"],
   fan: ["Choose Role", "Your Info", "Child Profile", "Privacy & Consent"],
 };
 
@@ -35,17 +36,13 @@ const SignupWizard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { refreshProfile } = useProfile();
 
   const [step, setStep] = useState(1);
   const [role, setRole] = useState<UserRole | null>(null);
   const [initialized, setInitialized] = useState(false);
   const [saving, setSaving] = useState(false);
   const [consented, setConsented] = useState(false);
-
-  // Institution post-setup modal
-  const [showAddAthlete, setShowAddAthlete] = useState(false);
-  const [institutionId, setInstitutionId] = useState<string | null>(null);
-  const [addingAthlete, setAddingAthlete] = useState(false);
 
   // ─── Shared ─────────────────────────────────────────────────────────────
   const [name, setName] = useState("");
@@ -60,7 +57,6 @@ const SignupWizard = () => {
   const [weightKg, setWeightKg] = useState("");
   const [playingStyle, setPlayingStyle] = useState("");
   const [mysafaId, setMysafaId] = useState("");
-  const [fifaId, setFifaId] = useState("");
   const [squad, setSquad] = useState("");
 
   // ─── Institution ─────────────────────────────────────────────────────────
@@ -88,6 +84,8 @@ const SignupWizard = () => {
   const [ath_sport, setAthSport] = useState("Football");
   const [ath_position, setAthPosition] = useState("");
   const [ath_dob, setAthDob] = useState("");
+  const [showAddAthlete, setShowAddAthlete] = useState(false);
+  const [addingAthlete, setAddingAthlete] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -125,8 +123,7 @@ const SignupWizard = () => {
     if (role === "institution") {
       if (step === 2) return name.trim().length > 0;
       if (step === 3) return institutionName.trim().length > 0 && province.trim().length > 0;
-      if (step === 4) return true; // registrations optional
-      if (step === 5) return consented;
+      if (step === 4) return consented;
     }
     if (role === "fan") {
       if (step === 2) return name.trim().length > 0;
@@ -134,6 +131,44 @@ const SignupWizard = () => {
       if (step === 4) return consented;
     }
     return true;
+  };
+
+  // ─── Institution: Add First Athlete ───────────────────────────────────────
+  const handleAddInstitutionAthlete = async () => {
+    if (!user || !ath_name.trim()) return;
+    
+    setAddingAthlete(true);
+    
+    try {
+      // Create stub athlete record
+      const { data: athlete, error: athleteError } = await supabase.from("athletes").insert({
+        full_name: ath_name.trim(),
+        sport: ath_sport,
+        position: ath_position || "Player",
+        date_of_birth: ath_dob || null,
+        status: "stub"
+      }).select("id").single();
+
+      if (athleteError) throw athleteError;
+
+      toast({
+        title: "Athlete Added! 🎉",
+        description: `${ath_name} has been added to your institution.`,
+      });
+
+      // Close modal and navigate to dashboard
+      setShowAddAthlete(false);
+      navigate("/dashboard/institution");
+    } catch (error: any) {
+      console.error("[SignupWizard] Add athlete error:", error);
+      toast({
+        title: "Error Adding Athlete",
+        description: error?.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setAddingAthlete(false);
+    }
   };
 
   // ─── Submit ───────────────────────────────────────────────────────────────
@@ -181,7 +216,6 @@ const SignupWizard = () => {
             height_cm: heightCm ? parseFloat(heightCm) : null,
             weight_kg: weightKg ? parseFloat(weightKg) : null,
             mysafa_id: mysafaId || null,
-            fifa_id: fifaId || null,
             playing_style: playingStyle || null,
           }).eq("id", athleteId);
           
@@ -201,7 +235,7 @@ const SignupWizard = () => {
           contact_phone: contactPhone || null,
         }, { onConflict: "profile_id" } as any).select("id").single();
         if (instErr) throw instErr;
-        if (instData) setInstitutionId(instData.id);
+        // Institution will be redirected to buzz page with other users
 
       } else if (role === "fan") {
         // Create parent record
@@ -238,14 +272,13 @@ const SignupWizard = () => {
 
       toast({ title: "Welcome to Even Playground! 🎉", description: "Your profile is ready." });
 
-      if (role === "institution") {
-        setShowAddAthlete(true); // Show modal to add first athlete
-      } else {
-        setTimeout(() => {
-          if (role === "athlete") navigate("/dashboard/athlete");
-          else navigate("/dashboard/parent");
-        }, 400);
-      }
+      // Force refresh the profile to ensure setup_complete is synced
+      await refreshProfile();
+      
+      // Redirect all users to community dashboard (Buzz page) after signup
+      setTimeout(() => {
+        navigate("/buzz", { replace: true });
+      }, 400);
     } catch (error: any) {
       console.error("[SignupWizard] Setup error:", error);
       toast({
@@ -255,28 +288,6 @@ const SignupWizard = () => {
       });
     } finally {
       setSaving(false);
-    }
-  };
-
-  const handleAddInstitutionAthlete = async () => {
-    if (!ath_name.trim() || !institutionId) return;
-    setAddingAthlete(true);
-    try {
-      // T2 Split: Create stub record directly without a dummy profile
-      await supabase.from("athletes").insert({
-        full_name: ath_name.trim(),
-        institution_id: institutionId,
-        sport: ath_sport || "Football",
-        position: ath_position || "Player",
-        date_of_birth: ath_dob || null,
-        status: "stub"
-      } as any);
-      toast({ title: "Athlete created!", description: `${ath_name} has been added to your roster as a stub profile.` });
-      setAthName(""); setAthSport("Football"); setAthPosition(""); setAthDob("");
-    } catch (e: any) {
-      toast({ title: "Failed to create athlete", description: e?.message, variant: "destructive" });
-    } finally {
-      setAddingAthlete(false);
     }
   };
 
@@ -415,16 +426,12 @@ const SignupWizard = () => {
                 <motion.div key="a-step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
                   <div>
                     <h2 className="text-2xl font-display font-bold text-foreground">Your Credentials</h2>
-                    <p className="text-muted-foreground mt-1 text-sm">Link your federation IDs (all optional).</p>
+                    <p className="text-muted-foreground mt-1 text-sm">Link your federation IDs (optional).</p>
                   </div>
                   <div className="space-y-4">
                     <div>
                       <Label>MYSAFA ID</Label>
                       <Input className="mt-1" value={mysafaId} onChange={e => setMysafaId(e.target.value)} placeholder="Your SAFA registered ID" />
-                    </div>
-                    <div>
-                      <Label>FIFA ID</Label>
-                      <Input className="mt-1" value={fifaId} onChange={e => setFifaId(e.target.value)} placeholder="Your FIFA registered ID" />
                     </div>
                     <div>
                       <Label>Current Squad / Team</Label>
@@ -505,29 +512,8 @@ const SignupWizard = () => {
                 </motion.div>
               )}
 
-              {/* Institution Step 4: Registrations */}
+              {/* Institution Step 4: Consent */}
               {step === 4 && role === "institution" && (
-                <motion.div key="i-step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
-                  <div>
-                    <h2 className="text-2xl font-display font-bold text-foreground">Federation Registrations</h2>
-                    <p className="text-muted-foreground mt-1 text-sm">All fields are optional but help verify your institution.</p>
-                  </div>
-                  <div className="space-y-4">
-                    <div>
-                      <Label>SAFA Affiliation Number</Label>
-                      <Input className="mt-1" value={safaAffiliation} onChange={e => setSafaAffiliation(e.target.value)} placeholder="Your SAFA affiliation ID" />
-                    </div>
-                    <div>
-                      <Label>SASA Registration Number</Label>
-                      <Input className="mt-1" value={sasaRegistration} onChange={e => setSasaRegistration(e.target.value)} placeholder="Your SASA registration ID" />
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground text-center">You can add these later in your institution settings.</p>
-                </motion.div>
-              )}
-
-              {/* Institution Step 5: Consent */}
-              {step === 5 && role === "institution" && (
                 <ConsentStep role="institution" onConsent={setConsented} />
               )}
 
