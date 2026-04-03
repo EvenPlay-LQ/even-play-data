@@ -153,7 +153,7 @@ const ComplianceDocuments = () => {
         .getPublicUrl(path);
       
       // Create document record
-      const { error: insertError } = await supabase.from("athlete_documents").insert({
+      const { error: insertError } = await supabaseAny.from("athlete_documents").insert({
         athlete_id: selectedAthlete,
         document_type: documentType,
         file_name: file.name,
@@ -190,7 +190,7 @@ const ComplianceDocuments = () => {
   const handleDeleteDocument = async (id: string) => {
     if (!confirm("Are you sure you want to delete this document?")) return;
     
-    const { error } = await supabase.from("athlete_documents").delete().eq("id", id);
+    const { error } = await supabaseAny.from("athlete_documents").delete().eq("id", id);
     
     if (error) {
       handleQueryError(error, "Failed to delete document.");

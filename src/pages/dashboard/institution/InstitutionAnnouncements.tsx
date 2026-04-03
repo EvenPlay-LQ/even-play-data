@@ -96,7 +96,7 @@ const InstitutionAnnouncements = () => {
     
     setSaving(true);
     try {
-      const { error } = await supabase.from("institution_announcements").insert({
+      const { error } = await supabaseAny.from("institution_announcements").insert({
         institution_id: institution.id,
         author_id: user!.id,
         title: title.trim(),
@@ -132,7 +132,7 @@ const InstitutionAnnouncements = () => {
   const handleDeleteAnnouncement = async (id: string) => {
     if (!confirm("Are you sure you want to delete this announcement?")) return;
     
-    const { error } = await supabase.from("institution_announcements").delete().eq("id", id);
+    const { error } = await supabaseAny.from("institution_announcements").delete().eq("id", id);
     
     if (error) {
       handleQueryError(error, "Failed to delete announcement.");
