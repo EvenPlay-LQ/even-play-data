@@ -51,47 +51,56 @@ export type Database = {
       }
       athletes: {
         Row: {
+          contact_email: string | null
           country: string | null
           created_at: string
           date_of_birth: string | null
+          full_name: string | null
           id: string
           institution_id: string | null
           level: number
           performance_score: number
           position: string | null
-          profile_id: string
+          profile_id: string | null
           province: string | null
           sport: string
+          status: string
           updated_at: string
           xp_points: number
         }
         Insert: {
+          contact_email?: string | null
           country?: string | null
           created_at?: string
           date_of_birth?: string | null
+          full_name?: string | null
           id?: string
           institution_id?: string | null
           level?: number
           performance_score?: number
           position?: string | null
-          profile_id: string
+          profile_id?: string | null
           province?: string | null
           sport?: string
+          status?: string
           updated_at?: string
           xp_points?: number
         }
         Update: {
+          contact_email?: string | null
           country?: string | null
           created_at?: string
           date_of_birth?: string | null
+          full_name?: string | null
           id?: string
           institution_id?: string | null
           level?: number
           performance_score?: number
           position?: string | null
-          profile_id?: string
+          profile_id?: string | null
           province?: string | null
           sport?: string
+          status?: string
           updated_at?: string
           xp_points?: number
         }
@@ -499,6 +508,86 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      parent_athletes: {
+        Row: {
+          athlete_id: string
+          created_at: string
+          id: string
+          linked_at: string | null
+          parent_id: string
+          relationship: string
+          verified: boolean
+        }
+        Insert: {
+          athlete_id: string
+          created_at?: string
+          id?: string
+          linked_at?: string | null
+          parent_id: string
+          relationship?: string
+          verified?: boolean
+        }
+        Update: {
+          athlete_id?: string
+          created_at?: string
+          id?: string
+          linked_at?: string | null
+          parent_id?: string
+          relationship?: string
+          verified?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_athletes_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parent_athletes_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "parents"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      parents: {
+        Row: {
+          contact_phone: string | null
+          created_at: string
+          id: string
+          profile_id: string
+          relationship_to_child: string | null
+          updated_at: string
+        }
+        Insert: {
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          profile_id: string
+          relationship_to_child?: string | null
+          updated_at?: string
+        }
+        Update: {
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          profile_id?: string
+          relationship_to_child?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parents_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
         ]
       }
       posts: {

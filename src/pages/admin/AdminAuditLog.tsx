@@ -18,7 +18,10 @@ const AdminAuditLog = () => {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { 
+    load(); 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const actionColor = (action: string) => {
     if (action.includes("delete")) return "text-red-400";

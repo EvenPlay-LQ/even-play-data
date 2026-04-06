@@ -58,6 +58,7 @@ const InstitutionAthletes = () => {
   useEffect(() => {
     if (!user) return;
     loadAthletes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const loadAthletes = async () => {

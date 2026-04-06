@@ -241,8 +241,8 @@ const SignupWizard = () => {
         setShowAddAthlete(true); // Show modal to add first athlete
       } else {
         setTimeout(() => {
-          if (role === "athlete") navigate("/dashboard/athlete");
-          else navigate("/dashboard/parent");
+          if (role === "athlete") window.location.href = "/dashboard/athlete";
+          else window.location.href = "/dashboard/parent";
         }, 400);
       }
     } catch (error: any) {
@@ -633,7 +633,7 @@ const SignupWizard = () => {
       <Dialog open={showAddAthlete} onOpenChange={(open) => {
         if (!open) {
           setShowAddAthlete(false);
-          navigate("/dashboard/institution");
+          window.location.href = "/dashboard/institution";
         }
       }}>
         <DialogContent className="sm:max-w-md">
@@ -672,7 +672,7 @@ const SignupWizard = () => {
                 {addingAthlete ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
                 Add Athlete
               </Button>
-              <Button variant="outline" onClick={() => navigate("/dashboard/institution")}>
+              <Button variant="outline" onClick={() => window.location.href = "/dashboard/institution"}>
                 Go to Dashboard
               </Button>
             </div>
