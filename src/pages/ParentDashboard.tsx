@@ -22,27 +22,25 @@ const ParentDashboard = () => {
       setLoading(true);
       
       // 1. Fetch parent record
-      const { data: parentData, error: parentErr } = await supabase
-        .from("parents")
+      const { data: parentData, error: parentErr } = await (supabase
+        .from("parents" as any)
         .select("*")
-        .eq("profile_id", user.id)
+        .eq("profile_id", user.id) as any)
         .maybeSingle();
       
       if (parentData && !parentErr) {
         setParent(parentData);
         
         // 2. Fetch linked athletes via standardized parent_athletes junction
-        const { data: links, error: linksErr } = await supabase
-          .from("parent_athletes")
+        const { data: links, error: linksErr } = await (supabase
+          .from("parent_athletes" as any)
           .select(`
             athlete_id,
-            relationship,
             athlete:athletes (
-              *,
-              profiles (name, avatar)
+              *
             )
           `)
-          .eq("parent_id", parentData.id);
+          .eq("parent_id", (parentData as any).id) as any);
         
         if (!linksErr && links) {
           setLinkedAthletes(links.map((l: any) => {

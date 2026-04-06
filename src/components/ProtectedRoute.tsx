@@ -26,7 +26,14 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   }
 
   // Enforce wizard completion — redirect to /setup if wizard not complete
+  // Exception: Allow access to /buzz immediately after signup to prevent loop
   if (!setupComplete && location.pathname !== "/setup") {
+    // If user just completed setup (profile exists but setup_complete flag not yet synced),
+    // allow them to proceed to /buzz instead of redirecting back to /setup
+    if (profile && location.pathname === "/buzz") {
+      // Allow access - profile exists, just let them through
+      return <>{children}</>;
+    }
     return <Navigate to="/setup" replace />;
   }
 

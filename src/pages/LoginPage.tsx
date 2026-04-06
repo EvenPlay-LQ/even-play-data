@@ -147,13 +147,8 @@ const LoginPage = () => {
           return;
         }
 
-        // Direct roles
-        const ut = profile.user_type as string;
-        if (ut === "master_admin") navigate("/admin");
-        else if (ut === "institution") navigate("/dashboard/institution");
-        else if (ut === "athlete") navigate("/dashboard/athlete");
-        else if (ut === "fan") navigate("/buzz");
-        else navigate("/setup");
+        // Route all users to community dashboard (Buzz page) after login
+        navigate("/buzz");
       } else {
         navigate("/");
       }

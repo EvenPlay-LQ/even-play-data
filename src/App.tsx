@@ -35,6 +35,10 @@ const InstitutionTeams = lazy(() => import("./pages/dashboard/institution/Instit
 const InstitutionMatches = lazy(() => import("./pages/dashboard/institution/InstitutionMatches"));
 const InstitutionVerifications = lazy(() => import("./pages/dashboard/institution/InstitutionVerifications"));
 const InstitutionAnalytics = lazy(() => import("./pages/dashboard/institution/InstitutionAnalytics"));
+const AttendanceTracker = lazy(() => import("./pages/dashboard/institution/AttendanceTracker"));
+const InstitutionAnnouncements = lazy(() => import("./pages/dashboard/institution/InstitutionAnnouncements"));
+const FixtureScheduler = lazy(() => import("./pages/dashboard/institution/FixtureScheduler"));
+const ComplianceDocuments = lazy(() => import("./pages/dashboard/institution/ComplianceDocuments"));
 const ParentDashboard = lazy(() => import("./pages/ParentDashboard"));
 const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -86,9 +90,12 @@ const App = () => (
                 <Route path="/dashboard/institution" element={<ProtectedRoute requiredRole="institution"><InstitutionDashboard /></ProtectedRoute>} />
                 <Route path="/dashboard/institution/athletes" element={<ProtectedRoute requiredRole="institution"><InstitutionAthletes /></ProtectedRoute>} />
                 <Route path="/dashboard/institution/teams" element={<ProtectedRoute requiredRole="institution"><InstitutionTeams /></ProtectedRoute>} />
-                <Route path="/dashboard/institution/matches" element={<ProtectedRoute requiredRole="institution"><InstitutionMatches /></ProtectedRoute>} />
+                <Route path="/dashboard/institution/matches" element={<ProtectedRoute requiredRole="institution"><FixtureScheduler /></ProtectedRoute>} />
                 <Route path="/dashboard/institution/verifications" element={<ProtectedRoute requiredRole="institution"><InstitutionVerifications /></ProtectedRoute>} />
                 <Route path="/dashboard/institution/analytics" element={<ProtectedRoute requiredRole="institution"><InstitutionAnalytics /></ProtectedRoute>} />
+                <Route path="/dashboard/institution/attendance" element={<ProtectedRoute requiredRole="institution"><AttendanceTracker /></ProtectedRoute>} />
+                <Route path="/dashboard/institution/announcements" element={<ProtectedRoute requiredRole="institution"><InstitutionAnnouncements /></ProtectedRoute>} />
+                <Route path="/dashboard/institution/compliance" element={<ProtectedRoute requiredRole="institution"><ComplianceDocuments /></ProtectedRoute>} />
 
                 {/* Parent Dashboard */}
                 <Route path="/dashboard/parent" element={<ProtectedRoute requiredRole="parent"><ParentDashboard /></ProtectedRoute>} />

@@ -35,19 +35,8 @@ const AuthCallbackPage = () => {
         return;
       }
 
-      switch (profile.user_type) {
-        case "institution":
-          navigate("/dashboard/institution", { replace: true });
-          break;
-        case "athlete":
-          navigate("/dashboard/athlete", { replace: true });
-          break;
-        case "fan":
-          navigate("/buzz", { replace: true });
-          break;
-        default:
-          navigate("/setup", { replace: true });
-      }
+      // Route all users to community dashboard (Buzz page) after authentication
+      navigate("/buzz", { replace: true });
     };
 
     handleCallback();
