@@ -40,7 +40,6 @@ const InstitutionAnnouncements = lazy(() => import("./pages/dashboard/institutio
 const FixtureScheduler = lazy(() => import("./pages/dashboard/institution/FixtureScheduler"));
 const ComplianceDocuments = lazy(() => import("./pages/dashboard/institution/ComplianceDocuments"));
 const ParentDashboard = lazy(() => import("./pages/ParentDashboard"));
-const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Admin Pages
@@ -75,7 +74,6 @@ const App = () => (
                 <Route path="/community" element={<ProtectedRoute><CommunityPage /></ProtectedRoute>} />
                 <Route path="/zone" element={<ProtectedRoute><ZonePage /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-                <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/setup" element={<ProtectedRoute><SignupWizard /></ProtectedRoute>} />
 
                 {/* Athlete Dashboard */}

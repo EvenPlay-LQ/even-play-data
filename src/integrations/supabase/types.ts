@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -212,21 +212,14 @@ export type Database = {
       }
       athletes: {
         Row: {
-<<<<<<< HEAD
-=======
           claimed_by: string | null
->>>>>>> c5fa7424d933ae2f33eff2627dadeda3ef2504bb
           contact_email: string | null
           country: string | null
           created_at: string
           date_of_birth: string | null
-<<<<<<< HEAD
-          full_name: string | null
-=======
           fifa_id: string | null
           full_name: string | null
           height_cm: number | null
->>>>>>> c5fa7424d933ae2f33eff2627dadeda3ef2504bb
           id: string
           institution_id: string | null
           invited_at: string | null
@@ -236,12 +229,6 @@ export type Database = {
           performance_score: number
           playing_style: string | null
           position: string | null
-<<<<<<< HEAD
-          profile_id: string | null
-          province: string | null
-          sport: string
-          status: string
-=======
           position_abbreviation: string | null
           possible_duplicate: boolean
           profile_id: string | null
@@ -250,27 +237,19 @@ export type Database = {
           sport: string
           squad: string | null
           status: Database["public"]["Enums"]["athlete_status"]
->>>>>>> c5fa7424d933ae2f33eff2627dadeda3ef2504bb
           updated_at: string
           weight_kg: number | null
           xp_points: number
         }
         Insert: {
-<<<<<<< HEAD
-=======
           claimed_by?: string | null
->>>>>>> c5fa7424d933ae2f33eff2627dadeda3ef2504bb
           contact_email?: string | null
           country?: string | null
           created_at?: string
           date_of_birth?: string | null
-<<<<<<< HEAD
-          full_name?: string | null
-=======
           fifa_id?: string | null
           full_name?: string | null
           height_cm?: number | null
->>>>>>> c5fa7424d933ae2f33eff2627dadeda3ef2504bb
           id?: string
           institution_id?: string | null
           invited_at?: string | null
@@ -280,12 +259,6 @@ export type Database = {
           performance_score?: number
           playing_style?: string | null
           position?: string | null
-<<<<<<< HEAD
-          profile_id?: string | null
-          province?: string | null
-          sport?: string
-          status?: string
-=======
           position_abbreviation?: string | null
           possible_duplicate?: boolean
           profile_id?: string | null
@@ -294,27 +267,19 @@ export type Database = {
           sport?: string
           squad?: string | null
           status?: Database["public"]["Enums"]["athlete_status"]
->>>>>>> c5fa7424d933ae2f33eff2627dadeda3ef2504bb
           updated_at?: string
           weight_kg?: number | null
           xp_points?: number
         }
         Update: {
-<<<<<<< HEAD
-=======
           claimed_by?: string | null
->>>>>>> c5fa7424d933ae2f33eff2627dadeda3ef2504bb
           contact_email?: string | null
           country?: string | null
           created_at?: string
           date_of_birth?: string | null
-<<<<<<< HEAD
-          full_name?: string | null
-=======
           fifa_id?: string | null
           full_name?: string | null
           height_cm?: number | null
->>>>>>> c5fa7424d933ae2f33eff2627dadeda3ef2504bb
           id?: string
           institution_id?: string | null
           invited_at?: string | null
@@ -324,12 +289,6 @@ export type Database = {
           performance_score?: number
           playing_style?: string | null
           position?: string | null
-<<<<<<< HEAD
-          profile_id?: string | null
-          province?: string | null
-          sport?: string
-          status?: string
-=======
           position_abbreviation?: string | null
           possible_duplicate?: boolean
           profile_id?: string | null
@@ -338,7 +297,6 @@ export type Database = {
           sport?: string
           squad?: string | null
           status?: Database["public"]["Enums"]["athlete_status"]
->>>>>>> c5fa7424d933ae2f33eff2627dadeda3ef2504bb
           updated_at?: string
           weight_kg?: number | null
           xp_points?: number
@@ -912,40 +870,19 @@ export type Database = {
           athlete_id: string
           created_at: string
           id: string
-<<<<<<< HEAD
-          linked_at: string | null
           parent_id: string
-          relationship: string
-          verified: boolean
-=======
-          parent_id: string
->>>>>>> c5fa7424d933ae2f33eff2627dadeda3ef2504bb
         }
         Insert: {
           athlete_id: string
           created_at?: string
           id?: string
-<<<<<<< HEAD
-          linked_at?: string | null
           parent_id: string
-          relationship?: string
-          verified?: boolean
-=======
-          parent_id: string
->>>>>>> c5fa7424d933ae2f33eff2627dadeda3ef2504bb
         }
         Update: {
           athlete_id?: string
           created_at?: string
           id?: string
-<<<<<<< HEAD
-          linked_at?: string | null
           parent_id?: string
-          relationship?: string
-          verified?: boolean
-=======
-          parent_id?: string
->>>>>>> c5fa7424d933ae2f33eff2627dadeda3ef2504bb
         }
         Relationships: [
           {
@@ -956,8 +893,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-<<<<<<< HEAD
-=======
             foreignKeyName: "parent_athletes_athlete_id_fkey"
             columns: ["athlete_id"]
             isOneToOne: false
@@ -965,17 +900,12 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
->>>>>>> c5fa7424d933ae2f33eff2627dadeda3ef2504bb
             foreignKeyName: "parent_athletes_parent_id_fkey"
             columns: ["parent_id"]
             isOneToOne: false
             referencedRelation: "parents"
             referencedColumns: ["id"]
-<<<<<<< HEAD
-          }
-=======
           },
->>>>>>> c5fa7424d933ae2f33eff2627dadeda3ef2504bb
         ]
       }
       parents: {
@@ -1010,9 +940,6 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-<<<<<<< HEAD
-          }
-=======
           },
         ]
       }
@@ -1131,7 +1058,6 @@ export type Database = {
             referencedRelation: "public_athlete_profiles"
             referencedColumns: ["id"]
           },
->>>>>>> c5fa7424d933ae2f33eff2627dadeda3ef2504bb
         ]
       }
       posts: {

@@ -173,7 +173,8 @@ const InstitutionAthletes = () => {
   };
 
   const filtered = athletes.filter(a =>
-    !search.trim() || (a.profiles?.name || "").toLowerCase().includes(search.toLowerCase())
+    !search.trim() ||
+    (a.profiles?.name || a.full_name || "").toLowerCase().includes(search.toLowerCase())
   );
 
   if (loading) {

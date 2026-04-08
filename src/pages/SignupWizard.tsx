@@ -272,24 +272,19 @@ const SignupWizard = () => {
 
       toast({ title: "Welcome to Even Playground! 🎉", description: "Your profile is ready." });
 
-<<<<<<< HEAD
+      // Force refresh the profile to ensure setup_complete is synced
+      if (refreshProfile) {
+        await refreshProfile();
+      }
+
       if (role === "institution") {
         setShowAddAthlete(true); // Show modal to add first athlete
       } else {
+        // Redirect to community dashboard (Buzz page) after signup
         setTimeout(() => {
-          if (role === "athlete") window.location.href = "/dashboard/athlete";
-          else window.location.href = "/dashboard/parent";
+          window.location.href = "/buzz";
         }, 400);
       }
-=======
-      // Force refresh the profile to ensure setup_complete is synced
-      await refreshProfile();
-      
-      // Redirect all users to community dashboard (Buzz page) after signup
-      setTimeout(() => {
-        navigate("/buzz", { replace: true });
-      }, 400);
->>>>>>> c5fa7424d933ae2f33eff2627dadeda3ef2504bb
     } catch (error: any) {
       console.error("[SignupWizard] Setup error:", error);
       toast({
