@@ -145,6 +145,19 @@ const LoginPage = () => {
           return;
         }
 
+        // If there's a returnTo param, go back to the original page
+        const returnTo = searchParams.get("returnTo");
+        if (
+          returnTo &&
+          returnTo.startsWith("/") &&
+          !returnTo.startsWith("//") &&
+          !returnTo.startsWith("/login") &&
+          !returnTo.startsWith("/auth/")
+        ) {
+          navigate(returnTo, { replace: true });
+          return;
+        }
+
         // Direct roles
         const ut = profile.user_type as string;
         if (ut === "master_admin") navigate("/admin");
