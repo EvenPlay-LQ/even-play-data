@@ -97,6 +97,8 @@ const LoginPage = () => {
       if (error) {
         if (error.message?.includes("already registered")) {
           toast({ title: "Email already registered", description: "Try signing in instead.", variant: "destructive" });
+        } else if (error.message?.includes("rate limit") || error.message?.includes("email rate")) {
+          toast({ title: "Too many sign-up attempts", description: "Email sending is temporarily rate-limited. Please wait a few minutes and try again.", variant: "destructive" });
         } else {
           toast({ title: "Signup failed", description: error.message, variant: "destructive" });
         }
@@ -145,7 +147,7 @@ const LoginPage = () => {
           return;
         }
 
-        // If there's a returnTo param, go back to the original page
+        // If there's a returnTo param (PWA deep-link), go back to the original page
         const returnTo = searchParams.get("returnTo");
         if (
           returnTo &&
@@ -158,13 +160,8 @@ const LoginPage = () => {
           return;
         }
 
-        // Direct roles
-        const ut = profile.user_type as string;
-        if (ut === "master_admin") navigate("/admin");
-        else if (ut === "institution") navigate("/dashboard/institution");
-        else if (ut === "athlete") navigate("/dashboard/athlete");
-        else if (ut === "fan") navigate("/buzz");
-        else navigate("/setup");
+        // Route all users to community dashboard (Buzz page) after login
+        navigate("/buzz");
       } else {
         navigate("/");
       }

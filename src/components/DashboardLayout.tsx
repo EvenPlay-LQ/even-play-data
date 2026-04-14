@@ -33,8 +33,8 @@ const institutionTabs = [
 
 const parentTabs = [
   { icon: Home, label: "Overview", path: "/dashboard/parent" },
-  { icon: Users, label: "Athletes", path: "/dashboard/parent" }, // Linked athletes are on the home page for now
-  { icon: Activity, label: "Activity", path: "/dashboard/parent" },
+  { icon: Users, label: "My Athletes", path: "/dashboard/parent" },
+  { icon: Activity, label: "Activity Tracker", path: "/dashboard/parent" },
 ];
 
 const masterAdminTabs = [
@@ -76,7 +76,7 @@ const DashboardLayout = ({ children, role }: DashboardLayoutProps) => {
                   ? "bg-red-500/20 text-red-500 border border-red-500/20" 
                   : "bg-primary/10 text-primary"
               }`}>
-                {role === "master_admin" ? "Master Admin" : `${role} Dashboard`}
+                {role === "master_admin" ? "Master Admin" : role === "parent" ? "Parent / Guardian" : `${role} Dashboard`}
               </span>
             </div>
           </div>

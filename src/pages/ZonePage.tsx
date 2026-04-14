@@ -32,6 +32,7 @@ const ZonePage = () => {
   useEffect(() => {
     const fetchAthletes = async () => {
       setLoading(true);
+      // Load all athletes (both stub and claimed) with their profile data
       let query = supabase
         .from("athletes")
         .select("*, profiles(name, avatar)")

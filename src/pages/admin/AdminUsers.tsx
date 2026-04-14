@@ -36,7 +36,10 @@ const AdminUsers = () => {
     setLoading(false);
   };
 
-  useEffect(() => { loadUsers(); }, []);
+  useEffect(() => { 
+    loadUsers(); 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSearch = () => loadUsers(search);
 

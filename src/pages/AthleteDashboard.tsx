@@ -195,19 +195,27 @@ const AthleteDashboard = () => {
             </div>
             <div className="grid grid-cols-2 gap-3">
               {[
-                { label: "Speed", value: latestMetrics.speed },
-                { label: "Endurance", value: latestMetrics.endurance },
-                { label: "Strength", value: latestMetrics.strength },
-                { label: "Agility", value: latestMetrics.agility },
-              ].map(m => (
-                <div key={m.label}>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-muted-foreground">{m.label}</span>
-                    <span className="font-semibold text-foreground">{m.value}</span>
+                { label: "40m Sprint", value: latestMetrics.sprint_40m_s, unit: "s", max: 8, inverse: true },
+                { label: "VO2 Max", value: latestMetrics.vo2_max, unit: "", max: 85 },
+                { label: "Bench 1RM", value: latestMetrics.bench_press_1rm_kg, unit: "kg", max: 200 },
+                { label: "Vert Jump", value: latestMetrics.vertical_jump_cm, unit: "cm", max: 100 },
+              ].map(m => {
+                const numVal = Number(m.value || 0);
+                const pct = m.value
+                  ? Math.min(m.inverse ? ((m.max - numVal) / m.max) * 100 : (numVal / m.max) * 100, 100)
+                  : 0;
+                return (
+                  <div key={m.label}>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-muted-foreground">{m.label}</span>
+                      <span className="font-semibold text-foreground">
+                        {m.value ? `${numVal}${m.unit}` : "—"}
+                      </span>
+                    </div>
+                    <Progress value={pct} className="h-1.5" />
                   </div>
-                  <Progress value={Math.min(Number(m.value || 0), 100)} className="h-1.5" />
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         ) : (
