@@ -9,6 +9,7 @@ import logo from "@/assets/logo.jpg";
 import { LANDING_STATS, WHY_JOIN_CARDS, FEATURE_SECTIONS, FOOTER_LINKS } from "@/config/landing";
 
 import { MarketingNavbar } from "@/components/MarketingNavbar";
+import { InstallButton } from "@/components/InstallButton";
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -265,10 +266,13 @@ const LandingPage = () => {
           </div>
           <div className="border-t border-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">© 2026 Even Playground. All rights reserved.</p>
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <button className="hover:text-foreground transition-colors" onClick={() => navigate("/login")}>Privacy</button>
-              <button className="hover:text-foreground transition-colors" onClick={() => navigate("/login")}>Terms</button>
-              <button className="hover:text-foreground transition-colors" onClick={() => navigate("/login")}>Cookies</button>
+            <div className="flex items-center gap-4">
+              <InstallButton />
+              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <button className="hover:text-foreground transition-colors" onClick={() => navigate("/login")}>Privacy</button>
+                <button className="hover:text-foreground transition-colors" onClick={() => navigate("/login")}>Terms</button>
+                <button className="hover:text-foreground transition-colors" onClick={() => navigate("/login")}>Cookies</button>
+              </div>
             </div>
           </div>
         </div>

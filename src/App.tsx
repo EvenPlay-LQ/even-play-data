@@ -10,6 +10,11 @@ import GuestRoute from "@/components/GuestRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 
+// PWA components — lazy-loaded since they render conditionally
+const OfflineBanner = lazy(() => import("@/components/OfflineBanner"));
+const PWAUpdatePrompt = lazy(() => import("@/components/PWAUpdatePrompt"));
+const InstallPromptBanner = lazy(() => import("@/components/InstallPromptBanner"));
+
 // Code Splitting - Lazy Loading Pages
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
@@ -40,6 +45,7 @@ const InstitutionAnnouncements = lazy(() => import("./pages/dashboard/institutio
 const FixtureScheduler = lazy(() => import("./pages/dashboard/institution/FixtureScheduler"));
 const ComplianceDocuments = lazy(() => import("./pages/dashboard/institution/ComplianceDocuments"));
 const ParentDashboard = lazy(() => import("./pages/ParentDashboard"));
+const ShareTargetPage = lazy(() => import("./pages/ShareTargetPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Admin Pages
@@ -48,7 +54,23 @@ const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
 const AdminDiagnostics = lazy(() => import("./pages/admin/AdminDiagnostics"));
 const AdminAuditLog = lazy(() => import("./pages/admin/AdminAuditLog"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: 1000 * 60 * 30, // 30 minutes
+      retry: 2,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: "always",
+      networkMode: "offlineFirst",
+    },
+    mutations: {
+      networkMode: "online",
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -58,6 +80,11 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <ErrorBoundary>
+            <Suspense fallback={null}>
+              <PWAUpdatePrompt />
+              <OfflineBanner />
+              <InstallPromptBanner />
+            </Suspense>
             <Suspense fallback={<LoadingScreen />}>
               <Routes>
                 {/* Public */}
@@ -72,6 +99,7 @@ const App = () => (
                 {/* Community Layer (protected) */}
                 <Route path="/buzz" element={<ProtectedRoute><BuzzPage /></ProtectedRoute>} />
                 <Route path="/community" element={<ProtectedRoute><CommunityPage /></ProtectedRoute>} />
+                <Route path="/share" element={<ProtectedRoute><ShareTargetPage /></ProtectedRoute>} />
                 <Route path="/zone" element={<ProtectedRoute><ZonePage /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
                 <Route path="/setup" element={<ProtectedRoute><SignupWizard /></ProtectedRoute>} />

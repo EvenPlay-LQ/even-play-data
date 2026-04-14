@@ -22,7 +22,8 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   }
 
   if (!user || !session) {
-    return <Navigate to="/login" replace />;
+    const returnTo = location.pathname + location.search;
+    return <Navigate to={`/login?returnTo=${encodeURIComponent(returnTo)}`} replace />;
   }
 
   // Enforce wizard completion — redirect to /setup if wizard not complete
@@ -43,7 +44,9 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
     const effectiveRole = userRole === "fan" ? "parent" : userRole;
 
     if (effectiveRole !== requiredRole) {
-      console.warn(`[ProtectedRoute] Access denied. Required: ${requiredRole}, Got: ${effectiveRole}`);
+      if (import.meta.env.DEV) {
+        console.warn(`[ProtectedRoute] Access denied. Required: ${requiredRole}, Got: ${effectiveRole}`);
+      }
       return <Navigate to="/" replace />;
     }
   }

@@ -3,6 +3,7 @@ import { MarketingNavbar } from "./MarketingNavbar";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { FOOTER_LINKS } from "@/config/landing";
+import { InstallButton } from "@/components/InstallButton";
 
 interface MarketingLayoutProps {
   children: ReactNode;
@@ -75,7 +76,8 @@ export const MarketingLayout = ({ children }: MarketingLayoutProps) => {
           </div>
           <div className="mt-16 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-xs text-muted-foreground">© 2026 Even Playground. All rights reserved.</p>
-            <div className="flex gap-6">
+            <div className="flex items-center gap-6">
+              <InstallButton />
               <a href="#" className="text-xs text-muted-foreground hover:text-primary transition-colors">Twitter</a>
               <a href="#" className="text-xs text-muted-foreground hover:text-primary transition-colors">LinkedIn</a>
               <a href="#" className="text-xs text-muted-foreground hover:text-primary transition-colors">Instagram</a>
