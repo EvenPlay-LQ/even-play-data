@@ -39,6 +39,10 @@ export const SPORT_OPTIONS = [
   "Athletics",
   "Cricket",
   "Basketball",
+  "E-Gaming",
+  "Wall Climbing",
+  "Parkour",
+  "Culture - Dancing",
 ] as const;
 
 /** XP required to reach the next level */

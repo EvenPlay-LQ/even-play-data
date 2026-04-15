@@ -488,10 +488,9 @@ const SignupWizard = () => {
                     <div>
                       <Label>Institution Type</Label>
                       <select value={institutionType} onChange={e => setInstitutionType(e.target.value)} className="mt-1 w-full border border-border rounded-md p-2 bg-background text-foreground text-sm">
-                        <option value="club">Club</option>
-                        <option value="school">School</option>
-                        <option value="academy">Academy</option>
-                        <option value="federation">Federation</option>
+                        <option value="school">School & Educational Institution</option>
+                        <option value="club">Club, Academy or Community Center</option>
+                        <option value="federation">Federation & Association</option>
                       </select>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
