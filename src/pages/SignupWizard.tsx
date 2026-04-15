@@ -204,22 +204,24 @@ const SignupWizard = () => {
 
         if (claimErr) throw claimErr;
 
-        // Update the claimed athlete with additional wizard details
+        // Claim the athlete record via SECURITY DEFINER RPC
+        // (direct .update() fails silently because RLS requires profile_id = auth.uid(),
+        //  but profile_id is NULL on a fresh stub record)
         const athleteId = (claimData as any)?.athlete_id;
         if (athleteId) {
-          const { error: updateErr } = await supabase.from("athletes").update({
-            profile_id: user.id,
-            status: "claimed",
-            position: position || "Player",
-            squad: squad || null,
-            nationality: nationality || null,
-            height_cm: heightCm ? parseFloat(heightCm) : null,
-            weight_kg: weightKg ? parseFloat(weightKg) : null,
-            mysafa_id: mysafaId || null,
-            playing_style: playingStyle || null,
-          }).eq("id", athleteId);
-          
-          if (updateErr) throw updateErr;
+          const { error: claimProfileErr } = await (supabase.rpc as any)("claim_athlete_profile", {
+            p_athlete_id: athleteId,
+            p_profile_id: user.id,
+            p_position: position || "Player",
+            p_squad: squad || null,
+            p_nationality: nationality || null,
+            p_height_cm: heightCm ? parseFloat(heightCm) : null,
+            p_weight_kg: weightKg ? parseFloat(weightKg) : null,
+            p_mysafa_id: mysafaId || null,
+            p_playing_style: playingStyle || null,
+          });
+
+          if (claimProfileErr) throw claimProfileErr;
         }
 
       } else if (role === "institution") {
