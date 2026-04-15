@@ -9,9 +9,13 @@ interface GuestRouteProps {
 
 const GuestRoute = ({ children }: GuestRouteProps) => {
   const { session, loading: authLoading } = useAuth();
-  const { getDashboardPath, loading: profileLoading } = useProfile();
+  const { profile, getDashboardPath } = useProfile();
 
-  if (authLoading || (session && profileLoading)) {
+  // Wait until both auth AND profile are fully resolved before deciding.
+  // Without the `!profile` check there is a race: auth resolves (session is set),
+  // but useProfile's fetch hasn't completed yet, so profile is still null and
+  // getDashboardPath() incorrectly returns "/setup".
+  if (authLoading || (session && !profile)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -19,9 +23,8 @@ const GuestRoute = ({ children }: GuestRouteProps) => {
     );
   }
 
-  if (session) {
+  if (session && profile) {
     const dashboardPath = getDashboardPath();
-    console.log(`[GuestRoute] Authenticated user detected. Redirecting to: ${dashboardPath}`);
     return <Navigate to={dashboardPath} replace />;
   }
 

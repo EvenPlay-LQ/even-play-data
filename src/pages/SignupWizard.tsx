@@ -36,7 +36,7 @@ const SignupWizard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { refreshProfile } = useProfile();
+  const { refreshProfile, setupComplete } = useProfile();
 
   const [step, setStep] = useState(1);
   const [role, setRole] = useState<UserRole | null>(null);
@@ -92,6 +92,13 @@ const SignupWizard = () => {
       navigate("/login");
       return;
     }
+
+    // If setup is already complete, redirect to buzz — don't re-show wizard
+    if (setupComplete) {
+      navigate("/buzz", { replace: true });
+      return;
+    }
+
     const metaName = user.user_metadata?.name || user.user_metadata?.full_name;
     if (metaName) setName(metaName);
 
@@ -103,7 +110,7 @@ const SignupWizard = () => {
     } else if (!initialized) {
       setInitialized(true);
     }
-  }, [user, navigate, initialized]);
+  }, [user, navigate, initialized, setupComplete]);
 
   const totalSteps = totalStepsFor(role);
   const progress = totalSteps > 1 ? ((step - 1) / (totalSteps - 1)) * 100 : 0;
