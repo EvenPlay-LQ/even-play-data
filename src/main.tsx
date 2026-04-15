@@ -3,6 +3,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { Analytics } from "@vercel/analytics/react";
 import App from "./App.tsx";
 import "./index.css";
+import { registerServiceWorker } from "./lib/registerSW";
 
 createRoot(document.getElementById("root")!).render(
   <HelmetProvider>
@@ -10,3 +11,5 @@ createRoot(document.getElementById("root")!).render(
     <Analytics />
   </HelmetProvider>
 );
+
+registerServiceWorker();

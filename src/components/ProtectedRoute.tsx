@@ -13,7 +13,12 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const { profile, loading: profileLoading, isMasterAdmin, setupComplete } = useProfile();
   const location = useLocation();
 
-  if (authLoading || (user && !profile && profileLoading)) {
+  // Guard: show spinner until both auth AND profile are fully resolved.
+  // Using `!profile` alone (without requiring profileLoading) closes a race
+  // condition where auth loads, user is set, but useProfile's useEffect hasn't
+  // fired yet — leaving profile=null and profileLoading=false for one render,
+  // which would incorrectly redirect to /setup.
+  if (authLoading || (user && !profile)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -22,7 +27,8 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   }
 
   if (!user || !session) {
-    return <Navigate to="/login" replace />;
+    const returnTo = location.pathname + location.search;
+    return <Navigate to={`/login?returnTo=${encodeURIComponent(returnTo)}`} replace />;
   }
 
   // Enforce wizard completion — redirect to /setup if wizard not complete
@@ -43,7 +49,9 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
     const effectiveRole = userRole === "fan" ? "parent" : userRole;
 
     if (effectiveRole !== requiredRole) {
-      console.warn(`[ProtectedRoute] Access denied. Required: ${requiredRole}, Got: ${effectiveRole}`);
+      if (import.meta.env.DEV) {
+        console.warn(`[ProtectedRoute] Access denied. Required: ${requiredRole}, Got: ${effectiveRole}`);
+      }
       return <Navigate to="/" replace />;
     }
   }

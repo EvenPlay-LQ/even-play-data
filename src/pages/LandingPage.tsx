@@ -9,6 +9,7 @@ import logo from "@/assets/logo.jpg";
 import { LANDING_STATS, WHY_JOIN_CARDS, FEATURE_SECTIONS, FOOTER_LINKS } from "@/config/landing";
 
 import { MarketingNavbar } from "@/components/MarketingNavbar";
+import { InstallButton } from "@/components/InstallButton";
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -49,14 +50,14 @@ const LandingPage = () => {
               The ultimate source of truth for sports performance. We aggregate, verify, and distribute data for athletes, institutions, and fans worldwide.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-stretch sm:items-center">
-              <Button variant="hero" size="lg" className="text-base h-11 sm:h-auto" onClick={() => navigate("/login")}>
+              <Button variant="hero" size="lg" className="text-base h-11 sm:h-auto" onClick={() => navigate("/login?mode=login")}>
                 Sign In <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
               <Button
                 variant="hero-outline"
                 size="lg"
                 className="text-base h-11 sm:h-auto border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
-                onClick={() => navigate("/login")}
+                onClick={() => navigate("/login?mode=signup")}
               >
                 Get Started
               </Button>
@@ -265,10 +266,13 @@ const LandingPage = () => {
           </div>
           <div className="border-t border-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">© 2026 Even Playground. All rights reserved.</p>
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <button className="hover:text-foreground transition-colors" onClick={() => navigate("/login")}>Privacy</button>
-              <button className="hover:text-foreground transition-colors" onClick={() => navigate("/login")}>Terms</button>
-              <button className="hover:text-foreground transition-colors" onClick={() => navigate("/login")}>Cookies</button>
+            <div className="flex items-center gap-4">
+              <InstallButton />
+              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <button className="hover:text-foreground transition-colors" onClick={() => navigate("/login")}>Privacy</button>
+                <button className="hover:text-foreground transition-colors" onClick={() => navigate("/login")}>Terms</button>
+                <button className="hover:text-foreground transition-colors" onClick={() => navigate("/login")}>Cookies</button>
+              </div>
             </div>
           </div>
         </div>

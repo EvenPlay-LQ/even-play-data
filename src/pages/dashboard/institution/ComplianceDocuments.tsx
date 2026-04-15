@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+const supabaseAny = supabase as any;
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { handleQueryError } from "@/lib/queryHelpers";
@@ -117,7 +118,7 @@ const ComplianceDocuments = () => {
     const athleteIds = athleteData.map(a => a.id);
     
     // Then load documents for these athletes
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from("athlete_documents")
       .select(`
         *,
@@ -152,7 +153,7 @@ const ComplianceDocuments = () => {
         .getPublicUrl(path);
       
       // Create document record
-      const { error: insertError } = await supabase.from("athlete_documents").insert({
+      const { error: insertError } = await supabaseAny.from("athlete_documents").insert({
         athlete_id: selectedAthlete,
         document_type: documentType,
         file_name: file.name,
@@ -189,7 +190,7 @@ const ComplianceDocuments = () => {
   const handleDeleteDocument = async (id: string) => {
     if (!confirm("Are you sure you want to delete this document?")) return;
     
-    const { error } = await supabase.from("athlete_documents").delete().eq("id", id);
+    const { error } = await supabaseAny.from("athlete_documents").delete().eq("id", id);
     
     if (error) {
       handleQueryError(error, "Failed to delete document.");
@@ -200,7 +201,7 @@ const ComplianceDocuments = () => {
   };
 
   const handleVerifyDocument = async (id: string) => {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("athlete_documents")
       .update({
         verification_status: 'verified',

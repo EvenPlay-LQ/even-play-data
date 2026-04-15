@@ -22,10 +22,25 @@ const InstitutionVerifications = () => {
     if (!user) return;
     const load = async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("verifications").select("*").order("created_at", { ascending: false });
-      if (error) handleQueryError(error);
-      else setVerifications(data || []);
+
+      // First, resolve this user's institution
+      const { data: inst } = await supabase
+        .from("institutions")
+        .select("id")
+        .eq("profile_id", user.id)
+        .maybeSingle() as any;
+
+      if (inst) {
+        // Filter verifications to this institution only — security fix
+        const { data, error } = await (supabase
+          .from("verifications" as any)
+          .select("*")
+          .eq("institution_id", inst.id)
+          .order("created_at", { ascending: false }) as any);
+        if (error) handleQueryError(error);
+        else setVerifications(data || []);
+      }
+
       setLoading(false);
     };
     load();

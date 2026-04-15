@@ -36,7 +36,7 @@ const SignupWizard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { refreshProfile } = useProfile();
+  const { refreshProfile, setupComplete } = useProfile();
 
   const [step, setStep] = useState(1);
   const [role, setRole] = useState<UserRole | null>(null);
@@ -92,6 +92,13 @@ const SignupWizard = () => {
       navigate("/login");
       return;
     }
+
+    // If setup is already complete, redirect to buzz — don't re-show wizard
+    if (setupComplete) {
+      navigate("/buzz", { replace: true });
+      return;
+    }
+
     const metaName = user.user_metadata?.name || user.user_metadata?.full_name;
     if (metaName) setName(metaName);
 
@@ -103,7 +110,7 @@ const SignupWizard = () => {
     } else if (!initialized) {
       setInitialized(true);
     }
-  }, [user, navigate, initialized]);
+  }, [user, navigate, initialized, setupComplete]);
 
   const totalSteps = totalStepsFor(role);
   const progress = totalSteps > 1 ? ((step - 1) / (totalSteps - 1)) * 100 : 0;
@@ -204,22 +211,24 @@ const SignupWizard = () => {
 
         if (claimErr) throw claimErr;
 
-        // Update the claimed athlete with additional wizard details
+        // Claim the athlete record via SECURITY DEFINER RPC
+        // (direct .update() fails silently because RLS requires profile_id = auth.uid(),
+        //  but profile_id is NULL on a fresh stub record)
         const athleteId = (claimData as any)?.athlete_id;
         if (athleteId) {
-          const { error: updateErr } = await supabase.from("athletes").update({
-            profile_id: user.id,
-            status: "claimed",
-            position: position || "Player",
-            squad: squad || null,
-            nationality: nationality || null,
-            height_cm: heightCm ? parseFloat(heightCm) : null,
-            weight_kg: weightKg ? parseFloat(weightKg) : null,
-            mysafa_id: mysafaId || null,
-            playing_style: playingStyle || null,
-          }).eq("id", athleteId);
-          
-          if (updateErr) throw updateErr;
+          const { error: claimProfileErr } = await (supabase.rpc as any)("claim_athlete_profile", {
+            p_athlete_id: athleteId,
+            p_profile_id: user.id,
+            p_position: position || "Player",
+            p_squad: squad || null,
+            p_nationality: nationality || null,
+            p_height_cm: heightCm ? parseFloat(heightCm) : null,
+            p_weight_kg: weightKg ? parseFloat(weightKg) : null,
+            p_mysafa_id: mysafaId || null,
+            p_playing_style: playingStyle || null,
+          });
+
+          if (claimProfileErr) throw claimProfileErr;
         }
 
       } else if (role === "institution") {
@@ -273,12 +282,18 @@ const SignupWizard = () => {
       toast({ title: "Welcome to Even Playground! 🎉", description: "Your profile is ready." });
 
       // Force refresh the profile to ensure setup_complete is synced
-      await refreshProfile();
-      
-      // Redirect all users to community dashboard (Buzz page) after signup
-      setTimeout(() => {
-        navigate("/buzz", { replace: true });
-      }, 400);
+      if (refreshProfile) {
+        await refreshProfile();
+      }
+
+      if (role === "institution") {
+        setShowAddAthlete(true); // Show modal to add first athlete
+      } else {
+        // Redirect to community dashboard (Buzz page) after signup
+        setTimeout(() => {
+          window.location.href = "/buzz";
+        }, 400);
+      }
     } catch (error: any) {
       console.error("[SignupWizard] Setup error:", error);
       toast({
@@ -619,7 +634,7 @@ const SignupWizard = () => {
       <Dialog open={showAddAthlete} onOpenChange={(open) => {
         if (!open) {
           setShowAddAthlete(false);
-          navigate("/dashboard/institution");
+          window.location.href = "/dashboard/institution";
         }
       }}>
         <DialogContent className="sm:max-w-md">
@@ -658,7 +673,7 @@ const SignupWizard = () => {
                 {addingAthlete ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
                 Add Athlete
               </Button>
-              <Button variant="outline" onClick={() => navigate("/dashboard/institution")}>
+              <Button variant="outline" onClick={() => window.location.href = "/dashboard/institution"}>
                 Go to Dashboard
               </Button>
             </div>

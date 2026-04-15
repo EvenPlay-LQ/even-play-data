@@ -23,6 +23,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
+const supabaseAny = supabase as any;
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { handleQueryError } from "@/lib/queryHelpers";
@@ -111,7 +112,7 @@ const AttendanceTracker = () => {
       }
       
       // Load recent sessions
-      const { data: sessionData } = await supabase
+      const { data: sessionData } = await (supabase as any)
         .from("attendance_sessions")
         .select("*")
         .eq("institution_id", instData.id)
@@ -136,7 +137,7 @@ const AttendanceTracker = () => {
     setSaving(true);
     try {
       // Create session
-      const { data: session, error: sessionError } = await supabase
+      const { data: session, error: sessionError } = await (supabase as any)
         .from("attendance_sessions")
         .insert({
           institution_id: institution.id,
@@ -159,7 +160,7 @@ const AttendanceTracker = () => {
         status: attendance[athlete.id] || 'absent',
       }));
       
-      const { error: recordsError } = await supabase
+      const { error: recordsError } = await (supabase as any)
         .from("attendance_records")
         .insert(records);
       

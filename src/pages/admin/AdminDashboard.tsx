@@ -29,7 +29,7 @@ const AdminDashboard = () => {
       setLoading(false);
     };
     load();
-  }, []);
+  }, [getPlatformStats, getAuditLog]);
 
   const statCards = stats ? [
     { label: "Total Users", value: stats.totalUsers, icon: Users, color: "text-blue-400", bg: "bg-blue-500/10" },

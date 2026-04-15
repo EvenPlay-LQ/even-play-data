@@ -58,6 +58,7 @@ const InstitutionAthletes = () => {
   useEffect(() => {
     if (!user) return;
     loadAthletes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const loadAthletes = async () => {
@@ -172,7 +173,8 @@ const InstitutionAthletes = () => {
   };
 
   const filtered = athletes.filter(a =>
-    !search.trim() || (a.profiles?.name || "").toLowerCase().includes(search.toLowerCase())
+    !search.trim() ||
+    (a.profiles?.name || a.full_name || "").toLowerCase().includes(search.toLowerCase())
   );
 
   if (loading) {

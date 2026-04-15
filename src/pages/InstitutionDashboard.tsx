@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Users, AlertTriangle, CheckCircle, Clock, Calendar, ChevronRight, Megaphone, ClipboardList, Trophy, FileText } from "lucide-react";
+import {
+  Users, AlertTriangle, CheckCircle, Clock, Calendar,
+  ChevronRight, Megaphone, ClipboardList, Trophy, FileText, BarChart3,
+} from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,7 +12,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { handleQueryError } from "@/lib/queryHelpers";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/hooks/use-toast";
 
 const InstitutionDashboard = () => {
   const { user } = useAuth();
@@ -20,19 +22,8 @@ const InstitutionDashboard = () => {
   const [pendingVerifications, setPendingVerifications] = useState(0);
   const [upcomingMatches, setUpcomingMatches] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
-  const [saving, setSaving] = useState(false);
 
-  const [newAthlete, setNewAthlete] = useState({
-    sport: "",
-    position: "",
-    province: "",
-    country: "",
-    date_of_birth: "",
-  });
-
-  // ------------------------------
-  // Load institution, athletes, teams, matches, pending verifications
-  // ------------------------------
+  // ── Load institution, athletes, teams, matches, pending verifications ──
   useEffect(() => {
     if (!user) return;
     const load = async () => {
@@ -90,7 +81,7 @@ const InstitutionDashboard = () => {
           }
         }
 
-        // Fetch pending verifications
+        // Fetch pending verifications — filtered to this institution
         const { count, error: verifErr } = await supabase
           .from("verifications")
           .select("*", { count: "exact", head: true })
@@ -105,78 +96,7 @@ const InstitutionDashboard = () => {
     load();
   }, [user]);
 
-  // ------------------------------
-  // Handle adding a new athlete
-  // ------------------------------
-  const handleAddAthlete = async () => {
-    if (!user || !institution?.id) {
-      toast({
-        title: "Error",
-        description: "Cannot determine your profile or institution. Please refresh and try again.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setSaving(true);
-
-    try {
-      const { data, error } = await supabase
-        .from("athletes")
-        .upsert(
-          {
-            profile_id: user.id,
-            institution_id: institution.id,
-            sport: newAthlete.sport || "Football",
-            position: newAthlete.position || null,
-            province: newAthlete.province || null,
-            country: newAthlete.country || null,
-            date_of_birth: newAthlete.date_of_birth || null,
-          },
-          { onConflict: "profile_id" }
-        )
-        .select();
-
-      if (error) {
-        console.error("Upsert athlete error:", error);
-        toast({
-          title: "Error saving athlete",
-          description: error.message,
-          variant: "destructive",
-        });
-        setSaving(false);
-        return;
-      }
-
-      // Refresh athlete list
-      const { data: athData } = await supabase
-        .from("athletes")
-        .select("*, profiles(name)")
-        .eq("institution_id", institution.id)
-        .order("performance_score", { ascending: false });
-      if (athData) setAthletes(athData);
-
-      toast({
-        title: "Athlete saved",
-        description: "Athlete record saved successfully!",
-      });
-
-      setNewAthlete({ sport: "", position: "", province: "", country: "", date_of_birth: "" });
-    } catch (err) {
-      console.error("Unexpected error:", err);
-      toast({
-        title: "Unexpected error",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // ------------------------------
-  // Loading & fallback UI
-  // ------------------------------
+  // ── Loading & fallback UI ──
   if (loading) {
     return (
       <DashboardLayout role="institution">
@@ -217,9 +137,6 @@ const InstitutionDashboard = () => {
       ? Math.round(athletes.reduce((s, a) => s + Number(a.performance_score), 0) / athletes.length)
       : 0;
 
-  // ------------------------------
-  // JSX Layout
-  // ------------------------------
   return (
     <DashboardLayout role="institution">
       <div className="md:ml-16 space-y-6">
@@ -229,60 +146,13 @@ const InstitutionDashboard = () => {
           <p className="text-sm text-muted-foreground capitalize">{institution.institution_type} Dashboard</p>
         </motion.div>
 
-        {/* Add Athlete Form */}
-        <div className="bg-card rounded-xl p-5 border border-border shadow-card mb-6">
-          <h2 className="font-display font-semibold text-foreground mb-3">Add / Update Athlete Record</h2>
-          <p className="text-xs text-muted-foreground mb-3">
-            This creates or updates your own athlete record linked to this institution.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <input
-              placeholder="Sport (e.g. Football)"
-              value={newAthlete.sport}
-              onChange={(e) => setNewAthlete({ ...newAthlete, sport: e.target.value })}
-              className="w-full border border-border rounded-md p-2 bg-background text-foreground text-sm"
-            />
-            <input
-              placeholder="Position (e.g. Striker)"
-              value={newAthlete.position}
-              onChange={(e) => setNewAthlete({ ...newAthlete, position: e.target.value })}
-              className="w-full border border-border rounded-md p-2 bg-background text-foreground text-sm"
-            />
-            <input
-              placeholder="Date of Birth (YYYY-MM-DD)"
-              value={newAthlete.date_of_birth}
-              onChange={(e) => setNewAthlete({ ...newAthlete, date_of_birth: e.target.value })}
-              className="w-full border border-border rounded-md p-2 bg-background text-foreground text-sm"
-            />
-            <input
-              placeholder="Province / Region"
-              value={newAthlete.province}
-              onChange={(e) => setNewAthlete({ ...newAthlete, province: e.target.value })}
-              className="w-full border border-border rounded-md p-2 bg-background text-foreground text-sm"
-            />
-            <input
-              placeholder="Country"
-              value={newAthlete.country}
-              onChange={(e) => setNewAthlete({ ...newAthlete, country: e.target.value })}
-              className="w-full border border-border rounded-md p-2 bg-background text-foreground text-sm"
-            />
-          </div>
-          <button
-            className="mt-3 inline-flex items-center justify-center rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:pointer-events-none transition-colors"
-            onClick={handleAddAthlete}
-            disabled={saving || !newAthlete.sport}
-          >
-            {saving ? "Saving..." : "Save Athlete"}
-          </button>
-        </div>
-
-        {/* Overview Cards */}
+        {/* Overview Cards — fixed: no duplicate metrics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
             { label: "Total Athletes", value: activeAthletes, icon: Users, color: "text-primary" },
             { label: "Teams", value: teams.length, icon: CheckCircle, color: "text-stat-green" },
-            { label: "Pending", value: pendingVerifications, icon: Clock, color: "text-stat-orange" },
-            { label: "Alerts", value: pendingVerifications, icon: AlertTriangle, color: "text-stat-red" },
+            { label: "Pending Verifs", value: pendingVerifications, icon: Clock, color: "text-stat-orange" },
+            { label: "Avg Score", value: avgPerformance, icon: BarChart3, color: "text-stat-blue" },
           ].map((stat, i) => (
             <motion.div
               key={stat.label}
@@ -298,9 +168,8 @@ const InstitutionDashboard = () => {
           ))}
         </div>
 
-        {/* Quick Actions - Phase 1 & 2 */}
+        {/* Quick Actions */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Phase 1 Features */}
           <button
             onClick={() => navigate("/dashboard/institution/attendance")}
             className="flex items-center gap-4 bg-gradient-to-r from-blue-500/10 to-blue-600/10 hover:from-blue-500/20 hover:to-blue-600/20 border border-blue-500/30 rounded-xl p-4 transition-all group"
@@ -329,7 +198,6 @@ const InstitutionDashboard = () => {
             <ChevronRight className="h-5 w-5 text-purple-600" />
           </button>
 
-          {/* Phase 2 Features */}
           <button
             onClick={() => navigate("/dashboard/institution/teams")}
             className="flex items-center gap-4 bg-gradient-to-r from-green-500/10 to-green-600/10 hover:from-green-500/20 hover:to-green-600/20 border border-green-500/30 rounded-xl p-4 transition-all group"
@@ -359,7 +227,7 @@ const InstitutionDashboard = () => {
           </button>
         </div>
 
-        {/* Additional Phase 2 Actions */}
+        {/* Additional Actions */}
         <div className="grid md:grid-cols-2 gap-4">
           <button
             onClick={() => navigate("/dashboard/institution/compliance")}
@@ -384,7 +252,7 @@ const InstitutionDashboard = () => {
             </div>
             <div className="text-left flex-1">
               <h3 className="font-semibold text-foreground">Athlete Roster</h3>
-              <p className="text-xs text-muted-foreground">Manage your athletes</p>
+              <p className="text-xs text-muted-foreground">View and manage your athletes</p>
             </div>
             <ChevronRight className="h-5 w-5 text-indigo-600" />
           </button>
@@ -394,9 +262,23 @@ const InstitutionDashboard = () => {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-display font-semibold text-foreground">Top Athletes</h2>
+            <button
+              onClick={() => navigate("/dashboard/institution/athletes")}
+              className="text-xs text-primary flex items-center gap-1 hover:underline"
+            >
+              View All <ChevronRight className="h-3 w-3" />
+            </button>
           </div>
           {athletes.length === 0 ? (
-            <div className="text-center py-8 text-sm text-muted-foreground">No athletes registered yet.</div>
+            <div className="text-center py-8 text-sm text-muted-foreground bg-card rounded-xl border border-dashed border-border">
+              No athletes registered yet.{" "}
+              <button
+                className="text-primary hover:underline font-medium"
+                onClick={() => navigate("/dashboard/institution/athletes")}
+              >
+                Add your first athlete
+              </button>
+            </div>
           ) : (
             <div className="space-y-2">
               {athletes.slice(0, 5).map((ath, i) => (
@@ -409,7 +291,7 @@ const InstitutionDashboard = () => {
                 >
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                     <span className="font-display font-semibold text-sm text-primary">
-                      {(ath.profiles?.name || "A")
+                      {(ath.profiles?.name || ath.full_name || "A")
                         .split(" ")
                         .map((n: string) => n[0])
                         .join("")
@@ -417,7 +299,14 @@ const InstitutionDashboard = () => {
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold text-foreground">{ath.profiles?.name || "Athlete"}</div>
+                    <div className="text-sm font-semibold text-foreground">
+                      {ath.profiles?.name || ath.full_name || "Athlete"}
+                      {ath.status === "stub" && (
+                        <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+                          Unclaimed
+                        </span>
+                      )}
+                    </div>
                     <div className="text-xs text-muted-foreground">
                       {ath.position} · {ath.sport}
                     </div>
@@ -469,8 +358,8 @@ const InstitutionDashboard = () => {
             <h2 className="font-display font-semibold text-foreground mb-4">Team Averages</h2>
             <div className="space-y-3">
               {[
-                { label: "Avg Performance", value: avgPerformance },
-                { label: "Total Athletes", value: Math.min(activeAthletes * 10, 100) },
+                { label: "Avg Performance Score", value: avgPerformance },
+                { label: "Roster Fill Rate", value: Math.min(activeAthletes * 5, 100) },
               ].map((metric) => (
                 <div key={metric.label}>
                   <div className="flex justify-between text-xs mb-1">

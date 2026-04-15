@@ -147,6 +147,19 @@ const LoginPage = () => {
           return;
         }
 
+        // If there's a returnTo param (PWA deep-link), go back to the original page
+        const returnTo = searchParams.get("returnTo");
+        if (
+          returnTo &&
+          returnTo.startsWith("/") &&
+          !returnTo.startsWith("//") &&
+          !returnTo.startsWith("/login") &&
+          !returnTo.startsWith("/auth/")
+        ) {
+          navigate(returnTo, { replace: true });
+          return;
+        }
+
         // Route all users to community dashboard (Buzz page) after login
         navigate("/buzz");
       } else {

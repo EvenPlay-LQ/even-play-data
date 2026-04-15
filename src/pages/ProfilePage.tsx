@@ -38,6 +38,7 @@ const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState<"activity" | "favorites">("activity");
   const [postCount, setPostCount] = useState(0);
   const [likeCount, setLikeCount] = useState(0);
+  const [teamCount, setTeamCount] = useState(0);
   const [showEdit, setShowEdit] = useState(false);
   const [editName, setEditName] = useState("");
   const [editBio, setEditBio] = useState("");
@@ -69,16 +70,35 @@ const ProfilePage = () => {
         .single();
 
       if (pData && !pErr) {
-        setViewProfile(pData);
+        // If athlete, fetch athlete record to enrich profile with sport/position/squad
+        let athleteRecord: any = null;
+        if (pData.user_type === "athlete") {
+          const { data: aData } = await supabase
+            .from("athletes")
+            .select("*")
+            .eq("profile_id", effectiveId)
+            .maybeSingle();
+          if (aData) athleteRecord = aData;
+        }
+
+        setViewProfile({ ...pData, _athlete: athleteRecord });
         setViewRole(pData.user_type);
-        
+
         // Fetch Stats
-        const [{ count: posts }, { count: likes }] = await Promise.all([
+        const statsQueries: Promise<any>[] = [
           supabase.from("posts").select("*", { count: "exact", head: true }).eq("author_id", effectiveId),
           supabase.from("likes").select("*", { count: "exact", head: true }).eq("user_id", effectiveId),
-        ]);
-        setPostCount(posts || 0);
-        setLikeCount(likes || 0);
+        ];
+        // Count team memberships if athlete
+        if (athleteRecord) {
+          statsQueries.push(
+            supabase.from("team_members").select("*", { count: "exact", head: true }).eq("athlete_id", athleteRecord.id)
+          );
+        }
+        const results = await Promise.all(statsQueries);
+        setPostCount(results[0].count || 0);
+        setLikeCount(results[1].count || 0);
+        if (results[2]) setTeamCount(results[2].count || 0);
       }
       setFetchingProfile(false);
     };
@@ -87,29 +107,24 @@ const ProfilePage = () => {
 
   useEffect(() => {
     if (!viewProfile || viewRole !== "athlete") return;
+    const athleteData = viewProfile._athlete;
+    if (!athleteData) return;
 
     const fetchAthleteData = async () => {
       setLoadingAthlete(true);
-      const { data: athleteData } = await supabase
-        .from("athletes")
-        .select("*")
-        .eq("profile_id", viewProfile.id)
-        .maybeSingle();
+      setAthlete(athleteData);
 
-      if (athleteData) {
-        setAthlete(athleteData);
-        const [mRes, pmRes, aRes, hRes] = await Promise.all([
-          supabase.from("athlete_matches" as any).select("*").eq("athlete_id", athleteData.id).order("match_date", { ascending: false }).limit(5),
-          supabase.from("performance_metrics" as any).select("*").eq("athlete_id", athleteData.id).order("recorded_at", { ascending: false }).limit(1),
-          supabase.from("achievements" as any).select("*").eq("athlete_id", athleteData.id).order("date_earned", { ascending: false }),
-          supabase.from("media_gallery" as any).select("*").eq("athlete_id", athleteData.id).order("created_at", { ascending: false }).limit(6),
-        ]);
+      const [mRes, pmRes, aRes, hRes] = await Promise.all([
+        supabase.from("athlete_matches" as any).select("*").eq("athlete_id", athleteData.id).order("match_date", { ascending: false }).limit(5),
+        supabase.from("performance_metrics" as any).select("*").eq("athlete_id", athleteData.id).order("recorded_at", { ascending: false }).limit(1),
+        supabase.from("achievements" as any).select("*").eq("athlete_id", athleteData.id).order("date_earned", { ascending: false }),
+        supabase.from("media_gallery" as any).select("*").eq("athlete_id", athleteData.id).order("created_at", { ascending: false }).limit(6),
+      ]);
 
-        if (!mRes.error) setMatches(mRes.data || []);
-        if (!pmRes.error) setMetrics(pmRes.data || []);
-        if (!aRes.error) setAchievements(aRes.data || []);
-        if (!hRes.error) setHighlights(hRes.data || []);
-      }
+      if (!mRes.error) setMatches(mRes.data || []);
+      if (!pmRes.error) setMetrics(pmRes.data || []);
+      if (!aRes.error) setAchievements(aRes.data || []);
+      if (!hRes.error) setHighlights(hRes.data || []);
       setLoadingAthlete(false);
     };
 
@@ -202,7 +217,14 @@ const ProfilePage = () => {
             </div>
             <div className="flex-1">
               <h1 className="font-display font-bold text-xl text-foreground">{viewProfile?.name || "User"}</h1>
-              <p className="text-sm text-muted-foreground capitalize">{viewRole} · {viewProfile?.favorite_sport || "Sports"}</p>
+              <p className="text-sm text-muted-foreground capitalize">
+                {viewRole}
+                {viewProfile?._athlete?.sport ? ` · ${viewProfile._athlete.sport}` : viewProfile?.favorite_sport ? ` · ${viewProfile.favorite_sport}` : ""}
+                {viewProfile?._athlete?.position ? ` · ${viewProfile._athlete.position}` : ""}
+              </p>
+              {viewProfile?._athlete?.squad && (
+                <p className="text-xs text-primary mt-0.5">{viewProfile._athlete.squad}</p>
+              )}
               <p className="text-xs text-muted-foreground mt-0.5">
                 Member since {viewProfile?.created_at ? new Date(viewProfile.created_at).toLocaleDateString("en", { month: "short", year: "numeric" }) : "—"}
               </p>
@@ -233,10 +255,10 @@ const ProfilePage = () => {
         {/* Community Stats */}
         <div className="grid grid-cols-4 gap-3">
           {[
-            { icon: Users, label: "Teams", value: "0" },
+            { icon: Users, label: "Teams", value: String(teamCount) },
             { icon: MessageCircle, label: "Posts", value: String(postCount) },
             { icon: Heart, label: "Likes", value: String(likeCount) },
-            { icon: Calendar, label: "Years", value: viewProfile?.created_at ? String(new Date().getFullYear() - new Date(viewProfile.created_at).getFullYear() || 1) : "1" },
+            { icon: Calendar, label: "Years", value: viewProfile?.created_at ? String(Math.max(1, new Date().getFullYear() - new Date(viewProfile.created_at).getFullYear())) : "1" },
           ].map((stat) => (
             <div key={stat.label} className="bg-card rounded-xl p-3 border border-border shadow-card text-center">
               <stat.icon className="h-4 w-4 mx-auto mb-1.5 text-muted-foreground" />

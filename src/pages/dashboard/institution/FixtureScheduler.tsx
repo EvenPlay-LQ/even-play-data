@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+const supabaseAny = supabase as any;
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { handleQueryError } from "@/lib/queryHelpers";
@@ -105,14 +106,14 @@ const FixtureScheduler = () => {
       }
       
       // Load competitions
-      const { data: compData } = await supabase
+      const { data: compData } = await (supabase as any)
         .from("competitions")
         .select("*")
         .eq("institution_id", instData.id)
         .order("competition_name");
       
       if (compData) {
-        setCompetitions(compData as Competition[]);
+        setCompetitions(compData as unknown as unknown as Competition[]);
       }
       
       // Load fixtures
@@ -123,7 +124,7 @@ const FixtureScheduler = () => {
   };
 
   const loadFixtures = async (institutionId: string) => {
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from("match_fixtures")
       .select(`
         *,
@@ -149,7 +150,7 @@ const FixtureScheduler = () => {
     
     setSaving(true);
     try {
-      const { error } = await supabase.from("match_fixtures").insert({
+      const { error } = await supabaseAny.from("match_fixtures").insert({
         home_team_id: newFixture.home_team_id,
         away_team_id: newFixture.away_team_id,
         competition_id: newFixture.competition_id || null,
@@ -182,7 +183,7 @@ const FixtureScheduler = () => {
   const handleDeleteFixture = async (id: string) => {
     if (!confirm("Are you sure you want to delete this fixture?")) return;
     
-    const { error } = await supabase.from("match_fixtures").delete().eq("id", id);
+    const { error } = await supabaseAny.from("match_fixtures").delete().eq("id", id);
     
     if (error) {
       handleQueryError(error, "Failed to delete fixture.");
@@ -193,7 +194,7 @@ const FixtureScheduler = () => {
   };
 
   const handleUpdateScore = async (match: MatchFixture, homeScore: number, awayScore: number) => {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("match_fixtures")
       .update({
         home_score: homeScore,

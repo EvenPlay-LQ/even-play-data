@@ -23,11 +23,8 @@ const AdminDiagnostics = () => {
 
   useEffect(() => {
     getAllUsers().then(({ data }) => setAllUsers(data));
-  }, []);
+  }, [getAllUsers]);
 
-  useEffect(() => {
-    if (preselectedUser) loadUser(preselectedUser);
-  }, [preselectedUser]);
 
   const loadUser = useCallback(async (id: string) => {
     setLoading(true);
@@ -37,6 +34,10 @@ const AdminDiagnostics = () => {
     setLoading(false);
     await auditAction("view_diagnostics", id, "profiles");
   }, [getUserDetail, auditAction]);
+
+  useEffect(() => {
+    if (preselectedUser) loadUser(preselectedUser);
+  }, [preselectedUser, loadUser]);
 
   const filteredUsers = allUsers.filter(u =>
     !searchText.trim() || (u.name || "").toLowerCase().includes(searchText.toLowerCase()) || u.id.includes(searchText)
