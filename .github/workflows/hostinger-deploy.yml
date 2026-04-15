@@ -1,44 +1,41 @@
-name: Deploy to Hostinger via FTP
+name: Deploy to Hostinger via SFTP
 
 on:
   push:
     branches:
-      - main # Triggers on push to the main branch
+      - main
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: 🚚 Get latest code
       uses: actions/checkout@v4
-      
+
     - name: ⚙️ Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: 20
-        cache: 'npm' # Use 'bun' if you are using bun for lockfiles, but typical pipeline uses npm
-        
+        cache: 'npm'
+
     - name: 📦 Install dependencies
       run: npm install
-      
+
     - name: 🏗️ Build project
       env:
-        # Vite requires variables prefixed with VITE_ to bake them into the client build
         VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
         VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
         VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
       run: npm run build
-      
-    - name: 🚀 Sync files to Hostinger
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+
+    - name: 🚀 Deploy to Hostinger
+      uses: wlixcc/SFTP-Deploy-Action@v1.2.6
       with:
-        server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
+        server: ${{ secrets.FTP_SERVER }}
+        port: 65002
         password: ${{ secrets.FTP_PASSWORD }}
-        protocol: ftps       # Hostinger requires encrypted FTP (FTPS)
-        port: 21
-        security: loose      # Accept Hostinger self-signed certs
-        timeout: 60000       # 60s timeout to avoid premature failures
-        server-dir: /public_html/
-        local-dir: ./dist/
+        local_path: './dist/*'
+        remote_path: '/public_html/'
+        sftp_only: true
