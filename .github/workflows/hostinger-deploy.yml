@@ -32,10 +32,10 @@ jobs:
     - name: 🚀 Deploy to Hostinger
       uses: wlixcc/SFTP-Deploy-Action@v1.2.6
       with:
-        username: ${{ secrets.FTP_USERNAME }}
-        server: ${{ secrets.FTP_SERVER }}
-        port: 65002
-        password: ${{ secrets.FTP_PASSWORD }}
+        username: ${{ secrets.SFTP_USERNAME }}
+        server: ${{ secrets.SFTP_HOST }}
+        port: ${{ secrets.SFTP_PORT }}
+        password: ${{ secrets.SFTP_PASSWORD }}
         local_path: './dist/*'
         remote_path: '/public_html/'
         sftp_only: true
