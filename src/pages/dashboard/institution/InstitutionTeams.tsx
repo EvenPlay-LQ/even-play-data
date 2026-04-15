@@ -80,10 +80,12 @@ const InstitutionTeams = () => {
     skill_level: "intermediate",
     season: "year-round",
     home_venue: "",
+    location_id: "",
   });
-  
+
   const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [locations, setLocations] = useState<any[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -101,16 +103,25 @@ const InstitutionTeams = () => {
     
     if (instData) {
       setInstitution(instData);
-      
+
       const { data: teamData } = await supabase
         .from("teams")
         .select("*")
         .eq("institution_id", instData.id)
         .order("created_at", { ascending: false });
-      
+
       if (teamData) {
         setTeams(teamData as Team[]);
       }
+
+      // Load locations for team assignment
+      const { data: locs } = await supabase
+        .from("institution_locations")
+        .select("id, location_name")
+        .eq("institution_id", instData.id)
+        .eq("status", "active")
+        .order("is_primary", { ascending: false });
+      setLocations(locs || []);
     }
     
     setLoading(false);
@@ -129,7 +140,8 @@ const InstitutionTeams = () => {
         skill_level: newTeam.skill_level || null,
         season: newTeam.season || null,
         home_venue: newTeam.home_venue || null,
-      });
+        location_id: newTeam.location_id || null,
+      } as any);
       
       if (error) throw error;
       
@@ -142,6 +154,7 @@ const InstitutionTeams = () => {
         skill_level: "intermediate",
         season: "year-round",
         home_venue: "",
+        location_id: "",
       });
       setCreateDialogOpen(false);
       loadInstitutionAndTeams();
@@ -343,8 +356,18 @@ const InstitutionTeams = () => {
                   </Select>
                 </div>
                 
+                {locations.length > 0 && (
+                  <div>
+                    <Label>Location</Label>
+                    <select className="mt-1 w-full border border-border rounded-md p-2 bg-background text-foreground text-sm"
+                      value={newTeam.location_id} onChange={e => setNewTeam({ ...newTeam, location_id: e.target.value })}>
+                      <option value="">No specific location</option>
+                      {locations.map(l => <option key={l.id} value={l.id}>{l.location_name}</option>)}
+                    </select>
+                  </div>
+                )}
                 <div>
-                  <Label>Home Venue</Label>
+                  <Label>Home Venue (free text)</Label>
                   <Input
                     placeholder="e.g., Main Field, Gym A"
                     value={newTeam.home_venue}

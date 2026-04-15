@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Home, Calendar, Users, BarChart3, User, Shield, LogOut, Trophy, Video,
-  Building2, CheckCircle, FileText, ShieldCheck, Activity, ScrollText
+  Building2, CheckCircle, FileText, ShieldCheck, Activity, ScrollText, MapPin
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -24,6 +24,7 @@ const athleteTabs = [
 
 const institutionTabs = [
   { icon: Home, label: "Overview", path: "/dashboard/institution" },
+  { icon: MapPin, label: "Locations", path: "/dashboard/institution/locations" },
   { icon: Users, label: "Athletes", path: "/dashboard/institution/athletes" },
   { icon: Building2, label: "Teams", path: "/dashboard/institution/teams" },
   { icon: Calendar, label: "Matches", path: "/dashboard/institution/matches" },

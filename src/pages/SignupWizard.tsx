@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { SEO } from "@/components/SEO";
 import { SPORT_OPTIONS } from "@/config/constants";
 import ConsentStep from "@/components/ConsentStep";
+import InstitutionSearch from "@/components/InstitutionSearch";
 
 type UserRole = "athlete" | "institution" | "fan";
 
@@ -25,7 +26,7 @@ type UserRole = "athlete" | "institution" | "fan";
 // Parent wizard: 4 steps → Role, BasicInfo, ChildProfile, Consent
 
 const STEPS: Record<UserRole, string[]> = {
-  athlete: ["Choose Role", "Basic Info", "Sports Profile", "Your ID / Credentials", "Privacy & Consent"],
+  athlete: ["Choose Role", "Basic Info", "Sports Profile", "Your ID / Credentials", "Link Institution", "Privacy & Consent"],
   institution: ["Choose Role", "Contact Info", "Institution Details", "Privacy & Consent"],
   fan: ["Choose Role", "Your Info", "Child Profile", "Privacy & Consent"],
 };
@@ -58,6 +59,10 @@ const SignupWizard = () => {
   const [playingStyle, setPlayingStyle] = useState("");
   const [mysafaId, setMysafaId] = useState("");
   const [squad, setSquad] = useState("");
+
+  // ─── Athlete: Institution linking ──────────────────────────────────────
+  const [selectedInstitutionId, setSelectedInstitutionId] = useState<string | null>(null);
+  const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
 
   // ─── Institution ─────────────────────────────────────────────────────────
   const [contactPhone, setContactPhone] = useState("");
@@ -125,7 +130,8 @@ const SignupWizard = () => {
       if (step === 2) return name.trim().length > 0 && dateOfBirth.length > 0;
       if (step === 3) return sport.length > 0 && position.trim().length > 0;
       if (step === 4) return true; // credentials optional
-      if (step === 5) return consented;
+      if (step === 5) return true; // institution linking optional
+      if (step === 6) return consented;
     }
     if (role === "institution") {
       if (step === 2) return name.trim().length > 0;
@@ -207,6 +213,8 @@ const SignupWizard = () => {
           p_sport: sport || "Football",
           p_email: user.email || null,
           p_position: position || null,
+          p_institution_id: selectedInstitutionId || null,
+          p_location_id: selectedLocationId || null,
         });
 
         if (claimErr) throw claimErr;
@@ -226,6 +234,8 @@ const SignupWizard = () => {
             p_weight_kg: weightKg ? parseFloat(weightKg) : null,
             p_mysafa_id: mysafaId || null,
             p_playing_style: playingStyle || null,
+            p_institution_id: selectedInstitutionId || null,
+            p_location_id: selectedLocationId || null,
           });
 
           if (claimProfileErr) throw claimProfileErr;
@@ -244,7 +254,18 @@ const SignupWizard = () => {
           contact_phone: contactPhone || null,
         }, { onConflict: "profile_id" } as any).select("id").single();
         if (instErr) throw instErr;
-        // Institution will be redirected to buzz page with other users
+
+        // Auto-create primary location from address if provided
+        if (instData && physicalAddress?.trim()) {
+          await supabase.from("institution_locations").insert({
+            institution_id: instData.id,
+            location_name: (institutionName || name) + " (Main)",
+            address: physicalAddress.trim(),
+            province: province || null,
+            country: "South Africa",
+            is_primary: true,
+          });
+        }
 
       } else if (role === "fan") {
         // Create parent record
@@ -457,8 +478,33 @@ const SignupWizard = () => {
                 </motion.div>
               )}
 
-              {/* Athlete Step 5: Consent */}
+              {/* Athlete Step 5: Link to Institution (optional) */}
               {step === 5 && role === "athlete" && (
+                <motion.div key="a-step5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
+                  <div>
+                    <h2 className="text-2xl font-display font-bold text-foreground">Link to Institution</h2>
+                    <p className="text-muted-foreground mt-1 text-sm">
+                      Optionally connect to your club, school, or academy. You can skip this and link later.
+                    </p>
+                  </div>
+                  <InstitutionSearch
+                    onSelect={(instId, locId) => {
+                      setSelectedInstitutionId(instId);
+                      setSelectedLocationId(locId);
+                    }}
+                    selectedInstitutionId={selectedInstitutionId}
+                    selectedLocationId={selectedLocationId}
+                  />
+                  {!selectedInstitutionId && (
+                    <p className="text-xs text-muted-foreground text-center">
+                      You can skip this step. Your institution can also add you later from their dashboard.
+                    </p>
+                  )}
+                </motion.div>
+              )}
+
+              {/* Athlete Step 6: Consent */}
+              {step === 6 && role === "athlete" && (
                 <ConsentStep role="athlete" onConsent={setConsented} />
               )}
 

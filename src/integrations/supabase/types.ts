@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -224,6 +224,7 @@ export type Database = {
           institution_id: string | null
           invited_at: string | null
           level: number
+          location_id: string | null
           mysafa_id: string | null
           nationality: string | null
           performance_score: number
@@ -254,6 +255,7 @@ export type Database = {
           institution_id?: string | null
           invited_at?: string | null
           level?: number
+          location_id?: string | null
           mysafa_id?: string | null
           nationality?: string | null
           performance_score?: number
@@ -284,6 +286,7 @@ export type Database = {
           institution_id?: string | null
           invited_at?: string | null
           level?: number
+          location_id?: string | null
           mysafa_id?: string | null
           nationality?: string | null
           performance_score?: number
@@ -307,6 +310,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "athletes_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "institution_locations"
             referencedColumns: ["id"]
           },
           {
@@ -533,6 +543,71 @@ export type Database = {
           },
         ]
       }
+      institution_locations: {
+        Row: {
+          address: string | null
+          capacity: number | null
+          city: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          country: string | null
+          created_at: string | null
+          facilities_description: string | null
+          id: string
+          institution_id: string
+          is_primary: boolean | null
+          location_name: string
+          province: string | null
+          sport_codes: string[] | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          capacity?: number | null
+          city?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          country?: string | null
+          created_at?: string | null
+          facilities_description?: string | null
+          id?: string
+          institution_id: string
+          is_primary?: boolean | null
+          location_name: string
+          province?: string | null
+          sport_codes?: string[] | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          capacity?: number | null
+          city?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          country?: string | null
+          created_at?: string | null
+          facilities_description?: string | null
+          id?: string
+          institution_id?: string
+          is_primary?: boolean | null
+          location_name?: string
+          province?: string | null
+          sport_codes?: string[] | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "institution_locations_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       institutions: {
         Row: {
           contact_email: string | null
@@ -710,6 +785,7 @@ export type Database = {
           location: string | null
           match_date: string
           status: Database["public"]["Enums"]["match_status"]
+          venue_location_id: string | null
         }
         Insert: {
           away_score?: number | null
@@ -722,6 +798,7 @@ export type Database = {
           location?: string | null
           match_date?: string
           status?: Database["public"]["Enums"]["match_status"]
+          venue_location_id?: string | null
         }
         Update: {
           away_score?: number | null
@@ -734,6 +811,7 @@ export type Database = {
           location?: string | null
           match_date?: string
           status?: Database["public"]["Enums"]["match_status"]
+          venue_location_id?: string | null
         }
         Relationships: [
           {
@@ -748,6 +826,13 @@ export type Database = {
             columns: ["home_team_id"]
             isOneToOne: false
             referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_venue_location_id_fkey"
+            columns: ["venue_location_id"]
+            isOneToOne: false
+            referencedRelation: "institution_locations"
             referencedColumns: ["id"]
           },
         ]
@@ -1215,6 +1300,7 @@ export type Database = {
           created_at: string
           id: string
           institution_id: string
+          location_id: string | null
           logo_url: string | null
           season: string | null
           sport: string
@@ -1224,6 +1310,7 @@ export type Database = {
           created_at?: string
           id?: string
           institution_id: string
+          location_id?: string | null
           logo_url?: string | null
           season?: string | null
           sport?: string
@@ -1233,6 +1320,7 @@ export type Database = {
           created_at?: string
           id?: string
           institution_id?: string
+          location_id?: string | null
           logo_url?: string | null
           season?: string | null
           sport?: string
@@ -1244,6 +1332,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teams_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "institution_locations"
             referencedColumns: ["id"]
           },
         ]
@@ -1332,17 +1427,62 @@ export type Database = {
       }
     }
     Functions: {
-      find_or_create_athlete: {
-        Args: {
-          p_created_by_role?: string
-          p_date_of_birth: string
-          p_email?: string
-          p_full_name: string
-          p_position?: string
-          p_sport: string
-        }
-        Returns: Json
-      }
+      claim_athlete_profile:
+        | {
+            Args: {
+              p_athlete_id: string
+              p_height_cm?: number
+              p_mysafa_id?: string
+              p_nationality?: string
+              p_playing_style?: string
+              p_position?: string
+              p_profile_id: string
+              p_squad?: string
+              p_weight_kg?: number
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              p_athlete_id: string
+              p_height_cm?: number
+              p_institution_id?: string
+              p_location_id?: string
+              p_mysafa_id?: string
+              p_nationality?: string
+              p_playing_style?: string
+              p_position?: string
+              p_profile_id: string
+              p_squad?: string
+              p_weight_kg?: number
+            }
+            Returns: undefined
+          }
+      find_or_create_athlete:
+        | {
+            Args: {
+              p_created_by_role?: string
+              p_date_of_birth: string
+              p_email?: string
+              p_full_name: string
+              p_position?: string
+              p_sport: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_created_by_role?: string
+              p_date_of_birth: string
+              p_email?: string
+              p_full_name: string
+              p_institution_id?: string
+              p_location_id?: string
+              p_position?: string
+              p_sport: string
+            }
+            Returns: Json
+          }
       get_user_type: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["user_type"]
@@ -1371,6 +1511,7 @@ export type Database = {
           institution_id: string | null
           invited_at: string | null
           level: number
+          location_id: string | null
           mysafa_id: string | null
           nationality: string | null
           performance_score: number

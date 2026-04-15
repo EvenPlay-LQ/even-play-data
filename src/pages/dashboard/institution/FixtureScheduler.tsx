@@ -72,10 +72,12 @@ const FixtureScheduler = () => {
     competition_id: "",
     kickoff_time: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
     venue_name: "",
+    venue_location_id: "",
   });
-  
+
   const [saving, setSaving] = useState(false);
   const [filter, setFilter] = useState("all"); // all, upcoming, completed
+  const [instLocations, setInstLocations] = useState<any[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -116,10 +118,19 @@ const FixtureScheduler = () => {
         setCompetitions(compData as unknown as unknown as Competition[]);
       }
       
+      // Load locations
+      const { data: locs } = await supabase
+        .from("institution_locations")
+        .select("id, location_name")
+        .eq("institution_id", instData.id)
+        .eq("status", "active")
+        .order("is_primary", { ascending: false });
+      setInstLocations(locs || []);
+
       // Load fixtures
       await loadFixtures(instData.id);
     }
-    
+
     setLoading(false);
   };
 
@@ -335,6 +346,23 @@ const FixtureScheduler = () => {
                 
                 <div>
                   <Label>Venue</Label>
+                  {instLocations.length > 0 && (
+                    <select
+                      className="mt-1 w-full border border-border rounded-md p-2 bg-background text-foreground text-sm"
+                      value={newFixture.venue_location_id}
+                      onChange={e => {
+                        const loc = instLocations.find(l => l.id === e.target.value);
+                        setNewFixture({
+                          ...newFixture,
+                          venue_location_id: e.target.value,
+                          venue_name: loc ? loc.location_name : newFixture.venue_name,
+                        });
+                      }}
+                    >
+                      <option value="">Select a venue</option>
+                      {instLocations.map(l => <option key={l.id} value={l.id}>{l.location_name}</option>)}
+                    </select>
+                  )}
                   <Input
                     placeholder="e.g., Main Field"
                     value={newFixture.venue_name}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
-  Users, AlertTriangle, CheckCircle, Clock, Calendar,
+  Users, AlertTriangle, CheckCircle, Clock, Calendar, MapPin,
   ChevronRight, Megaphone, ClipboardList, Trophy, FileText, BarChart3,
 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -22,6 +22,7 @@ const InstitutionDashboard = () => {
   const [pendingVerifications, setPendingVerifications] = useState(0);
   const [upcomingMatches, setUpcomingMatches] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
+  const [locationCount, setLocationCount] = useState(0);
 
   // ── Load institution, athletes, teams, matches, pending verifications ──
   useEffect(() => {
@@ -80,6 +81,13 @@ const InstitutionDashboard = () => {
             if (matchData) setUpcomingMatches(matchData);
           }
         }
+
+        // Fetch location count
+        const { count: locCount } = await supabase
+          .from("institution_locations")
+          .select("*", { count: "exact", head: true })
+          .eq("institution_id", inst.id);
+        setLocationCount(locCount || 0);
 
         // Fetch pending verifications — filtered to this institution
         const { count, error: verifErr } = await supabase
@@ -151,7 +159,7 @@ const InstitutionDashboard = () => {
           {[
             { label: "Total Athletes", value: activeAthletes, icon: Users, color: "text-primary" },
             { label: "Teams", value: teams.length, icon: CheckCircle, color: "text-stat-green" },
-            { label: "Pending Verifs", value: pendingVerifications, icon: Clock, color: "text-stat-orange" },
+            { label: "Locations", value: locationCount, icon: MapPin, color: "text-stat-purple" },
             { label: "Avg Score", value: avgPerformance, icon: BarChart3, color: "text-stat-blue" },
           ].map((stat, i) => (
             <motion.div
@@ -241,6 +249,20 @@ const InstitutionDashboard = () => {
               <p className="text-xs text-muted-foreground">Medical forms and certificates</p>
             </div>
             <ChevronRight className="h-5 w-5 text-red-600" />
+          </button>
+
+          <button
+            onClick={() => navigate("/dashboard/institution/locations")}
+            className="flex items-center gap-4 bg-gradient-to-r from-teal-500/10 to-teal-600/10 hover:from-teal-500/20 hover:to-teal-600/20 border border-teal-500/30 rounded-xl p-4 transition-all group"
+          >
+            <div className="w-12 h-12 rounded-lg bg-teal-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <MapPin className="h-6 w-6 text-teal-600" />
+            </div>
+            <div className="text-left flex-1">
+              <h3 className="font-semibold text-foreground">Manage Locations</h3>
+              <p className="text-xs text-muted-foreground">Add and manage facilities</p>
+            </div>
+            <ChevronRight className="h-5 w-5 text-teal-600" />
           </button>
 
           <button

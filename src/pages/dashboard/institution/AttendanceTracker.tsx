@@ -69,6 +69,10 @@ const AttendanceTracker = () => {
   const [sessions, setSessions] = useState<any[]>([]);
   const [viewHistory, setViewHistory] = useState(false);
 
+  // Locations
+  const [instLocations, setInstLocations] = useState<any[]>([]);
+  const [selectedLocationId, setSelectedLocationId] = useState("");
+
   useEffect(() => {
     if (!user) return;
     loadInstitutionAndAthletes();
@@ -111,6 +115,15 @@ const AttendanceTracker = () => {
         setAttendance(initialAttendance);
       }
       
+      // Load locations
+      const { data: locs } = await supabase
+        .from("institution_locations")
+        .select("id, location_name")
+        .eq("institution_id", instData.id)
+        .eq("status", "active")
+        .order("is_primary", { ascending: false });
+      setInstLocations(locs || []);
+
       // Load recent sessions
       const { data: sessionData } = await (supabase as any)
         .from("attendance_sessions")
@@ -334,12 +347,31 @@ const AttendanceTracker = () => {
               
               <div>
                 <Label>Location</Label>
-                <Input
-                  placeholder="e.g., Main Field, Gym A"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="mt-1"
-                />
+                {instLocations.length > 0 ? (
+                  <select
+                    className="mt-1 w-full border border-border rounded-md p-2 bg-background text-foreground text-sm"
+                    value={selectedLocationId}
+                    onChange={e => {
+                      setSelectedLocationId(e.target.value);
+                      if (e.target.value !== "__other") {
+                        const loc = instLocations.find(l => l.id === e.target.value);
+                        if (loc) setLocation(loc.location_name);
+                      }
+                    }}
+                  >
+                    <option value="">Select a location</option>
+                    {instLocations.map(l => <option key={l.id} value={l.id}>{l.location_name}</option>)}
+                    <option value="__other">Other (type below)</option>
+                  </select>
+                ) : null}
+                {(instLocations.length === 0 || selectedLocationId === "__other") && (
+                  <Input
+                    placeholder="e.g., Main Field, Gym A"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    className="mt-1"
+                  />
+                )}
               </div>
               
               <div>

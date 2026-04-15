@@ -35,6 +35,7 @@ const AthleteAnalytics = lazy(() => import("./pages/dashboard/athlete/AthleteAna
 const AthleteAchievements = lazy(() => import("./pages/dashboard/athlete/AthleteAchievements"));
 const AthleteHighlights = lazy(() => import("./pages/dashboard/athlete/AthleteHighlights"));
 const AthleteProfilePage = lazy(() => import("./pages/dashboard/athlete/AthleteProfilePage"));
+const InstitutionLocations = lazy(() => import("./pages/dashboard/institution/InstitutionLocations"));
 const InstitutionAthletes = lazy(() => import("./pages/dashboard/institution/InstitutionAthletes"));
 const InstitutionTeams = lazy(() => import("./pages/dashboard/institution/InstitutionTeams"));
 const InstitutionMatches = lazy(() => import("./pages/dashboard/institution/InstitutionMatches"));
@@ -114,6 +115,7 @@ const App = () => (
 
                 {/* Institution Dashboard */}
                 <Route path="/dashboard/institution" element={<ProtectedRoute requiredRole="institution"><InstitutionDashboard /></ProtectedRoute>} />
+                <Route path="/dashboard/institution/locations" element={<ProtectedRoute requiredRole="institution"><InstitutionLocations /></ProtectedRoute>} />
                 <Route path="/dashboard/institution/athletes" element={<ProtectedRoute requiredRole="institution"><InstitutionAthletes /></ProtectedRoute>} />
                 <Route path="/dashboard/institution/teams" element={<ProtectedRoute requiredRole="institution"><InstitutionTeams /></ProtectedRoute>} />
                 <Route path="/dashboard/institution/matches" element={<ProtectedRoute requiredRole="institution"><FixtureScheduler /></ProtectedRoute>} />

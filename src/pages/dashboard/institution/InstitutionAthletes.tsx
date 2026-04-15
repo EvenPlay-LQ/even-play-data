@@ -25,6 +25,7 @@ interface NewAthleteForm {
   email: string;
   sport: string;
   position: string;
+  location_id: string;
 }
 
 const InstitutionAthletes = () => {
@@ -41,7 +42,11 @@ const InstitutionAthletes = () => {
 
   // Create Athlete Dialog
   const [createOpen, setCreateOpen] = useState(false);
-  const [newAthlete, setNewAthlete] = useState<NewAthleteForm>({ name: "", email: "", sport: "Football", position: "" });
+  const [newAthlete, setNewAthlete] = useState<NewAthleteForm>({ name: "", email: "", sport: "Football", position: "", location_id: "" });
+
+  // Locations
+  const [locations, setLocations] = useState<any[]>([]);
+  const [locationFilter, setLocationFilter] = useState("");
 
   // Coach Feedback Dialog
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -75,6 +80,15 @@ const InstitutionAthletes = () => {
         .order("performance_score", { ascending: false });
       if (error) handleQueryError(error);
       else setAthletes(data || []);
+
+      // Load locations for filter + assignment
+      const { data: locs } = await supabase
+        .from("institution_locations")
+        .select("id, location_name")
+        .eq("institution_id", inst.id)
+        .eq("status", "active")
+        .order("is_primary", { ascending: false });
+      setLocations(locs || []);
     }
     setLoading(false);
   };
@@ -105,12 +119,13 @@ const InstitutionAthletes = () => {
         sport: newAthlete.sport,
         position: newAthlete.position,
         status: "stub" as const,
+        location_id: newAthlete.location_id || null,
       } as any]).select("*").single();
 
       if (athleteErr) throw athleteErr;
 
       setAthletes([athleteData, ...athletes]);
-      setNewAthlete({ name: "", email: "", sport: "Football", position: "" });
+      setNewAthlete({ name: "", email: "", sport: "Football", position: "", location_id: "" });
       setCreateOpen(false);
       toast({ 
         title: "Athlete created!", 
@@ -172,10 +187,12 @@ const InstitutionAthletes = () => {
     setUploading(false);
   };
 
-  const filtered = athletes.filter(a =>
-    !search.trim() ||
-    (a.profiles?.name || a.full_name || "").toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = athletes.filter(a => {
+    const matchesSearch = !search.trim() ||
+      (a.profiles?.name || a.full_name || "").toLowerCase().includes(search.toLowerCase());
+    const matchesLocation = !locationFilter || a.location_id === locationFilter;
+    return matchesSearch && matchesLocation;
+  });
 
   if (loading) {
     return (
@@ -225,6 +242,16 @@ const InstitutionAthletes = () => {
                     <Input className="mt-1" placeholder="e.g. Striker" value={newAthlete.position} onChange={e => setNewAthlete({ ...newAthlete, position: e.target.value })} />
                   </div>
                 </div>
+                {locations.length > 0 && (
+                  <div>
+                    <Label>Location</Label>
+                    <select className="mt-1 w-full border border-border rounded-md p-2 bg-background text-foreground text-sm"
+                      value={newAthlete.location_id} onChange={e => setNewAthlete({ ...newAthlete, location_id: e.target.value })}>
+                      <option value="">No specific location</option>
+                      {locations.map(l => <option key={l.id} value={l.id}>{l.location_name}</option>)}
+                    </select>
+                  </div>
+                )}
                 <Button className="w-full" onClick={handleCreateAthlete} disabled={saving || !newAthlete.name || !newAthlete.email}>
                   {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
                   Create Athlete Profile
@@ -234,10 +261,22 @@ const InstitutionAthletes = () => {
           </Dialog>
         </div>
 
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search athletes..." className="pl-10" value={search} onChange={e => setSearch(e.target.value)} />
+        {/* Search + Location Filter */}
+        <div className="flex gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Search athletes..." className="pl-10" value={search} onChange={e => setSearch(e.target.value)} />
+          </div>
+          {locations.length > 1 && (
+            <select
+              value={locationFilter}
+              onChange={e => setLocationFilter(e.target.value)}
+              className="border border-border rounded-md px-3 bg-background text-foreground text-sm min-w-[160px]"
+            >
+              <option value="">All Locations</option>
+              {locations.map(l => <option key={l.id} value={l.id}>{l.location_name}</option>)}
+            </select>
+          )}
         </div>
 
         {/* Athlete List */}
