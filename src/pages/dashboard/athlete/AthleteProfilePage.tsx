@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Save, Loader2, Plus, Trash2, Building2, CalendarDays, ChevronDown, ChevronUp, Upload } from "lucide-react";
+import { User, Save, Loader2, Plus, Trash2, Building2, CalendarDays, ChevronDown, ChevronUp, Upload, Shield } from "lucide-react";
 import FileUpload from "@/components/FileUpload";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,10 @@ interface ClubHistoryEntry {
   notes: string;
 }
 
+/** Return the current club (no end_date) from a sorted history list */
+const getCurrentClub = (history: ClubHistoryEntry[]): ClubHistoryEntry | null =>
+  history.find(c => !c.end_date) || null;
+
 const AthleteProfilePage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -37,15 +41,28 @@ const AthleteProfilePage = () => {
   const [sport, setSport] = useState("");
   const [position, setPosition] = useState("");
   const [province, setProvince] = useState("");
-  const [country, setCountry] = useState("");
-  const [currentClub, setCurrentClub] = useState("");
+  const [nationality, setNationality] = useState("");
   const [dob, setDob] = useState("");
+  const [heightCm, setHeightCm] = useState("");
+  const [weightKg, setWeightKg] = useState("");
+  const [playingStyle, setPlayingStyle] = useState("");
+  const [mysafaId, setMysafaId] = useState("");
 
   // Club History
   const [clubHistory, setClubHistory] = useState<ClubHistoryEntry[]>([]);
   const [savingClub, setSavingClub] = useState(false);
   const [showClubForm, setShowClubForm] = useState(false);
   const [newClub, setNewClub] = useState<ClubHistoryEntry>({ club_name: "", start_date: "", end_date: "", notes: "" });
+
+  const currentClub = getCurrentClub(clubHistory);
+
+  /** Sync athletes.squad with the current club name (or null) */
+  const syncSquad = async (athleteId: string, clubName: string | null) => {
+    await supabase
+      .from("athletes")
+      .update({ squad: clubName })
+      .eq("id", athleteId);
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -65,54 +82,111 @@ const AthleteProfilePage = () => {
         setSport(athleteData.sport || "");
         setPosition(athleteData.position || "");
         setProvince(athleteData.province || "");
-        setCountry(athleteData.country || "");
+        setNationality(athleteData.nationality || "");
         setDob(athleteData.date_of_birth || "");
+        setHeightCm(athleteData.height_cm != null ? String(athleteData.height_cm) : "");
+        setWeightKg(athleteData.weight_kg != null ? String(athleteData.weight_kg) : "");
+        setPlayingStyle(athleteData.playing_style || "");
+        setMysafaId(athleteData.mysafa_id || "");
 
-        // Load club history from custom table
+        // Load club history
         const { data: clubs } = await supabase
           .from("club_history" as any)
           .select("*")
           .eq("athlete_id", athleteData.id)
           .order("start_date", { ascending: false });
-        setClubHistory((clubs || []) as unknown as ClubHistoryEntry[]);
+        const history = (clubs || []) as unknown as ClubHistoryEntry[];
+
+        // Seed: if athlete has a squad value but no club history, create an initial entry
+        if (history.length === 0 && athleteData.squad) {
+          const { data: seeded, error: seedErr } = await supabase
+            .from("club_history" as any)
+            .insert([{
+              athlete_id: athleteData.id,
+              club_name: athleteData.squad,
+              start_date: athleteData.created_at ? new Date(athleteData.created_at).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
+            }])
+            .select()
+            .single();
+          if (!seedErr && seeded) {
+            history.push(seeded as unknown as ClubHistoryEntry);
+          }
+        }
+
+        setClubHistory(history);
       }
       setLoading(false);
     };
     load();
   }, [user]);
 
-
-
   const handleAddClub = async () => {
     if (!newClub.club_name || !newClub.start_date || !athlete) return;
     setSavingClub(true);
-    const { data, error } = await supabase
-      .from("club_history" as any)
-      .insert([{ ...newClub, athlete_id: athlete.id }])
-      .select()
-      .single();
-    if (error) { handleQueryError(error, "Failed to add club."); }
-    else {
-      setClubHistory([data as unknown as ClubHistoryEntry, ...clubHistory]);
-      setNewClub({ club_name: "", start_date: "", end_date: "", notes: "" });
-      setShowClubForm(false);
-      toast({ title: "Club added!" });
+
+    try {
+      // If adding a current club (no end_date), close the existing current club
+      const isNewCurrent = !newClub.end_date;
+      if (isNewCurrent && currentClub?.id) {
+        const closeDate = newClub.start_date;
+        await supabase
+          .from("club_history" as any)
+          .update({ end_date: closeDate })
+          .eq("id", currentClub.id);
+        // Update local state for the closed entry
+        setClubHistory(prev =>
+          prev.map(c => c.id === currentClub.id ? { ...c, end_date: closeDate } : c)
+        );
+      }
+
+      const { data, error } = await supabase
+        .from("club_history" as any)
+        .insert([{ ...newClub, end_date: newClub.end_date || null, athlete_id: athlete.id }])
+        .select()
+        .single();
+
+      if (error) {
+        handleQueryError(error, "Failed to add club.");
+      } else {
+        const updated = [data as unknown as ClubHistoryEntry, ...clubHistory.map(c =>
+          c.id === currentClub?.id && isNewCurrent ? { ...c, end_date: newClub.start_date } : c
+        )];
+        setClubHistory(updated);
+        setNewClub({ club_name: "", start_date: "", end_date: "", notes: "" });
+        setShowClubForm(false);
+        toast({ title: "Club added!" });
+
+        // Sync squad with new current club
+        const newCurrentClub = getCurrentClub(updated);
+        await syncSquad(athlete.id, newCurrentClub?.club_name || null);
+      }
+    } catch (err: any) {
+      handleQueryError(err, "Failed to add club.");
+    } finally {
+      setSavingClub(false);
     }
-    setSavingClub(false);
   };
 
   const handleDeleteClub = async (id: string) => {
+    if (!athlete) return;
     const { error } = await supabase.from("club_history" as any).delete().eq("id", id);
-    if (error) handleQueryError(error);
-    else setClubHistory(clubHistory.filter(c => c.id !== id));
+    if (error) {
+      handleQueryError(error);
+    } else {
+      const updated = clubHistory.filter(c => c.id !== id);
+      setClubHistory(updated);
+      // Sync squad after deletion
+      const newCurrentClub = getCurrentClub(updated);
+      await syncSquad(athlete.id, newCurrentClub?.club_name || null);
+    }
   };
 
   const handleSave = async () => {
     if (!user) return;
-    
+
     setSaving(true);
     try {
-      // 1. Update Profile (using update instead of upsert to avoid RLS INSERT conflicts for existing rows)
+      // 1. Update Profile
       const { error: profileError } = await supabase
         .from("profiles")
         .update({
@@ -123,23 +197,28 @@ const AthleteProfilePage = () => {
 
       if (profileError) throw profileError;
 
-      // 2. Upsert Athlete
+      // 2. Upsert Athlete — squad is derived from club history, use current club
       const { error: athleteError } = await supabase
         .from("athletes")
         .upsert({
           profile_id: user.id,
+          full_name: name.trim() || null,
           sport: sport || "General",
           position: position || "Player",
           province: province || null,
-          country: country || null,
+          nationality: nationality || null,
           date_of_birth: dob || null,
+          height_cm: heightCm ? parseFloat(heightCm) : null,
+          weight_kg: weightKg ? parseFloat(weightKg) : null,
+          playing_style: playingStyle || null,
+          mysafa_id: mysafaId || null,
+          squad: currentClub?.club_name || null,
         }, { onConflict: "profile_id" });
 
       if (athleteError) throw athleteError;
 
       toast({ title: "Profile saved!", description: "Your changes have been successfully updated." });
-      
-      // Refresh local state if it was a new record
+
       if (!athlete) {
         const { data: newAthlete } = await supabase.from("athletes").select("*").eq("profile_id", user.id).maybeSingle();
         if (newAthlete) setAthlete(newAthlete);
@@ -198,14 +277,50 @@ const AthleteProfilePage = () => {
               <Input className="mt-1" value={position} onChange={e => setPosition(e.target.value)} placeholder="e.g. Striker" />
             </div>
             <div>
+              <Label>Nationality</Label>
+              <Input className="mt-1" value={nationality} onChange={e => setNationality(e.target.value)} placeholder="e.g. South African" />
+            </div>
+            <div>
               <Label>Province</Label>
               <Input className="mt-1" value={province} onChange={e => setProvince(e.target.value)} placeholder="e.g. Gauteng" />
             </div>
             <div>
-              <Label>Country</Label>
-              <Input className="mt-1" value={country} onChange={e => setCountry(e.target.value)} placeholder="e.g. South Africa" />
+              <Label>Height (cm)</Label>
+              <Input className="mt-1" type="number" value={heightCm} onChange={e => setHeightCm(e.target.value)} placeholder="e.g. 180" />
+            </div>
+            <div>
+              <Label>Weight (kg)</Label>
+              <Input className="mt-1" type="number" value={weightKg} onChange={e => setWeightKg(e.target.value)} placeholder="e.g. 75" />
+            </div>
+            <div className="md:col-span-2">
+              <Label>Playing Style</Label>
+              <Input className="mt-1" value={playingStyle} onChange={e => setPlayingStyle(e.target.value)} placeholder="e.g. Box-to-box midfielder" />
             </div>
           </div>
+
+          <h3 className="font-display font-semibold text-foreground text-sm pt-2 flex items-center gap-2">
+            <Shield className="h-3.5 w-3.5 text-primary" /> Credentials
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label>MYSAFA ID</Label>
+              <Input className="mt-1" value={mysafaId} onChange={e => setMysafaId(e.target.value)} placeholder="Your SAFA registered ID" />
+            </div>
+            <div>
+              <Label>Current Club</Label>
+              <div className="mt-1 flex items-center h-10 px-3 rounded-md border border-border bg-muted/40 text-sm">
+                {currentClub ? (
+                  <span className="flex items-center gap-2">
+                    <Building2 className="h-3.5 w-3.5 text-primary" />
+                    {currentClub.club_name}
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground">Add a club below with no end date</span>
+                )}
+              </div>
+            </div>
+          </div>
+
           <div>
             <Label>Biography</Label>
             <Textarea
@@ -259,6 +374,11 @@ const AthleteProfilePage = () => {
                     <Label>Notes</Label>
                     <Input className="mt-1" value={newClub.notes} onChange={e => setNewClub({ ...newClub, notes: e.target.value })} placeholder="e.g. Key achievement or role" />
                   </div>
+                  {!newClub.end_date && currentClub && (
+                    <p className="md:col-span-2 text-xs text-muted-foreground">
+                      This will close your current stint at <strong>{currentClub.club_name}</strong> on the start date above.
+                    </p>
+                  )}
                   <Button className="md:col-span-2" onClick={handleAddClub} disabled={savingClub || !newClub.club_name || !newClub.start_date}>
                     {savingClub ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
                     Add to History
@@ -281,13 +401,18 @@ const AthleteProfilePage = () => {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.04 }}
-                  className="flex items-start gap-3 p-3 rounded-lg border border-border bg-background"
+                  className={`flex items-start gap-3 p-3 rounded-lg border bg-background ${!club.end_date ? "border-primary/40 bg-primary/5" : "border-border"}`}
                 >
-                  <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Building2 className="h-4 w-4 text-primary" />
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${!club.end_date ? "bg-primary/20" : "bg-primary/10"}`}>
+                    <Building2 className={`h-4 w-4 ${!club.end_date ? "text-primary" : "text-primary"}`} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-sm text-foreground">{club.club_name}</div>
+                    <div className="font-semibold text-sm text-foreground flex items-center gap-2">
+                      {club.club_name}
+                      {!club.end_date && (
+                        <span className="text-[10px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">Current</span>
+                      )}
+                    </div>
                     <div className="text-xs text-muted-foreground">
                       {new Date(club.start_date).getFullYear()} – {club.end_date ? new Date(club.end_date).getFullYear() : "Present"}
                     </div>
