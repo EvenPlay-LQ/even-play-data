@@ -29,11 +29,12 @@ jobs:
         run: npm run build
 
       - name: Deploy to Hostinger
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.6
         with:
-          server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
+          server: ${{ secrets.FTP_HOST }}
+          port: 22
           password: ${{ secrets.FTP_PASSWORD }}
-          port: 21
-          local-dir: ./dist/
-          server-dir: /public_html/
+          local_path: './dist/*'
+          remote_path: '/public_html/'
+          sftp_only: true
