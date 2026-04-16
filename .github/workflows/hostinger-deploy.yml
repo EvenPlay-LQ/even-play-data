@@ -1,75 +1,39 @@
-name: Deploy to Hostinger via SFTP
+name: Hostinger Deploy
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:  # Allow manual trigger from GitHub UI
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 30  # Prevent workflow from hanging indefinitely
-
     steps:
-    - name: 🚚 Get latest code
-      uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: ⚙️ Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20
-        cache: 'npm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
 
-    - name: 📦 Install dependencies
-      run: npm ci  # Faster, more reliable than npm install
+      - name: Install dependencies
+        run: npm install
 
-    - name: 🏗️ Build project
-      env:
-        VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
-        VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
-        VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-      run: npm run build
+      - name: Build project
+        env:
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+        run: npm run build
 
-    - name: 📂 Verify build output
-      run: |
-        echo "Build output size:"
-        du -sh ./dist/
-        echo "Files to deploy:"
-        ls -la ./dist/
-
-    - name: 🚀 Deploy to Hostinger (with retry)
-      uses: wlixcc/SFTP-Deploy-Action@v1.2.6
-      with:
-        username: ${{ secrets.SFTP_USERNAME }}
-        server: ${{ secrets.SFTP_HOST }}
-        port: ${{ secrets.SFTP_PORT }}
-        password: ${{ secrets.SFTP_PASSWORD }}
-        local_path: './dist/*'
-        remote_path: '/public_html/'
-        sftp_only: true
-        args: >-
-          -o ConnectTimeout=60
-          -o ServerAliveInterval=30
-          -o ServerAliveCountMax=3
-          -o StrictHostKeyChecking=no
-
-    - name: ✅ Verify deployment
-      if: success()
-      run: |
-        echo "Deployment completed successfully"
-        echo "Please manually verify at: https://yourdomain.com"
-        # Add your domain above to enable automatic verification
-        # curl -f https://yourdomain.com || exit 1
-
-    - name: 📧 Notify on failure
-      if: failure()
-      run: |
-        echo "::error::SFTP deployment failed!"
-        echo "Check the workflow logs for details."
-        echo "Common issues:"
-        echo "  1. Incorrect SFTP credentials in GitHub Secrets"
-        echo "  2. SFTP server unreachable (check Hostinger status)"
-        echo "  3. Connection timeout (network issues)"
-        echo "  4. Insufficient permissions on remote directory"
-        exit 1
+      - name: Deploy to Hostinger
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
+          local-dir: ./dist/
+          server-dir: /public_html/
