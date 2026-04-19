@@ -46,3 +46,4 @@
   - Layer 3: Tools (`tools/` atomic python/node scripts)
 - Environment tokens stored securely in `.env`.
 - Use `.tmp/` for intermediate ephemeral states.
+- **Hostinger SFTP invariant:** SFTP deployments MUST use port `65002` (port 22 will strictly time out). The server secret name must map exactly to `FTP_SERVER`.
