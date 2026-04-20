@@ -32,7 +32,7 @@ export const useMasterAdmin = () => {
   const getAllUsers = useCallback(async (search?: string) => {
     let query = supabase
       .from("profiles")
-      .select("*, user_roles(role), athletes(id, sport, institution_id), institutions(id, institution_name)")
+      .select("*, athletes(id, sport, institution_id), institutions(id, institution_name)")
       .order("created_at", { ascending: false })
       .limit(200);
 

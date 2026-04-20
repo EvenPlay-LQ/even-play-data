@@ -10,7 +10,7 @@ Resolve three critical workflow blockers in the Even Playground application:
 - [x] Phase 1: Blueprint (Discovery Bypassed & Schemas Defined)
 - [x] Phase 2: Link (Configuration Linkages identified)
 - [x] Phase 3: Architect (Architectural changes made to codebase)
-- [ ] Phase 4: Stylize (Awaiting user execution of UI steps)
+- [/] Phase 4: Stylize (Awaiting user execution of UI steps)
 - [ ] Phase 5: Trigger (Vercel automatic trigger expected)
 
 ## Current Checklist
@@ -18,5 +18,5 @@ Resolve three critical workflow blockers in the Even Playground application:
 - [x] Ask Discovery Questions (Bypassed via 'go ahead')
 - [x] Define JSON Data Schemas in gemini.md
 - [x] Create `vercel.json` for SPA routing
-- [ ] Prompt User for Supabase Auth Config update
-- [ ] Prompt User for GitHub Secrets update
+- [/] Prompt User for Supabase Auth Config update
+- [/] Prompt User for GitHub Secrets update
