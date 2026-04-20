@@ -15,14 +15,10 @@ import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SEO } from "@/components/SEO";
-import { SPORT_OPTIONS } from "@/config/constants";
 import ConsentStep from "@/components/ConsentStep";
+import { MultiSelectSport } from "@/components/MultiSelectSport";
 
 type UserRole = "athlete" | "institution" | "fan";
-
-// Athlete wizard: 5 steps → Role, BasicInfo, SportsProfile, Credentials, Consent
-// Institution wizard: 5 steps → Role, ContactInfo, InstitutionDetails, Registrations, Consent
-// Parent wizard: 4 steps → Role, BasicInfo, ChildProfile, Consent
 
 const STEPS: Record<UserRole, string[]> = {
   athlete: ["Choose Role", "Basic Info", "Sports Profile", "Your ID / Credentials", "Privacy & Consent"],
@@ -51,7 +47,7 @@ const SignupWizard = () => {
   const [nationality, setNationality] = useState("");
 
   // ─── Athlete ─────────────────────────────────────────────────────────────
-  const [sport, setSport] = useState("Football");
+  const [sports, setSports] = useState<string[]>(["Football"]);
   const [position, setPosition] = useState("");
   const [heightCm, setHeightCm] = useState("");
   const [weightKg, setWeightKg] = useState("");
@@ -76,12 +72,12 @@ const SignupWizard = () => {
   // ─── Child (for parent wizard step 3) ─────────────────────────────────────
   const [childName, setChildName] = useState("");
   const [childDob, setChildDob] = useState("");
-  const [childSport, setChildSport] = useState("Football");
+  const [childSports, setChildSports] = useState<string[]>(["Football"]);
   const [childPosition, setChildPosition] = useState("");
 
   // ─── Institution Add Athlete modal fields ──────────────────────────────────
   const [ath_name, setAthName] = useState("");
-  const [ath_sport, setAthSport] = useState("Football");
+  const [ath_sports, setAthSports] = useState<string[]>(["Football"]);
   const [ath_position, setAthPosition] = useState("");
   const [ath_dob, setAthDob] = useState("");
   const [showAddAthlete, setShowAddAthlete] = useState(false);
@@ -93,7 +89,6 @@ const SignupWizard = () => {
       return;
     }
 
-    // If setup is already complete, redirect to buzz — don't re-show wizard
     if (setupComplete) {
       navigate("/buzz", { replace: true });
       return;
@@ -116,15 +111,14 @@ const SignupWizard = () => {
   const progress = totalSteps > 1 ? ((step - 1) / (totalSteps - 1)) * 100 : 0;
   const stepLabels = role ? STEPS[role] : ["Choose Role", "Info", "Complete"];
 
-  // ─── Step validation ──────────────────────────────────────────────────────
   const canProceed = () => {
     if (step === 1) return !!role;
     if (!role) return false;
 
     if (role === "athlete") {
       if (step === 2) return name.trim().length > 0 && dateOfBirth.length > 0;
-      if (step === 3) return sport.length > 0 && position.trim().length > 0;
-      if (step === 4) return true; // credentials optional
+      if (step === 3) return sports.length > 0 && position.trim().length > 0;
+      if (step === 4) return true; 
       if (step === 5) return consented;
     }
     if (role === "institution") {
@@ -134,27 +128,26 @@ const SignupWizard = () => {
     }
     if (role === "fan") {
       if (step === 2) return name.trim().length > 0;
-      if (step === 3) return childName.trim().length > 0; // child name required
+      if (step === 3) return childName.trim().length > 0;
       if (step === 4) return consented;
     }
     return true;
   };
 
-  // ─── Institution: Add First Athlete ───────────────────────────────────────
   const handleAddInstitutionAthlete = async () => {
     if (!user || !ath_name.trim()) return;
     
     setAddingAthlete(true);
     
     try {
-      // Create stub athlete record
-      const { data: athlete, error: athleteError } = await supabase.from("athletes").insert({
+      const { error: athleteError } = await supabase.from("athletes").insert({
         full_name: ath_name.trim(),
-        sport: ath_sport,
+        sport: ath_sports[0] || "Football",
+        secondary_sports: ath_sports.length > 1 ? ath_sports.slice(1) : [],
         position: ath_position || "Player",
         date_of_birth: ath_dob || null,
         status: "stub"
-      }).select("id").single();
+      });
 
       if (athleteError) throw athleteError;
 
@@ -163,7 +156,6 @@ const SignupWizard = () => {
         description: `${ath_name} has been added to your institution.`,
       });
 
-      // Close modal and navigate to dashboard
       setShowAddAthlete(false);
       navigate("/dashboard/institution");
     } catch (error: any) {
@@ -178,13 +170,12 @@ const SignupWizard = () => {
     }
   };
 
-  // ─── Submit ───────────────────────────────────────────────────────────────
   const handleCompleteSetup = async () => {
     if (!user || !role) return;
     setSaving(true);
 
     try {
-      // 1. Upsert profile with POPIA consent + setup_complete
+      // 1. Upsert profile
       const { error: profileError } = await supabase.from("profiles").upsert({
         id: user.id,
         name: name.trim(),
@@ -200,20 +191,20 @@ const SignupWizard = () => {
 
       // 2. Role-specific records
       if (role === "athlete") {
-        // T2 Split: Use RPC to find/create an athlete record and claim it
+        const primarySport = sports[0] || "Football";
+        const secondarySports = sports.length > 1 ? sports.slice(1) : [];
+
         const { data: claimData, error: claimErr } = await (supabase.rpc as any)("find_or_create_athlete", {
           p_full_name: name.trim(),
           p_date_of_birth: dateOfBirth || null,
-          p_sport: sport || "Football",
+          p_sport: primarySport,
+          p_secondary_sports: secondarySports,
           p_email: user.email || null,
           p_position: position || null,
         });
 
         if (claimErr) throw claimErr;
 
-        // Claim the athlete record via SECURITY DEFINER RPC
-        // (direct .update() fails silently because RLS requires profile_id = auth.uid(),
-        //  but profile_id is NULL on a fresh stub record)
         const athleteId = (claimData as any)?.athlete_id;
         if (athleteId) {
           const { error: claimProfileErr } = await (supabase.rpc as any)("claim_athlete_profile", {
@@ -229,10 +220,13 @@ const SignupWizard = () => {
           });
 
           if (claimProfileErr) throw claimProfileErr;
+          
+          // also safely update secondary sports just in case claim_athlete_profile doesn't
+          await supabase.from("athletes").update({ secondary_sports: secondarySports }).eq("id", athleteId);
         }
 
       } else if (role === "institution") {
-        const { data: instData, error: instErr } = await supabase.from("institutions").upsert({
+        const { error: instErr } = await supabase.from("institutions").upsert({
           profile_id: user.id,
           institution_name: institutionName || name,
           physical_address: physicalAddress || null,
@@ -242,12 +236,10 @@ const SignupWizard = () => {
           province: province || null,
           website_url: websiteUrl || null,
           contact_phone: contactPhone || null,
-        }, { onConflict: "profile_id" } as any).select("id").single();
+        }, { onConflict: "profile_id" } as any);
         if (instErr) throw instErr;
-        // Institution will be redirected to buzz page with other users
 
       } else if (role === "fan") {
-        // Create parent record
         const { error: parentErr } = await supabase.from("parents" as any).upsert({
           profile_id: user.id,
           contact_phone: parentPhone || null,
@@ -255,18 +247,17 @@ const SignupWizard = () => {
         }, { onConflict: "profile_id" } as any);
         if (parentErr) throw parentErr;
 
-        // T2 Split: Create stub athlete record for child (no shadow profile required)
         if (childName.trim()) {
           const { data: childAthlete, error: childAthleteErr } = await supabase.from("athletes").insert({
             full_name: childName.trim(),
-            sport: childSport || "Football",
+            sport: childSports[0] || "Football",
+            secondary_sports: childSports.length > 1 ? childSports.slice(1) : [],
             position: childPosition || "Player",
             date_of_birth: childDob || null,
             status: "stub"
           } as any).select("id").single();
 
           if (!childAthleteErr && childAthlete) {
-            // Link via parent_athletes junction (Standardized name)
             const { data: pData } = await supabase.from("parents" as any).select("id").eq("profile_id", user.id).single();
             if (pData) {
               await supabase.from("parent_athletes" as any).insert({
@@ -281,15 +272,13 @@ const SignupWizard = () => {
 
       toast({ title: "Welcome to Even Playground! 🎉", description: "Your profile is ready." });
 
-      // Force refresh the profile to ensure setup_complete is synced
       if (refreshProfile) {
         await refreshProfile();
       }
 
       if (role === "institution") {
-        setShowAddAthlete(true); // Show modal to add first athlete
+        setShowAddAthlete(true);
       } else {
-        // Redirect to community dashboard (Buzz page) after signup
         setTimeout(() => {
           window.location.href = "/buzz";
         }, 400);
@@ -385,6 +374,7 @@ const SignupWizard = () => {
                     <div className="col-span-2">
                       <Label>Display Name *</Label>
                       <Input className="mt-1" value={name} onChange={e => setName(e.target.value)} placeholder="Your full name" />
+                      <p className="text-[10px] text-muted-foreground mt-1">This is how your name will appear on leaderboards and to scouts.</p>
                     </div>
                     <div>
                       <Label>Date of Birth *</Label>
@@ -407,18 +397,23 @@ const SignupWizard = () => {
                 <motion.div key="a-step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
                   <div>
                     <h2 className="text-2xl font-display font-bold text-foreground">Sports Profile</h2>
-                    <p className="text-muted-foreground mt-1 text-sm">Your performance details.</p>
+                    <p className="text-muted-foreground mt-1 text-sm">Your performance details. Select multiple sports if you are a multi-sport athlete.</p>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label>Primary Sport *</Label>
-                      <select value={sport} onChange={e => setSport(e.target.value)} className="mt-1 w-full border border-border rounded-md p-2 bg-background text-foreground text-sm">
-                        {SPORT_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-                      </select>
+                    <div className="col-span-2">
+                      <Label>Your Sports * <span className="text-[10px] font-normal text-muted-foreground ml-1">(The first selected is your Primary)</span></Label>
+                      <div className="mt-2">
+                        <MultiSelectSport selected={sports} onChange={setSports} />
+                      </div>
                     </div>
                     <div>
                       <Label>Position *</Label>
-                      <Input className="mt-1" value={position} onChange={e => setPosition(e.target.value)} placeholder="e.g. Striker" />
+                      <Input className="mt-1" value={position} onChange={e => setPosition(e.target.value)} placeholder="e.g. Striker / Point Guard" />
+                      <p className="text-[10px] text-muted-foreground mt-1">Your main role on the field/court.</p>
+                    </div>
+                    <div className="col-span-2">
+                      <Label>Playing Style (Optional)</Label>
+                      <Input className="mt-1" value={playingStyle} onChange={e => setPlayingStyle(e.target.value)} placeholder="e.g. Box-to-box midfielder, Aggressive forward" />
                     </div>
                     <div>
                       <Label>Height (cm)</Label>
@@ -429,8 +424,7 @@ const SignupWizard = () => {
                       <Input type="number" className="mt-1" value={weightKg} onChange={e => setWeightKg(e.target.value)} placeholder="75" />
                     </div>
                     <div className="col-span-2">
-                      <Label>Playing Style</Label>
-                      <Input className="mt-1" value={playingStyle} onChange={e => setPlayingStyle(e.target.value)} placeholder="e.g. Box-to-box midfielder" />
+                       <p className="text-[10px] text-muted-foreground text-center">Accurate height & weight metrics improve your visibility to scouts and team placements.</p>
                     </div>
                   </div>
                 </motion.div>
@@ -573,16 +567,14 @@ const SignupWizard = () => {
                       <Label>Child's Full Name *</Label>
                       <Input className="mt-1" value={childName} onChange={e => setChildName(e.target.value)} placeholder="e.g. James Smith" />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label>Date of Birth</Label>
-                        <Input type="date" className="mt-1" value={childDob} onChange={e => setChildDob(e.target.value)} />
-                      </div>
-                      <div>
-                        <Label>Primary Sport</Label>
-                        <select value={childSport} onChange={e => setChildSport(e.target.value)} className="mt-1 w-full border border-border rounded-md p-2 bg-background text-foreground text-sm">
-                          {SPORT_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-                        </select>
+                    <div>
+                      <Label>Date of Birth</Label>
+                      <Input type="date" className="mt-1" value={childDob} onChange={e => setChildDob(e.target.value)} />
+                    </div>
+                    <div>
+                      <Label>Sports <span className="text-[10px] text-muted-foreground ml-1">(First selected is Primary)</span></Label>
+                      <div className="mt-2">
+                        <MultiSelectSport selected={childSports} onChange={setChildSports} />
                       </div>
                     </div>
                     <div>
@@ -652,22 +644,25 @@ const SignupWizard = () => {
               <Label>Athlete Name *</Label>
               <Input className="mt-1" value={ath_name} onChange={e => setAthName(e.target.value)} placeholder="Full name" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Sport</Label>
-                <select value={ath_sport} onChange={e => setAthSport(e.target.value)} className="mt-1 w-full border border-border rounded-md p-2 bg-background text-foreground text-sm">
-                  {SPORT_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
+            
+            <div>
+              <Label>Sports <span className="text-[10px] text-muted-foreground ml-1">(First selected is Primary)</span></Label>
+              <div className="mt-2">
+                <MultiSelectSport selected={ath_sports} onChange={setAthSports} />
               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Position</Label>
                 <Input className="mt-1" value={ath_position} onChange={e => setAthPosition(e.target.value)} placeholder="e.g. Striker" />
               </div>
+              <div>
+                <Label>Date of Birth</Label>
+                <Input type="date" className="mt-1" value={ath_dob} onChange={e => setAthDob(e.target.value)} />
+              </div>
             </div>
-            <div>
-              <Label>Date of Birth</Label>
-              <Input type="date" className="mt-1" value={ath_dob} onChange={e => setAthDob(e.target.value)} />
-            </div>
+
             <div className="flex gap-3">
               <Button className="flex-1" onClick={handleAddInstitutionAthlete} disabled={addingAthlete || !ath_name.trim()}>
                 {addingAthlete ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}

@@ -12,8 +12,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { SPORT_OPTIONS } from "@/config/constants";
 import { handleQueryError } from "@/lib/queryHelpers";
+import { MultiSelectSport } from "@/components/MultiSelectSport";
 
 interface ClubHistoryEntry {
   id?: string;
@@ -38,7 +38,7 @@ const AthleteProfilePage = () => {
   // Profile fields
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");
-  const [sport, setSport] = useState("");
+  const [sports, setSports] = useState<string[]>(["Football"]);
   const [position, setPosition] = useState("");
   const [province, setProvince] = useState("");
   const [nationality, setNationality] = useState("");
@@ -79,7 +79,11 @@ const AthleteProfilePage = () => {
       }
       if (athleteData) {
         setAthlete(athleteData);
-        setSport(athleteData.sport || "");
+        // Build merged sports: primary + secondary_sports
+        const primarySport = athleteData.sport || "Football";
+        const secondary = athleteData.secondary_sports || [];
+        const allSports = [primarySport, ...secondary.filter((s: string) => s !== primarySport)];
+        setSports(allSports);
         setPosition(athleteData.position || "");
         setProvince(athleteData.province || "");
         setNationality(athleteData.nationality || "");
@@ -198,12 +202,15 @@ const AthleteProfilePage = () => {
       if (profileError) throw profileError;
 
       // 2. Upsert Athlete — squad is derived from club history, use current club
+      const primarySport = sports[0] || "General";
+      const secondarySports = sports.length > 1 ? sports.slice(1) : [];
       const { error: athleteError } = await supabase
         .from("athletes")
         .upsert({
           profile_id: user.id,
           full_name: name.trim() || null,
-          sport: sport || "General",
+          sport: primarySport,
+          secondary_sports: secondarySports,
           position: position || "Player",
           province: province || null,
           nationality: nationality || null,
@@ -263,14 +270,11 @@ const AthleteProfilePage = () => {
               <Label>Date of Birth</Label>
               <Input className="mt-1" type="date" value={dob} onChange={e => setDob(e.target.value)} />
             </div>
-            <div>
-              <Label>Sport</Label>
-              <Select value={sport} onValueChange={setSport}>
-                <SelectTrigger className="mt-1"><SelectValue placeholder="Select sport" /></SelectTrigger>
-                <SelectContent>
-                  {SPORT_OPTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                </SelectContent>
-              </Select>
+            <div className="md:col-span-2">
+              <Label>Sports <span className="text-[10px] font-normal text-muted-foreground ml-1">(First selected = Primary)</span></Label>
+              <div className="mt-2">
+                <MultiSelectSport selected={sports} onChange={setSports} />
+              </div>
             </div>
             <div>
               <Label>Position</Label>

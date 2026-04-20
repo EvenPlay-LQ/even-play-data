@@ -219,7 +219,9 @@ const ProfilePage = () => {
               <h1 className="font-display font-bold text-xl text-foreground">{viewProfile?.name || "User"}</h1>
               <p className="text-sm text-muted-foreground capitalize">
                 {viewRole}
-                {viewProfile?._athlete?.sport ? ` · ${viewProfile._athlete.sport}` : viewProfile?.favorite_sport ? ` · ${viewProfile.favorite_sport}` : ""}
+                {viewProfile?._athlete
+                  ? ` · ${[viewProfile._athlete.sport, ...(viewProfile._athlete.secondary_sports || [])].filter(Boolean).join(" · ")}`
+                  : viewProfile?.favorite_sport ? ` · ${viewProfile.favorite_sport}` : ""}
                 {viewProfile?._athlete?.position ? ` · ${viewProfile._athlete.position}` : ""}
               </p>
               {viewProfile?._athlete?.squad && (

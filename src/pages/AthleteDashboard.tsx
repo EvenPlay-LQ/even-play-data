@@ -123,7 +123,7 @@ const AthleteDashboard = () => {
             <div className="flex-1 min-w-0">
               <h1 className="font-display font-bold text-2xl sm:text-xl text-primary-foreground truncate">{profile?.name || "Athlete"}</h1>
               <p className="text-primary-foreground/80 text-sm font-medium">
-                {athlete.sport}{athlete.position ? ` · ${athlete.position}` : ""}
+                {[athlete.sport, ...(athlete.secondary_sports || [])].filter(Boolean).join(" · ")}
               </p>
               {athlete.country && <p className="text-primary-foreground/40 text-xs mt-0.5">{athlete.country}</p>}
             </div>

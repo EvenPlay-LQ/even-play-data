@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -235,6 +235,7 @@ export type Database = {
           profile_slug: string | null
           province: string | null
           sport: string
+          secondary_sports: string[] | null
           squad: string | null
           status: Database["public"]["Enums"]["athlete_status"]
           updated_at: string
@@ -265,6 +266,7 @@ export type Database = {
           profile_slug?: string | null
           province?: string | null
           sport?: string
+          secondary_sports?: string[] | null
           squad?: string | null
           status?: Database["public"]["Enums"]["athlete_status"]
           updated_at?: string
@@ -295,6 +297,7 @@ export type Database = {
           profile_slug?: string | null
           province?: string | null
           sport?: string
+          secondary_sports?: string[] | null
           squad?: string | null
           status?: Database["public"]["Enums"]["athlete_status"]
           updated_at?: string
@@ -1340,6 +1343,7 @@ export type Database = {
           p_full_name: string
           p_position?: string
           p_sport: string
+          p_secondary_sports?: string[]
         }
         Returns: Json
       }
