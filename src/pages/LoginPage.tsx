@@ -288,8 +288,13 @@ const LoginPage = () => {
               <form onSubmit={handleSubmit} className="space-y-5">
                 {mode === "signup" && (
                   <div className="space-y-2">
-                    <Label htmlFor="name">Full Name</Label>
-                    <Input id="name" placeholder="John Doe" className={`h-12 border-2 ${errors.name ? 'border-destructive' : 'focus:border-primary transition-all'}`} value={name} onChange={e => setName(e.target.value)} required />
+                    <Label htmlFor="name">
+                      {role === 'athlete' ? "Athlete's Full Name" : 
+                       role === 'institution' ? "Institution / Admin Name" : 
+                       role === 'fan' ? "Parent / Guardian Full Name" : 
+                       "Full Name"}
+                    </Label>
+                    <Input id="name" placeholder={role === 'athlete' ? "e.g. Neymar Jr" : "e.g. John Doe"} className={`h-12 border-2 ${errors.name ? 'border-destructive' : 'focus:border-primary transition-all'}`} value={name} onChange={e => setName(e.target.value)} required />
                     {errors.name && <p className="text-xs text-destructive font-medium">{errors.name}</p>}
                   </div>
                 )}

@@ -21,7 +21,7 @@ import { MultiSelectSport } from "@/components/MultiSelectSport";
 type UserRole = "athlete" | "institution" | "fan";
 
 const STEPS: Record<UserRole, string[]> = {
-  athlete: ["Choose Role", "Basic Info", "Sports Profile", "Your ID / Credentials", "Privacy & Consent"],
+  athlete: ["Choose Role", "Basic Info", "Sports Profile", "Privacy & Consent"],
   institution: ["Choose Role", "Contact Info", "Institution Details", "Privacy & Consent"],
   fan: ["Choose Role", "Your Info", "Child Profile", "Privacy & Consent"],
 };
@@ -118,8 +118,7 @@ const SignupWizard = () => {
     if (role === "athlete") {
       if (step === 2) return name.trim().length > 0 && dateOfBirth.length > 0;
       if (step === 3) return sports.length > 0 && position.trim().length > 0;
-      if (step === 4) return true; 
-      if (step === 5) return consented;
+      if (step === 4) return consented;
     }
     if (role === "institution") {
       if (step === 2) return name.trim().length > 0;
@@ -140,12 +139,19 @@ const SignupWizard = () => {
     setAddingAthlete(true);
     
     try {
+      const { data: instData } = await supabase.from("institutions").select("id").eq("profile_id", user.id).maybeSingle();
+      
+      if (!instData) {
+        throw new Error("Institution profile not found. Please ensure your setup is complete.");
+      }
+
       const { error: athleteError } = await supabase.from("athletes").insert({
         full_name: ath_name.trim(),
         sport: ath_sports[0] || "Football",
         secondary_sports: ath_sports.length > 1 ? ath_sports.slice(1) : [],
         position: ath_position || "Player",
         date_of_birth: ath_dob || null,
+        institution_id: instData.id,
         status: "stub"
       });
 
@@ -372,9 +378,9 @@ const SignupWizard = () => {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="col-span-2">
-                      <Label>Display Name *</Label>
-                      <Input className="mt-1" value={name} onChange={e => setName(e.target.value)} placeholder="Your full name" />
-                      <p className="text-[10px] text-muted-foreground mt-1">This is how your name will appear on leaderboards and to scouts.</p>
+                      <Label>Athlete's Full Name *</Label>
+                      <Input className="mt-1" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. John Doe" />
+                      <p className="text-[10px] text-muted-foreground mt-1">This is how your name will appear on your verified profile and leaderboards.</p>
                     </div>
                     <div>
                       <Label>Date of Birth *</Label>
@@ -430,29 +436,8 @@ const SignupWizard = () => {
                 </motion.div>
               )}
 
-              {/* Athlete Step 4: Credentials */}
+              {/* Athlete Step 4: Consent */}
               {step === 4 && role === "athlete" && (
-                <motion.div key="a-step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
-                  <div>
-                    <h2 className="text-2xl font-display font-bold text-foreground">Your Credentials</h2>
-                    <p className="text-muted-foreground mt-1 text-sm">Link your federation IDs (optional).</p>
-                  </div>
-                  <div className="space-y-4">
-                    <div>
-                      <Label>MYSAFA ID</Label>
-                      <Input className="mt-1" value={mysafaId} onChange={e => setMysafaId(e.target.value)} placeholder="Your SAFA registered ID" />
-                    </div>
-                    <div>
-                      <Label>Current Squad / Team</Label>
-                      <Input className="mt-1" value={squad} onChange={e => setSquad(e.target.value)} placeholder="e.g. Kaizer Chiefs U19" />
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground text-center">You can update these later in your profile settings.</p>
-                </motion.div>
-              )}
-
-              {/* Athlete Step 5: Consent */}
-              {step === 5 && role === "athlete" && (
                 <ConsentStep role="athlete" onConsent={setConsented} />
               )}
 
@@ -467,7 +452,7 @@ const SignupWizard = () => {
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <Label>Your Name (Admin) *</Label>
+                      <Label>Administrator Full Name *</Label>
                       <Input className="mt-1" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. John Doe" />
                     </div>
                     <div>
@@ -536,7 +521,7 @@ const SignupWizard = () => {
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <Label>Your Full Name *</Label>
+                      <Label>Parent/Guardian Full Name *</Label>
                       <Input className="mt-1" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Jane Smith" />
                     </div>
                     <div>

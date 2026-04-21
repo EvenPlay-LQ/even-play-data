@@ -54,12 +54,57 @@ const InstitutionAthletes = () => {
   const [mediaOpen, setMediaOpen] = useState(false);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaDescription, setMediaDescription] = useState("");
+  
+  // Link Existing Feature
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     loadAthletes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  const handleSearchExisting = async (query: string) => {
+    if (!query || query.length < 2) return;
+    setSearchLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("athletes")
+        .select("*")
+        .is("institution_id", null)
+        .or(`full_name.ilike.%${query}%,contact_email.ilike.%${query}%`)
+        .limit(10);
+
+      if (error) throw error;
+      setSearchResults(data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  const handleLinkAthlete = async (athleteId: string) => {
+    if (!institution) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("athletes")
+        .update({ institution_id: institution.id })
+        .eq("id", athleteId);
+
+      if (error) throw error;
+
+      toast({ title: "Athlete linked!", description: "They have been added to your roster." });
+      setCreateOpen(false);
+      loadAthletes();
+    } catch (err) {
+      handleQueryError(err, "Failed to link athlete.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const loadAthletes = async () => {
     setLoading(true);
@@ -201,35 +246,75 @@ const InstitutionAthletes = () => {
             <DialogTrigger asChild>
               <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Add Athlete</Button>
             </DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Create Athlete Profile</DialogTitle></DialogHeader>
-              <div className="space-y-4 pt-2">
-                <div>
-                  <Label>Full Name</Label>
-                  <Input className="mt-1" placeholder="John Doe" value={newAthlete.name} onChange={e => setNewAthlete({ ...newAthlete, name: e.target.value })} />
-                </div>
-                <div>
-                  <Label>Email (for invitation)</Label>
-                  <Input className="mt-1" type="email" placeholder="athlete@example.com" value={newAthlete.email} onChange={e => setNewAthlete({ ...newAthlete, email: e.target.value })} />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader><DialogTitle>Add Athlete to Roster</DialogTitle></DialogHeader>
+              <Tabs defaultValue="create" className="w-full mt-4">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="create">Create New</TabsTrigger>
+                  <TabsTrigger value="link">Link Existing</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="create" className="space-y-4 pt-4">
                   <div>
-                    <Label>Sport</Label>
-                    <select className="mt-1 w-full border border-border rounded-md p-2 bg-background text-foreground text-sm"
-                      value={newAthlete.sport} onChange={e => setNewAthlete({ ...newAthlete, sport: e.target.value })}>
-                      {SPORT_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
+                    <Label>Athlete's Full Name *</Label>
+                    <Input className="mt-1" placeholder="e.g. John Doe" value={newAthlete.name} onChange={e => setNewAthlete({ ...newAthlete, name: e.target.value })} />
                   </div>
                   <div>
-                    <Label>Position</Label>
-                    <Input className="mt-1" placeholder="e.g. Striker" value={newAthlete.position} onChange={e => setNewAthlete({ ...newAthlete, position: e.target.value })} />
+                    <Label>Athlete's Email (Invite) *</Label>
+                    <Input className="mt-1" type="email" placeholder="athlete@example.com" value={newAthlete.email} onChange={e => setNewAthlete({ ...newAthlete, email: e.target.value })} />
                   </div>
-                </div>
-                <Button className="w-full" onClick={handleCreateAthlete} disabled={saving || !newAthlete.name || !newAthlete.email}>
-                  {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
-                  Create Athlete Profile
-                </Button>
-              </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Sport</Label>
+                      <select className="mt-1 w-full border border-border rounded-md p-2 bg-background text-foreground text-sm"
+                        value={newAthlete.sport} onChange={e => setNewAthlete({ ...newAthlete, sport: e.target.value })}>
+                        {SPORT_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <Label>Position</Label>
+                      <Input className="mt-1" placeholder="e.g. Striker" value={newAthlete.position} onChange={e => setNewAthlete({ ...newAthlete, position: e.target.value })} />
+                    </div>
+                  </div>
+                  <Button className="w-full" onClick={handleCreateAthlete} disabled={saving || !newAthlete.name || !newAthlete.email}>
+                    {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
+                    Create & Add Athlete
+                  </Button>
+                </TabsContent>
+
+                <TabsContent value="link" className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label>Search by Email or Name</Label>
+                    <div className="flex gap-2">
+                      <Input placeholder="Enter athlete details..." id="link-search" onKeyDown={(e) => e.key === 'Enter' && handleSearchExisting((e.target as HTMLInputElement).value)} />
+                      <Button variant="outline" size="icon" onClick={() => handleSearchExisting((document.getElementById('link-search') as HTMLInputElement).value)}>
+                        <Search className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="max-h-[200px] overflow-y-auto space-y-2 border rounded-md p-2">
+                    {searchLoading ? (
+                      <div className="flex items-center justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+                    ) : searchResults.length === 0 ? (
+                      <p className="text-center py-8 text-xs text-muted-foreground">No unlinked athletes found.</p>
+                    ) : (
+                      searchResults.map(ath => (
+                        <div key={ath.id} className="flex items-center justify-between p-2 rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors">
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">{ath.full_name || "Unknown Athlete"}</p>
+                            <p className="text-[10px] text-muted-foreground">{ath.contact_email || "No email"} · {ath.sport}</p>
+                          </div>
+                          <Button size="sm" variant="hero" className="h-7 px-3 text-[10px]" onClick={() => handleLinkAthlete(ath.id)} disabled={saving}>
+                            Link
+                          </Button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">Only athletes not currently associated with an institution will appear here.</p>
+                </TabsContent>
+              </Tabs>
             </DialogContent>
           </Dialog>
         </div>

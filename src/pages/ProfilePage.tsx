@@ -430,8 +430,13 @@ const ProfilePage = () => {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label className="text-foreground">Name</Label>
-              <Input className="mt-1.5" value={editName} onChange={(e) => setEditName(e.target.value)} />
+              <Label className="text-foreground">
+                {viewRole === 'athlete' ? "Athlete's Full Name" : 
+                 viewRole === 'institution' ? "Institution / Admin Name" : 
+                 viewRole === 'fan' ? "Parent / Guardian Full Name" : 
+                 "Full Name"}
+              </Label>
+              <Input className="mt-1.5" value={editName} onChange={(e) => setEditName(e.target.value)} placeholder={viewRole === 'athlete' ? "e.g. Neymar Jr" : ""} />
               {formErrors.name && <p className="text-xs text-destructive mt-1">{formErrors.name}</p>}
             </div>
             <div>
