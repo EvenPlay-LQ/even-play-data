@@ -15,54 +15,54 @@
 
 -- Insert M-Power Elite institution profile
 -- Note: Replace 'USER_ID_MPOWER_ADMIN' with the actual user ID after account creation
-INSERT INTO institutions (
-  profile_id,
-  institution_name,
-  institution_type,
-  province,
-  contact_phone,
-  website_url,
-  safa_affiliation_number,
-  sasa_registration_number,
-  physical_address
-) VALUES (
-  NULL, -- Will be updated after user creation
-  'M-Power Elite',
-  'club', -- Club, Academy or Community Center
-  'Gauteng',
-  NULL,
-  'https://mpowerelite.co.za',
-  NULL,
-  NULL,
-  NULL
-) ON CONFLICT (profile_id) DO NOTHING;
+-- INSERT INTO institutions (
+--   profile_id,
+--   institution_name,
+--   institution_type,
+--   province,
+--   contact_phone,
+--   website_url,
+--   safa_affiliation_number,
+--   sasa_registration_number,
+--   physical_address
+-- ) VALUES (
+--   NULL, -- Will be updated after user creation
+--   'M-Power Elite',
+--   'club', -- Club, Academy or Community Center
+--   'Gauteng',
+--   NULL,
+--   'https://mpowerelite.co.za',
+--   NULL,
+--   NULL,
+--   NULL
+-- ) ON CONFLICT (profile_id) DO NOTHING;
 
 -- ============================================================================
 -- 3. CREATE IZINSELE ACADEMY INSTITUTION
 -- ============================================================================
 
 -- Insert Izinsele Academy institution profile
-INSERT INTO institutions (
-  profile_id,
-  institution_name,
-  institution_type,
-  province,
-  contact_phone,
-  website_url,
-  safa_affiliation_number,
-  sasa_registration_number,
-  physical_address
-) VALUES (
-  NULL, -- Will be updated after user creation
-  'Izinsele Academy',
-  'club', -- Club, Academy or Community Center
-  'Gauteng',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL
-) ON CONFLICT (profile_id) DO NOTHING;
+-- INSERT INTO institutions (
+--   profile_id,
+--   institution_name,
+--   institution_type,
+--   province,
+--   contact_phone,
+--   website_url,
+--   safa_affiliation_number,
+--   sasa_registration_number,
+--   physical_address
+-- ) VALUES (
+--   NULL, -- Will be updated after user creation
+--   'Izinsele Academy',
+--   'club', -- Club, Academy or Community Center
+--   'Gauteng',
+--   NULL,
+--   NULL,
+--   NULL,
+--   NULL,
+--   NULL
+-- ) ON CONFLICT (profile_id) DO NOTHING;
 
 -- ============================================================================
 -- 4. CREATE ADMIN ROLE ASSIGNMENTS

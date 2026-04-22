@@ -320,7 +320,7 @@ SELECT
   a.position,
   a.performance_score,
   a.level,
-  i.team_name as current_team,
+  t.team_name as current_team,
   COUNT(DISTINCT ar.id) as total_attendance_records,
   ROUND(AVG(CASE WHEN ar.status = 'present' THEN 100.0 ELSE 0.0 END), 1) as attendance_rate,
   COUNT(DISTINCT cf.id) as total_feedback,
@@ -338,7 +338,7 @@ LEFT JOIN public.attendance_records ar ON ar.athlete_id = a.id
 LEFT JOIN public.coach_feedback cf ON cf.athlete_id = a.id
 LEFT JOIN public.athlete_documents ad ON ad.athlete_id = a.id
 GROUP BY p.id, p.profile_id, pa.athlete_id, a.full_name, a.sport, a.position, 
-         a.performance_score, a.level, i.team_name;
+         a.performance_score, a.level, t.team_name;
 
 -- 13. AI Insights Cache (for performance recommendations)
 CREATE TABLE IF NOT EXISTS public.ai_insights (

@@ -1,9 +1,3 @@
--- =====================================================
--- Migration: Institutional Features Phase 4
--- Description: Scale, integrations, white-label, performance
--- Date: 2026-04-02
--- =====================================================
-
 -- ==================== PHASE 4: BULK OPERATIONS ====================
 
 -- 1. Bulk Import Jobs Table
@@ -444,7 +438,7 @@ SELECT
   i.profile_id,
   CURRENT_DATE as stat_date,
   COUNT(DISTINCT a.id) as total_athletes,
-  COUNT(DISTINCT CASE WHEN a.status = 'active' THEN a.id END) as active_athletes,
+  COUNT(DISTINCT CASE WHEN a.status::text = 'active' THEN a.id END) as active_athletes,
   COUNT(DISTINCT t.id) as total_teams,
   COUNT(DISTINCT mf.id) as total_matches,
   COUNT(DISTINCT ast.id) as total_sessions,
@@ -753,7 +747,7 @@ BEGIN
     db_size_bytes,
     'bytes',
     10737418240, -- 10 GB warning
-    53687091200, -- 50 GB critical
+    53687091200 -- 50 GB critical
   );
   
   -- Count tables

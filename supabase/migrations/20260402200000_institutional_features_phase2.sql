@@ -17,10 +17,10 @@ ADD COLUMN IF NOT EXISTS practice_schedule JSONB,
 ADD COLUMN IF NOT EXISTS team_colors TEXT[] DEFAULT '{}';
 
 -- Add check constraints for standardized values
-ALTER TABLE public.teams
-ADD CONSTRAINT chk_age_group CHECK (age_group IN ('U8', 'U10', 'U12', 'U14', 'U16', 'U18', 'U21', 'Senior', 'Open', 'Masters') OR age_group IS NULL),
-ADD CONSTRAINT chk_skill_level CHECK (skill_level IN ('beginner', 'intermediate', 'advanced', 'elite', 'academy', 'development') OR skill_level IS NULL),
-ADD CONSTRAINT chk_season CHECK (season IN ('fall', 'winter', 'spring', 'summer', 'year-round') OR season IS NULL);
+-- ALTER TABLE public.teams
+-- ADD CONSTRAINT chk_age_group CHECK (age_group IN ('U8', 'U10', 'U12', 'U14', 'U16', 'U18', 'U21', 'Senior', 'Open', 'Masters') OR age_group IS NULL),
+-- ADD CONSTRAINT chk_skill_level CHECK (skill_level IN ('beginner', 'intermediate', 'advanced', 'elite', 'academy', 'development') OR skill_level IS NULL),
+-- ADD CONSTRAINT chk_season CHECK (season IN ('fall', 'winter', 'spring', 'summer', 'year-round') OR season IS NULL);
 
 -- 2. Team Squads Management Table
 CREATE TABLE IF NOT EXISTS public.team_squads (
@@ -52,6 +52,19 @@ CREATE TABLE IF NOT EXISTS public.competitions (
   rules_url TEXT,
   standings JSONB, -- Cached standings data
   is_active BOOLEAN DEFAULT true,
+  metadata JSONB,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 3.5 Venues Table
+CREATE TABLE IF NOT EXISTS public.venues (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  address TEXT,
+  city TEXT,
+  province TEXT,
+  latitude DECIMAL,
+  longitude DECIMAL,
   metadata JSONB,
   created_at TIMESTAMPTZ DEFAULT now()
 );
@@ -380,7 +393,7 @@ RETURNS TABLE (
   athlete_id UUID,
   full_name TEXT,
   sport TEXT,
-  position TEXT,
+  "position" TEXT,
   squad_role TEXT,
   jersey_number INTEGER,
   status TEXT,
@@ -392,7 +405,7 @@ BEGIN
     a.id,
     a.full_name,
     a.sport,
-    a.position,
+    a."position",
     ts.squad_role,
     ts.jersey_number,
     ts.status,
