@@ -28,6 +28,9 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
         run: npm run build
 
+      - name: Verify Build Output
+        run: ls -la ./dist/
+
       - name: Deploy to Hostinger
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -37,5 +40,5 @@ jobs:
           protocol: ftp
           port: 21
           security: loose
-          server-dir: /public_html/
+          server-dir: ./
           local-dir: ./dist/
