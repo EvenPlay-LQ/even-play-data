@@ -85,7 +85,7 @@ const ProfilePage = () => {
         setViewRole(pData.user_type);
 
         // Fetch Stats
-        const statsQueries: Promise<any>[] = [
+        const statsQueries: any[] = [
           supabase.from("posts").select("*", { count: "exact", head: true }).eq("author_id", effectiveId),
           supabase.from("likes").select("*", { count: "exact", head: true }).eq("user_id", effectiveId),
         ];
