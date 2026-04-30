@@ -2,9 +2,20 @@ import { motion } from "framer-motion";
 import { MarketingLayout } from "@/components/MarketingLayout";
 import { SEO } from "@/components/SEO";
 import { WHY_JOIN_CARDS } from "@/config/landing";
-import { CheckCircle2, Zap, Rocket, Globe, ShieldCheck } from "lucide-react";
-
+import { CheckCircle2, Zap, Rocket, Globe, ShieldCheck, CheckCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 const WhyJoin = () => {
+  const navigate = useNavigate();
+
   return (
     <MarketingLayout>
       <SEO 
@@ -42,20 +53,50 @@ const WhyJoin = () => {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {WHY_JOIN_CARDS.map((card, i) => (
-              <motion.div
-                key={card.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="p-8 rounded-2xl bg-card border border-border shadow-card hover:shadow-elevated transition-all flex flex-col h-full"
-              >
-                <div className={`w-14 h-14 rounded-2xl ${card.color} flex items-center justify-center mb-6`}>
-                  <card.icon className="h-7 w-7" />
-                </div>
-                <h3 className="text-xl font-display font-bold mb-4">{card.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed flex-1">{card.description}</p>
-              </motion.div>
+              <Dialog key={card.title}>
+                <DialogTrigger asChild>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 }}
+                    className="p-8 rounded-2xl bg-card border border-border shadow-card hover:shadow-elevated transition-all flex flex-col h-full cursor-pointer"
+                  >
+                    <div className={`w-14 h-14 rounded-2xl ${card.color.split(" ")[0]} flex items-center justify-center mb-6`}>
+                      <card.icon className={`h-7 w-7 ${card.color.split(" ")[1]}`} />
+                    </div>
+                    <h3 className="text-xl font-display font-bold mb-4">{card.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed flex-1">{card.description}</p>
+                  </motion.div>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <div className={`w-12 h-12 rounded-xl ${card.color.split(" ")[0]} flex items-center justify-center mb-4`}>
+                      <card.icon className={`h-6 w-6 ${card.color.split(" ")[1]}`} />
+                    </div>
+                    <DialogTitle className="text-2xl">{card.title} Account</DialogTitle>
+                    <DialogDescription className="text-base pt-2">
+                      {card.description}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="py-4">
+                    <h4 className="font-semibold mb-3 text-foreground">How it works:</h4>
+                    <ul className="space-y-3">
+                      {card.details?.map((detail, idx) => (
+                        <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
+                          <CheckCircle className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                          <span>{detail}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="flex justify-end mt-2">
+                    <Button onClick={() => navigate(`/login?mode=signup`)}>
+                      Get Started as {card.title}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             ))}
           </div>
         </div>

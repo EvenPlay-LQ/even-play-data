@@ -10,6 +10,14 @@ import { LANDING_STATS, WHY_JOIN_CARDS, FEATURE_SECTIONS, FOOTER_LINKS } from "@
 
 import { MarketingNavbar } from "@/components/MarketingNavbar";
 import { InstallButton } from "@/components/InstallButton";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -108,20 +116,50 @@ const LandingPage = () => {
           </motion.div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {WHY_JOIN_CARDS.map((item, i) => (
-              <motion.div
-                key={item.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="group p-6 rounded-2xl bg-card border border-border shadow-card hover:shadow-elevated hover:border-primary/20 transition-all duration-300 flex flex-col items-center text-center sm:items-start sm:text-left"
-              >
-                <div className={`w-14 h-14 rounded-2xl ${item.color.split(" ")[0]} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-sm`}>
-                  <item.icon className={`h-7 w-7 ${item.color.split(" ")[1]}`} />
-                </div>
-                <h3 className="font-display font-bold text-xl text-foreground mb-3">{item.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
-              </motion.div>
+              <Dialog key={item.title}>
+                <DialogTrigger asChild>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 }}
+                    className="group p-6 rounded-2xl bg-card border border-border shadow-card hover:shadow-elevated hover:border-primary/20 transition-all duration-300 flex flex-col items-center text-center sm:items-start sm:text-left cursor-pointer"
+                  >
+                    <div className={`w-14 h-14 rounded-2xl ${item.color.split(" ")[0]} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-sm`}>
+                      <item.icon className={`h-7 w-7 ${item.color.split(" ")[1]}`} />
+                    </div>
+                    <h3 className="font-display font-bold text-xl text-foreground mb-3">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
+                  </motion.div>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <div className={`w-12 h-12 rounded-xl ${item.color.split(" ")[0]} flex items-center justify-center mb-4`}>
+                      <item.icon className={`h-6 w-6 ${item.color.split(" ")[1]}`} />
+                    </div>
+                    <DialogTitle className="text-2xl">{item.title} Account</DialogTitle>
+                    <DialogDescription className="text-base pt-2">
+                      {item.description}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="py-4">
+                    <h4 className="font-semibold mb-3 text-foreground">How it works:</h4>
+                    <ul className="space-y-3">
+                      {item.details?.map((detail, idx) => (
+                        <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
+                          <CheckCircle className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                          <span>{detail}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="flex justify-end mt-2">
+                    <Button onClick={() => navigate(`/login?mode=signup`)}>
+                      Get Started as {item.title}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             ))}
           </div>
         </div>

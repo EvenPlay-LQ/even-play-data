@@ -3,8 +3,6 @@ project_id = "zkvurokcdlkuygrsfjqr"
 [auth.email]
 enable_signup = true
 enable_confirmations = true
-sender_name = "Even Playground"
-sender_email = "noreply@evenplayground.com"
 
 [auth.email.template.confirmation]
 subject = "Confirm your Even Playground account"
