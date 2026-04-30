@@ -33,6 +33,27 @@
 }
 ```
 
+### 1.4 Institution Sign-Up Schema
+**Issue 1:** `violates check constraint "institutions_institution_type_check"` because the frontend sends `"club"` but the database constraint may not have been updated from the legacy schema (which expected `academy`).
+**Issue 2:** `permission denied for schema internal` occurs when executing the upsert, possibly due to a misconfigured RLS policy or trigger that references a restricted schema.
+**Issue 3:** Users get "trapped" in the wizard on error because there is no way to cancel/sign out.
+**Schema Target:** (`SignupWizard.tsx` & `institutions` table)
+```json
+// Supabase Database: institutions table constraint
+"institutions_institution_type_check": "CHECK (institution_type IN ('school', 'club', 'federation'))"
+
+// Frontend Payload (Institution Setup)
+{
+  "profile_id": "uuid",
+  "institution_name": "string",
+  "institution_type": "school | club | federation",
+  "province": "string",
+  "physical_address": "string",
+  "website_url": "string",
+  "contact_phone": "string"
+}
+```
+
 ## 2. Behavioral Rules
 - Architecture dictates logic; update architecture SOPs before changing code.
 - Prioritize reliability over speed.

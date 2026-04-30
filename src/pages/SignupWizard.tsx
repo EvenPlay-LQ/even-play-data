@@ -291,14 +291,27 @@ const SignupWizard = () => {
       }
     } catch (error: any) {
       console.error("[SignupWizard] Setup error:", error);
+      
+      let errorMessage = error?.message || "Something went wrong. Please try again.";
+      if (errorMessage.includes("permission denied for schema internal")) {
+        errorMessage = "Database security error: Please ensure recent migrations have been applied to your database. Contact support.";
+      } else if (errorMessage.includes("violates check constraint") && errorMessage.includes("institution_type")) {
+        errorMessage = "Institution Type error: Your database constraint might be outdated. If you haven't applied the recent migrations, please do so or select a different institution type.";
+      }
+      
       toast({
         title: "Setup Failed",
-        description: error?.message || "Something went wrong. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate("/login");
   };
 
   return (
@@ -583,13 +596,23 @@ const SignupWizard = () => {
 
             {/* Navigation */}
             <div className="mt-8 pt-6 border-t border-border flex justify-between">
-              <Button
-                variant="ghost"
-                onClick={() => setStep(step - 1)}
-                disabled={step === 1 || (step === 2 && !!user?.user_metadata?.user_type) || saving}
-              >
-                Back
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  onClick={() => setStep(step - 1)}
+                  disabled={step === 1 || (step === 2 && !!user?.user_metadata?.user_type) || saving}
+                >
+                  Back
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleSignOut}
+                  disabled={saving}
+                  className="text-destructive border-destructive hover:bg-destructive/10"
+                >
+                  Sign Out / Cancel
+                </Button>
+              </div>
               <Button
                 variant="hero"
                 onClick={() => {
