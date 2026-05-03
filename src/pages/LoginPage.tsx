@@ -241,14 +241,22 @@ const LoginPage = () => {
               <div className="w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center mx-auto mb-8 animate-bounce">
                 <Mail className="h-10 w-10 text-primary" />
               </div>
-              <h1 className="text-3xl font-display font-bold text-foreground mb-4">Check your email</h1>
-              <p className="text-muted-foreground mb-1">We sent a confirmation link to:</p>
+              <h1 className="text-3xl font-display font-bold text-foreground mb-4">Account Created!</h1>
+              <p className="text-muted-foreground mb-1">We're sending a confirmation link to:</p>
               <p className="font-semibold text-foreground mb-8 text-lg">{email}</p>
-              <div className="bg-muted/30 rounded-2xl p-6 text-sm text-left text-muted-foreground mb-8 space-y-3 border border-border">
-                <div className="flex gap-3"><CheckCircle className="h-5 w-5 text-stat-green flex-shrink-0" /><span>Click the link to verify your account</span></div>
-                <div className="flex gap-3"><CheckCircle className="h-5 w-5 text-stat-green flex-shrink-0" /><span>Check your spam folder if missing</span></div>
+              <div className="bg-muted/30 rounded-2xl p-6 text-sm text-left text-muted-foreground mb-6 space-y-3 border border-border">
+                <div className="flex gap-3"><CheckCircle className="h-5 w-5 text-stat-green flex-shrink-0" /><span>Check your inbox and click the confirmation link</span></div>
+                <div className="flex gap-3"><CheckCircle className="h-5 w-5 text-stat-green flex-shrink-0" /><span>Check your spam / junk folder if it doesn't arrive</span></div>
+                <div className="flex gap-3"><CheckCircle className="h-5 w-5 text-stat-green flex-shrink-0" /><span>Email may take a few minutes to arrive</span></div>
               </div>
-              <Button variant="hero" className="w-full h-12" onClick={() => { setMode("login"); setView("form"); }}>Back to Sign In</Button>
+              <div className="space-y-3">
+                <Button variant="hero" className="w-full h-12" onClick={() => { setMode("login"); setView("form"); }}>
+                  Try Sign In
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  If email confirmation is not required, you can sign in immediately.
+                </p>
+              </div>
             </motion.div>
           ) : view === "role-selection" ? (
             /* ── VIEW 1: ROLE SELECTION ── */
