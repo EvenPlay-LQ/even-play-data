@@ -4,15 +4,18 @@ export async function registerServiceWorker() {
   if (!("serviceWorker" in navigator)) return;
 
   try {
-    const swUrl =
-      import.meta.env.MODE === "production" ? "/sw.js" : "/dev-sw.js?dev-sw";
-    const swType =
-      import.meta.env.MODE === "production" ? "classic" : ("module" as const);
+    const isProd = import.meta.env.MODE === "production";
+    const swUrl = isProd ? "/sw.js" : "/dev-sw.js?dev-sw";
+    const swType = isProd ? "classic" : ("module" as const);
+
+    console.log(`[PWA] Registering service worker: ${swUrl}`);
 
     const registration = await navigator.serviceWorker.register(swUrl, {
       type: swType,
       scope: "/",
     });
+
+    console.log(`[PWA] Service worker registered (scope: ${registration.scope})`);
 
     // Check for updates every 60 minutes
     setInterval(() => {
@@ -54,13 +57,8 @@ export async function registerServiceWorker() {
 
     // Request persistent storage so caches aren't evicted
     requestPersistentStorage();
-
-    if (import.meta.env.DEV) {
-      console.log("[PWA] Service worker registered successfully");
-    }
   } catch (error) {
-    if (import.meta.env.DEV) {
-      console.error("[PWA] Service worker registration failed:", error);
-    }
+    // Always log SW errors — critical for debugging production issues on Hostinger
+    console.error("[PWA] Service worker registration failed:", error);
   }
 }

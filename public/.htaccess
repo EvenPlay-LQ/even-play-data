@@ -16,3 +16,29 @@
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule . /index.html [L]
 </IfModule>
+
+# ─── PWA: MIME Types ────────────────────────────────────────────────────────
+# Required so browsers accept the service worker script and web manifest.
+# Without these, Apache may serve .js as text/plain and Chrome will refuse
+# to register the service worker (MIME type mismatch error).
+<IfModule mod_mime.c>
+  AddType text/javascript .js .mjs
+  AddType application/manifest+json .webmanifest
+  AddType application/json .json
+  AddType image/png .png
+  AddType image/x-icon .ico
+</IfModule>
+
+# ─── PWA: Service Worker Scope Header ────────────────────────────────────────
+# Allows the service worker to claim the full site scope.
+<IfModule mod_headers.c>
+  <FilesMatch "sw\.js$">
+    Header set Service-Worker-Allowed "/"
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+  </FilesMatch>
+  # Prevent manifest from being cached so updates propagate
+  <FilesMatch "manifest\.json$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>
+

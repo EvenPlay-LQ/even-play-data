@@ -28,8 +28,23 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
         run: npm run build
 
+      - name: Ensure PWA icons are in dist
+        # Vite copies public/ into dist/ but explicitly copy icons to guarantee
+        # they are always present for the PWA manifest and install prompt.
+        run: |
+          mkdir -p ./dist/icons
+          cp -r ./public/icons/. ./dist/icons/
+          echo "Icons in dist/icons:"
+          ls -la ./dist/icons/
+
       - name: Verify Build Output
-        run: ls -la ./dist/
+        run: |
+          echo "=== dist/ root ==="
+          ls -la ./dist/
+          echo "=== Service Worker ==="
+          ls -la ./dist/sw.js || echo "WARNING: sw.js not found!"
+          echo "=== Manifest ==="
+          ls -la ./dist/manifest.json || echo "WARNING: manifest.json not found!"
 
       - name: Deploy to Hostinger
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -42,3 +57,4 @@ jobs:
           security: loose
           server-dir: public_html/
           local-dir: ./dist/
+          dangerous-clean-slate: true

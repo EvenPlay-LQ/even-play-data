@@ -2,6 +2,27 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
+// Canonical allowed origins — must match Supabase → Auth → URL Configuration → Redirect URLs
+const ALLOWED_ORIGINS = [
+  "https://evenplayground.com",
+  "https://even-play.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:8080",
+];
+
+/**
+ * Returns a safe callback URL for Supabase auth emails.
+ * Falls back to the primary production domain if the current origin
+ * is not in the allowed list (prevents broken links from unknown origins).
+ */
+const getEmailCallbackUrl = (): string => {
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const safeOrigin = ALLOWED_ORIGINS.includes(origin)
+    ? origin
+    : ALLOWED_ORIGINS[0]; // Primary: evenplayground.com
+  return `${safeOrigin}/auth/callback`;
+};
+
 interface AuthContextType {
   session: Session | null;
   user: User | null;
@@ -64,18 +85,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signUp = async (email: string, password: string, metadata?: Record<string, unknown>) => {
     try {
+      const callbackUrl = getEmailCallbackUrl();
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: metadata,
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: callbackUrl,
         },
       });
       if (error) throw error;
       return { data, error: null };
     } catch (error: any) {
-      console.error("Signup error:", error);
+      console.error("[Auth] Signup error:", error);
       return { data: null, error };
     }
   };

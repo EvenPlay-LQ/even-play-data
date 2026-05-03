@@ -107,6 +107,16 @@ const SignupWizard = () => {
     }
   }, [user, navigate, initialized, setupComplete]);
 
+  // Guard: if role changes and the current step is out of range for the new role,
+  // clamp back to step 2. This prevents stale step state from landing on a
+  // non-existent step (e.g. step 5 in a 4-step flow) after a partial setup attempt.
+  useEffect(() => {
+    if (role && step > totalStepsFor(role)) {
+      setStep(2);
+    }
+  }, [role]);
+
+
   const totalSteps = totalStepsFor(role);
   const progress = totalSteps > 1 ? ((step - 1) / (totalSteps - 1)) * 100 : 0;
   const stepLabels = role ? STEPS[role] : ["Choose Role", "Info", "Complete"];
