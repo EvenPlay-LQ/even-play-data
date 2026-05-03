@@ -61,7 +61,7 @@ const DashboardLayout = ({ children, role }: DashboardLayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col overflow-x-hidden">
       {/* Top Bar */}
       <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-xl border-b border-border">
         <div className="container flex items-center justify-between h-14">
@@ -92,10 +92,35 @@ const DashboardLayout = ({ children, role }: DashboardLayoutProps) => {
         </div>
       </header>
 
-      {/* Content */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-6 md:pl-20">
-        {children}
-      </main>
+      {/* Content Area */}
+      <div className="flex-1 flex w-full">
+        {/* Desktop Sidebar */}
+        <div className="hidden md:flex fixed left-0 top-14 bottom-0 w-20 bg-card border-r border-border z-40 flex-col items-center pt-6 gap-3">
+          {tabs.map((tab) => {
+            const isActive = location.pathname === tab.path;
+            return (
+              <button
+                key={tab.path}
+                onClick={() => navigate(tab.path)}
+                className={`flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all w-16 ${
+                  isActive ? "bg-primary/10 text-primary shadow-glow" : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`}
+                title={tab.label}
+              >
+                <tab.icon className="h-5 w-5" />
+                <span className="text-[10px] font-medium">{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Main Content */}
+        <main className="flex-1 w-full md:pl-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-6">
+            {children}
+          </div>
+        </main>
+      </div>
 
       {/* Bottom Nav (mobile) */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-xl border-t border-border md:hidden">
@@ -117,26 +142,6 @@ const DashboardLayout = ({ children, role }: DashboardLayoutProps) => {
           })}
         </div>
       </nav>
-
-      {/* Desktop Sidebar */}
-      <div className="hidden md:flex fixed left-0 top-14 bottom-0 w-20 bg-card border-r border-border z-40 flex-col items-center pt-6 gap-3">
-        {tabs.map((tab) => {
-          const isActive = location.pathname === tab.path;
-          return (
-            <button
-              key={tab.path}
-              onClick={() => navigate(tab.path)}
-              className={`flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all w-16 ${
-                isActive ? "bg-primary/10 text-primary shadow-glow" : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              }`}
-              title={tab.label}
-            >
-              <tab.icon className="h-5 w-5" />
-              <span className="text-[10px] font-medium">{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
     </div>
   );
 };

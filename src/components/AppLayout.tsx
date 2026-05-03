@@ -30,7 +30,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       : null;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col overflow-x-hidden">
       {/* Top Bar */}
       <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-xl border-b border-border">
         <div className="container flex items-center justify-between h-14">
@@ -57,10 +57,51 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         </div>
       </header>
 
-      {/* Content */}
-      <main className="flex-1 container py-6 pb-24 md:pb-6 md:ml-16">
-        {children}
-      </main>
+      {/* Content Area */}
+      <div className="flex-1 flex w-full">
+        {/* Desktop Sidebar Nav */}
+        <div className="hidden md:block fixed left-0 top-14 bottom-0 w-16 bg-card border-r border-border z-40">
+          <div className="flex flex-col items-center gap-2 pt-4">
+            {tabs.map((tab) => {
+              const isActive = location.pathname === tab.path || location.pathname.startsWith(tab.path + "/");
+              return (
+                <button
+                  key={tab.path}
+                  onClick={() => navigate(tab.path)}
+                  className={`flex flex-col items-center gap-0.5 p-2 rounded-lg transition-colors w-12 ${
+                    isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
+                  title={tab.label}
+                >
+                  <tab.icon className="h-5 w-5" />
+                  <span className="text-[9px] font-medium">{tab.label}</span>
+                </button>
+              );
+            })}
+            {/* Dashboard shortcut on desktop sidebar */}
+            {user && dashboardPath && (
+              <>
+                <div className="w-8 border-t border-border my-2" />
+                <button
+                  onClick={() => navigate(dashboardPath)}
+                  className="flex flex-col items-center gap-0.5 p-2 rounded-lg transition-colors w-12 text-muted-foreground hover:text-foreground hover:bg-muted"
+                  title="Dashboard"
+                >
+                  <LayoutDashboard className="h-5 w-5" />
+                  <span className="text-[9px] font-medium">Dash</span>
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <main className="flex-1 w-full md:pl-16">
+          <div className="container py-6 pb-24 md:pb-6">
+            {children}
+          </div>
+        </main>
+      </div>
 
       {/* Bottom Nav (mobile) */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-xl border-t border-border md:hidden">
@@ -82,42 +123,6 @@ const AppLayout = ({ children }: AppLayoutProps) => {
           })}
         </div>
       </nav>
-
-      {/* Desktop Sidebar Nav */}
-      <div className="hidden md:block fixed left-0 top-14 bottom-0 w-16 bg-card border-r border-border z-40">
-        <div className="flex flex-col items-center gap-2 pt-4">
-          {tabs.map((tab) => {
-            const isActive = location.pathname === tab.path || location.pathname.startsWith(tab.path + "/");
-            return (
-              <button
-                key={tab.path}
-                onClick={() => navigate(tab.path)}
-                className={`flex flex-col items-center gap-0.5 p-2 rounded-lg transition-colors w-12 ${
-                  isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                }`}
-                title={tab.label}
-              >
-                <tab.icon className="h-5 w-5" />
-                <span className="text-[9px] font-medium">{tab.label}</span>
-              </button>
-            );
-          })}
-          {/* Dashboard shortcut on desktop sidebar */}
-          {user && dashboardPath && (
-            <>
-              <div className="w-8 border-t border-border my-2" />
-              <button
-                onClick={() => navigate(dashboardPath)}
-                className="flex flex-col items-center gap-0.5 p-2 rounded-lg transition-colors w-12 text-muted-foreground hover:text-foreground hover:bg-muted"
-                title="Dashboard"
-              >
-                <LayoutDashboard className="h-5 w-5" />
-                <span className="text-[9px] font-medium">Dash</span>
-              </button>
-            </>
-          )}
-        </div>
-      </div>
     </div>
   );
 };
