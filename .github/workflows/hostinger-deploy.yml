@@ -55,6 +55,7 @@ jobs:
           protocol: ftp
           port: 21
           security: loose
-          server-dir: ./
+          server-dir: /
           local-dir: ./dist/
           dangerous-clean-slate: true
+          timeout: 300000
