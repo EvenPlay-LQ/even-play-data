@@ -99,6 +99,21 @@ const LoginPage = () => {
           toast({ title: "Email already registered", description: "Try signing in instead.", variant: "destructive" });
         } else if (error.message?.includes("rate limit") || error.message?.includes("email rate")) {
           toast({ title: "Too many sign-up attempts", description: "Email sending is temporarily rate-limited. Please wait a few minutes and try again.", variant: "destructive" });
+        } else if (
+          error.message?.includes("sending confirmation") ||
+          error.message?.includes("Error sending") ||
+          error.message?.includes("smtp") ||
+          error.message?.toLowerCase().includes("email")
+        ) {
+          // SMTP is misconfigured on the server — account was created but email couldn't be sent.
+          // Show a specific message so the user knows what to do.
+          toast({
+            title: "Account created — email issue",
+            description: "Your account was created but we couldn't send the confirmation email right now. Please contact support@evenplayground.com or try again in a few minutes.",
+            variant: "destructive",
+          });
+          // Still move to verify screen so user knows account exists
+          setMode("verify");
         } else {
           toast({ title: "Signup failed", description: error.message, variant: "destructive" });
         }
