@@ -27,18 +27,29 @@ async function main() {
   console.log("PostgREST schema cache reloaded.");
 
   // Check function signatures
-  const res = await client.query("SELECT proname, pg_get_function_identity_arguments(oid) as args FROM pg_proc WHERE proname = 'find_or_create_athlete';");
-  console.log("Functions found:");
-  res.rows.forEach(r => console.log(r.proname + "(" + r.args + ")"));
-  
-  // Check execute privileges
-  const privs = await client.query(`
-    SELECT grantee, privilege_type 
-    FROM information_schema.routine_privileges 
-    WHERE routine_name = 'find_or_create_athlete';
+  const res = await client.query(`
+    SELECT n.nspname as schema, p.proname, pg_get_function_identity_arguments(p.oid) as args 
+    FROM pg_proc p 
+    JOIN pg_namespace n ON p.pronamespace = n.oid 
+    WHERE p.proname = 'find_or_create_athlete';
   `);
-  console.log("Privileges:");
-  privs.rows.forEach(r => console.log(r.grantee, r.privilege_type));
+  console.log("Functions found:");
+  res.rows.forEach(r => console.log(r.schema + "." + r.proname + "(" + r.args + ")"));
+  
+  // Test execution as authenticated
+  try {
+    await client.query("SET ROLE authenticated;");
+    const res = await client.query(`
+      SELECT public.find_or_create_athlete(
+        'Test Player', '2005-01-01', 'Football', 'test2@example.com', 'Striker', 'athlete', '{}'::text[]
+      );
+    `);
+    console.log("TEST SUCCESS! Result:", res.rows[0]);
+  } catch (err) {
+    console.error("TEST FAILED:", err.message);
+  } finally {
+    await client.query("RESET ROLE;");
+  }
 
   await client.end();
 }
