@@ -145,7 +145,7 @@ const InstitutionAthletes = () => {
       // The athlete will claim this record later using the find_or_create_athlete RPC.
       const { data: athleteData, error: athleteErr } = await supabase.from("athletes").insert([{
         full_name: newAthlete.name.trim(),
-        contact_email: newAthlete.email.trim(),
+        contact_email: newAthlete.email.trim().toLowerCase(),
         institution_id: institution.id,
         sport: newAthlete.sport,
         position: newAthlete.position,
