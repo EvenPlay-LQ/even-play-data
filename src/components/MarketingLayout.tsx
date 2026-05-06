@@ -27,11 +27,11 @@ export const MarketingLayout = ({ children }: MarketingLayoutProps) => {
             Ready to Start Your Journey?
           </h2>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="hero" size="lg" onClick={() => navigate("/login")}>
-              Join as Athlete
+            <Button variant="hero" size="lg" onClick={() => navigate("/login?mode=login")}>
+              Sign In
             </Button>
-            <Button variant="outline" size="lg" onClick={() => navigate("/login")}>
-              Register Institution
+            <Button variant="hero-outline" size="lg" onClick={() => navigate("/login?mode=signup")}>
+              Get Started
             </Button>
           </div>
         </div>
