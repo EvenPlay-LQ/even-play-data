@@ -9,6 +9,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import GuestRoute from "@/components/GuestRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import LoadingScreen from "@/components/ui/LoadingScreen";
+import ScrollToTop from "@/components/ScrollToTop";
 
 // PWA components — lazy-loaded since they render conditionally
 const OfflineBanner = lazy(() => import("@/components/OfflineBanner"));
@@ -23,6 +24,13 @@ const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 const WhyJoin = lazy(() => import("./pages/WhyJoin"));
 const Features = lazy(() => import("./pages/Features"));
 const Stats = lazy(() => import("./pages/Stats"));
+const About = lazy(() => import("./pages/About"));
+const ContactUs = lazy(() => import("./pages/ContactUs"));
+const Careers = lazy(() => import("./pages/Careers"));
+const BecomeASponsor = lazy(() => import("./pages/BecomeASponsor"));
+const HelpCenter = lazy(() => import("./pages/HelpCenter"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfUse = lazy(() => import("./pages/TermsOfUse"));
 const BuzzPage = lazy(() => import("./pages/BuzzPage"));
 const CommunityPage = lazy(() => import("./pages/CommunityPage"));
 const ZonePage = lazy(() => import("./pages/ZonePage"));
@@ -79,6 +87,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ScrollToTop />
           <ErrorBoundary>
             <Suspense fallback={null}>
               <PWAUpdatePrompt />
@@ -95,6 +104,13 @@ const App = () => (
                 <Route path="/why-join" element={<WhyJoin />} />
                 <Route path="/features" element={<Features />} />
                 <Route path="/stats" element={<Stats />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<ContactUs />} />
+                <Route path="/careers" element={<Careers />} />
+                <Route path="/sponsors" element={<BecomeASponsor />} />
+                <Route path="/help" element={<HelpCenter />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/terms" element={<TermsOfUse />} />
 
                 {/* Community Layer (protected) */}
                 <Route path="/buzz" element={<ProtectedRoute><BuzzPage /></ProtectedRoute>} />
