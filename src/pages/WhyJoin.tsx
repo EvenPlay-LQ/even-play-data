@@ -1,8 +1,9 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { MarketingLayout } from "@/components/MarketingLayout";
 import { SEO } from "@/components/SEO";
 import { WHY_JOIN_CARDS } from "@/config/landing";
-import { CheckCircle2, Zap, Rocket, Globe, ShieldCheck, CheckCircle } from "lucide-react";
+import { Rocket, ShieldCheck, CheckCircle, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,8 +14,43 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import AthleteDashboardPreview, { type PillarId } from "@/components/AthleteDashboardPreview";
+
+const PILLARS: { id: PillarId; icon: typeof Rocket; title: string; desc: string }[] = [
+  {
+    id: "verified",
+    icon: ShieldCheck,
+    title: "Verified Data Integrity",
+    desc: "Every stat and achievement is verified by registered institutions, ensuring your profile is a trusted source of truth.",
+  },
+  {
+    id: "discovery",
+    icon: Search,
+    title: "Talent Discovery",
+    desc: "Search and compare athletes by sport, position, and stats. Your profile is discoverable to anyone who's looking — no gatekeepers, no geography.",
+  },
+  {
+    id: "gamification",
+    icon: Rocket,
+    title: "Career-Focused Gamification",
+    desc: "Level up your profile, earn performance badges, and track your growth with pro-level analytics tools.",
+  },
+];
+
 const WhyJoin = () => {
   const navigate = useNavigate();
+  const [activePillar, setActivePillar] = useState<PillarId>("gamification");
+  const [pinned, setPinned] = useState(false);
+
+  // Auto-cycle through pillars every 4s when nothing is hovered, so mobile/touch users see the link too.
+  useEffect(() => {
+    if (pinned) return;
+    const order: PillarId[] = ["gamification", "verified", "discovery"];
+    const id = window.setInterval(() => {
+      setActivePillar((curr) => order[(order.indexOf(curr) + 1) % order.length]);
+    }, 4000);
+    return () => window.clearInterval(id);
+  }, [pinned]);
 
   return (
     <MarketingLayout>
@@ -110,64 +146,38 @@ const WhyJoin = () => {
               <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-8">
                 Why Even Playground <br /> is a Game Changer
               </h2>
-              <div className="space-y-8">
-                {[
-                  { 
-                    icon: ShieldCheck, 
-                    title: "Verified Data Integrity", 
-                    desc: "Every stat and achievement is verified by registered institutions, ensuring your profile is a trusted source of truth." 
-                  },
-                  { 
-                    icon: Globe, 
-                    title: "Global Scouting Pipeline", 
-                    desc: "Access a worldwide network of scouts and clubs. Your talent is no longer limited by your geography." 
-                  },
-                  { 
-                    icon: Rocket, 
-                    title: "Career-Focused Gamification", 
-                    desc: "Level up your profile, earn performance badges, and track your growth with pro-level analytics tools." 
-                  }
-                ].map((pillar, i) => (
-                  <div key={i} className="flex gap-4">
-                    <div className="mt-1 bg-primary/10 p-2 rounded-lg h-fit">
-                      <pillar.icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-lg mb-1">{pillar.title}</h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{pillar.desc}</p>
-                    </div>
-                  </div>
-                ))}
+              <div className="space-y-3" onMouseLeave={() => setPinned(false)}>
+                {PILLARS.map((pillar) => {
+                  const isActive = activePillar === pillar.id;
+                  return (
+                    <button
+                      key={pillar.id}
+                      type="button"
+                      onMouseEnter={() => { setActivePillar(pillar.id); setPinned(true); }}
+                      onFocus={() => { setActivePillar(pillar.id); setPinned(true); }}
+                      onClick={() => { setActivePillar(pillar.id); setPinned(true); }}
+                      aria-pressed={isActive}
+                      className={`w-full text-left flex gap-4 p-4 rounded-xl border transition-all duration-300 ${
+                        isActive
+                          ? "border-primary/40 bg-primary/5 shadow-card"
+                          : "border-transparent bg-transparent hover:border-border hover:bg-muted/30"
+                      }`}
+                    >
+                      <div className={`mt-1 p-2 rounded-lg h-fit transition-colors duration-300 ${
+                        isActive ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
+                      }`}>
+                        <pillar.icon className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-lg mb-1 text-foreground">{pillar.title}</h4>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{pillar.desc}</p>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
-            <div className="relative">
-               <div className="aspect-square bg-gradient-hero rounded-3xl p-8 flex items-center justify-center overflow-hidden shadow-2xl">
-                  {/* Decorative element imagining a dashboard card */}
-                  <div className="w-full h-full bg-card rounded-2xl shadow-elevated border border-border p-6 flex flex-col gap-4 transform rotate-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary">JD</div>
-                      <div>
-                         <div className="h-4 w-32 bg-muted rounded mb-2" />
-                         <div className="h-3 w-20 bg-muted/60 rounded" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 mt-4">
-                       <div className="h-24 bg-primary/5 rounded-xl border border-primary/10 flex flex-col items-center justify-center p-3">
-                          <Zap className="h-5 w-5 text-primary mb-2" />
-                          <div className="h-3 w-12 bg-primary/20 rounded" />
-                       </div>
-                       <div className="h-24 bg-gold/5 rounded-xl border border-gold/10 flex flex-col items-center justify-center p-3">
-                          <CheckCircle2 className="h-5 w-5 text-gold mb-2" />
-                          <div className="h-3 w-12 bg-gold/20 rounded" />
-                       </div>
-                    </div>
-                    <div className="mt-4 flex-1 bg-muted/20 rounded-xl p-4 flex items-end">
-                       <div className="h-2 w-full bg-primary/40 rounded-full" />
-                    </div>
-                  </div>
-               </div>
-               <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
-            </div>
+            <AthleteDashboardPreview activePillar={activePillar} />
           </div>
         </div>
       </section>

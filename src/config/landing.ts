@@ -89,9 +89,26 @@ export const FEATURE_SECTIONS = [
   },
 ];
 
-/** Footer link columns */
+/** Footer link columns — every entry must point at a real route, never "#". */
 export const FOOTER_LINKS = {
-  quickLinks: ["Buzz", "Community", "Zone", "About"],
-  forAthletes: ["Track Performance", "Upload Highlights", "Get Verified", "Find Teams"],
-  support: ["Help Center", "Privacy Policy", "Terms of Service", "Contact Us"],
+  explore: [
+    { label: "Why Join", href: "/why-join" },
+    { label: "Features", href: "/features" },
+    { label: "Stats", href: "/stats" },
+    { label: "Buzz", href: "/buzz" },
+    { label: "Community", href: "/community" },
+    { label: "Zone", href: "/zone" },
+  ],
+  company: [
+    { label: "About", href: "/about" },
+    { label: "Careers", href: "/careers" },
+    { label: "Become a Sponsor", href: "/sponsors" },
+    { label: "Contact Us", href: "/contact" },
+  ],
+  support: [
+    { label: "Help Center", href: "/help" },
+    { label: "Privacy Policy", href: "/privacy" },
+    { label: "Terms of Use", href: "/terms" },
+    { label: "Contact Us", href: "/contact" },
+  ],
 };

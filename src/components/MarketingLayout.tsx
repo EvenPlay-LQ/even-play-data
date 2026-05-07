@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { MarketingNavbar } from "./MarketingNavbar";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FOOTER_LINKS } from "@/config/landing";
 import { InstallButton } from "@/components/InstallButton";
 
@@ -27,11 +27,11 @@ export const MarketingLayout = ({ children }: MarketingLayoutProps) => {
             Ready to Start Your Journey?
           </h2>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="hero" size="lg" onClick={() => navigate("/login")}>
-              Join as Athlete
+            <Button variant="hero" size="lg" onClick={() => navigate("/login?mode=login")}>
+              Sign In
             </Button>
-            <Button variant="outline" size="lg" onClick={() => navigate("/login")}>
-              Register Institution
+            <Button variant="hero-outline" size="lg" onClick={() => navigate("/login?mode=signup")}>
+              Get Started
             </Button>
           </div>
         </div>
@@ -52,16 +52,20 @@ export const MarketingLayout = ({ children }: MarketingLayoutProps) => {
             <div>
               <h4 className="font-bold text-sm uppercase tracking-wider mb-6">Explore</h4>
               <ul className="space-y-4">
-                {FOOTER_LINKS.quickLinks.map(link => (
-                  <li key={link}><a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">{link}</a></li>
+                {FOOTER_LINKS.explore.map(link => (
+                  <li key={link.href}>
+                    <Link to={link.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">{link.label}</Link>
+                  </li>
                 ))}
               </ul>
             </div>
             <div>
-              <h4 className="font-bold text-sm uppercase tracking-wider mb-6">For Athletes</h4>
+              <h4 className="font-bold text-sm uppercase tracking-wider mb-6">Company</h4>
               <ul className="space-y-4">
-                {FOOTER_LINKS.forAthletes.map(link => (
-                  <li key={link}><a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">{link}</a></li>
+                {FOOTER_LINKS.company.map(link => (
+                  <li key={link.href}>
+                    <Link to={link.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">{link.label}</Link>
+                  </li>
                 ))}
               </ul>
             </div>
@@ -69,7 +73,9 @@ export const MarketingLayout = ({ children }: MarketingLayoutProps) => {
               <h4 className="font-bold text-sm uppercase tracking-wider mb-6">Support</h4>
               <ul className="space-y-4">
                 {FOOTER_LINKS.support.map(link => (
-                  <li key={link}><a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">{link}</a></li>
+                  <li key={link.href}>
+                    <Link to={link.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">{link.label}</Link>
+                  </li>
                 ))}
               </ul>
             </div>
@@ -78,9 +84,9 @@ export const MarketingLayout = ({ children }: MarketingLayoutProps) => {
             <p className="text-xs text-muted-foreground">© 2026 Even Playground. All rights reserved.</p>
             <div className="flex items-center gap-6">
               <InstallButton />
-              <a href="#" className="text-xs text-muted-foreground hover:text-primary transition-colors">Twitter</a>
-              <a href="#" className="text-xs text-muted-foreground hover:text-primary transition-colors">LinkedIn</a>
-              <a href="#" className="text-xs text-muted-foreground hover:text-primary transition-colors">Instagram</a>
+              <Link to="/contact" className="text-xs text-muted-foreground hover:text-primary transition-colors">Contact</Link>
+              <Link to="/privacy" className="text-xs text-muted-foreground hover:text-primary transition-colors">Privacy</Link>
+              <Link to="/terms" className="text-xs text-muted-foreground hover:text-primary transition-colors">Terms</Link>
             </div>
           </div>
         </div>

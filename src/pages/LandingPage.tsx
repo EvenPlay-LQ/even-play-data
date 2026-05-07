@@ -3,7 +3,7 @@ import {
   ArrowRight, Award, CheckCircle, Globe, ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { SEO } from "@/components/SEO";
 import logo from "@/assets/logo.jpg";
 import { LANDING_STATS, WHY_JOIN_CARDS, FEATURE_SECTIONS, FOOTER_LINKS } from "@/config/landing";
@@ -276,20 +276,22 @@ const LandingPage = () => {
               </p>
             </div>
             <div>
-              <h4 className="font-display font-semibold text-foreground mb-4">Quick Links</h4>
+              <h4 className="font-display font-semibold text-foreground mb-4">Explore</h4>
               <div className="space-y-2">
-                {FOOTER_LINKS.quickLinks.map((link) => (
-                  <button key={link} className="block text-sm text-muted-foreground hover:text-foreground transition-colors" onClick={() => navigate("/login")}>
-                    {link}
-                  </button>
+                {FOOTER_LINKS.explore.map((link) => (
+                  <Link key={link.href} to={link.href} className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    {link.label}
+                  </Link>
                 ))}
               </div>
             </div>
             <div>
-              <h4 className="font-display font-semibold text-foreground mb-4">For Athletes</h4>
+              <h4 className="font-display font-semibold text-foreground mb-4">Company</h4>
               <div className="space-y-2">
-                {FOOTER_LINKS.forAthletes.map((link) => (
-                  <button key={link} className="block text-sm text-muted-foreground hover:text-foreground transition-colors" onClick={() => navigate("/login")}>{link}</button>
+                {FOOTER_LINKS.company.map((link) => (
+                  <Link key={link.href} to={link.href} className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    {link.label}
+                  </Link>
                 ))}
               </div>
             </div>
@@ -297,7 +299,9 @@ const LandingPage = () => {
               <h4 className="font-display font-semibold text-foreground mb-4">Support</h4>
               <div className="space-y-2">
                 {FOOTER_LINKS.support.map((link) => (
-                  <button key={link} className="block text-sm text-muted-foreground hover:text-foreground transition-colors" onClick={() => navigate("/login")}>{link}</button>
+                  <Link key={link.href} to={link.href} className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    {link.label}
+                  </Link>
                 ))}
               </div>
             </div>
@@ -307,9 +311,9 @@ const LandingPage = () => {
             <div className="flex items-center gap-4">
               <InstallButton />
               <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                <button className="hover:text-foreground transition-colors" onClick={() => navigate("/login")}>Privacy</button>
-                <button className="hover:text-foreground transition-colors" onClick={() => navigate("/login")}>Terms</button>
-                <button className="hover:text-foreground transition-colors" onClick={() => navigate("/login")}>Cookies</button>
+                <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
+                <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
+                <Link to="/help" className="hover:text-foreground transition-colors">Help</Link>
               </div>
             </div>
           </div>

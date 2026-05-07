@@ -2,10 +2,12 @@ import { motion } from "framer-motion";
 import { MarketingLayout } from "@/components/MarketingLayout";
 import { SEO } from "@/components/SEO";
 import { FEATURE_SECTIONS } from "@/config/landing";
-import { 
-  Newspaper, Users, Target, Activity, Trophy, 
-  BarChart2, Search, Zap, Globe
+import {
+  Newspaper, Users, Target, Activity, Trophy,
+  BarChart2, Zap,
 } from "lucide-react";
+import BuzzFeedPreview from "@/components/BuzzFeedPreview";
+import AnalyticsPreview from "@/components/AnalyticsPreview";
 
 const Features = () => {
   return (
@@ -109,71 +111,22 @@ const Features = () => {
                    </div>
                 </div>
               </motion.div>
-              <div className="bg-gradient-hero rounded-[2rem] p-1 shadow-2xl rotate-1">
-                 <div className="bg-card rounded-[1.8rem] p-6 h-[400px] flex flex-col gap-4">
-                    <div className="flex justify-between items-center mb-4">
-                       <h4 className="font-bold">Trending Highlights</h4>
-                       <div className="h-2 w-12 bg-primary/20 rounded-full" />
-                    </div>
-                    {[1, 2, 3].map(i => (
-                      <div key={i} className="flex gap-4 p-3 bg-muted/20 rounded-2xl animate-pulse">
-                         <div className="w-16 h-16 bg-muted/50 rounded-xl" />
-                         <div className="flex-1 space-y-2 py-2">
-                            <div className="h-3 w-3/4 bg-muted/50 rounded" />
-                            <div className="h-2 w-1/2 bg-muted/50 rounded" />
-                         </div>
-                      </div>
-                    ))}
-                 </div>
-              </div>
+              <BuzzFeedPreview />
             </div>
 
             {/* Feature 2: Performance Tracking */}
             <div className="grid lg:grid-cols-2 gap-16 items-center">
-              <div className="order-2 lg:order-1 bg-primary/5 rounded-[2rem] p-8 border border-primary/20 shadow-xl relative -rotate-1">
-                 {/* Visual Mock of Sidebar + Content */}
-                 <div className="grid grid-cols-4 gap-4 aspect-video">
-                    <div className="col-span-1 bg-card rounded-xl border border-border p-3 space-y-3">
-                       <div className="h-8 w-8 bg-primary/20 rounded-lg mx-auto" />
-                       <div className="h-2 w-full bg-muted rounded-full" />
-                       <div className="h-2 w-3/4 bg-muted rounded-full" />
-                    </div>
-                    <div className="col-span-3 bg-card rounded-xl border border-border p-6 shadow-sm">
-                       <div className="h-6 w-32 bg-muted rounded mb-6" />
-                       <div className="flex items-center gap-4">
-                          <div className="h-3 w-3 rounded-full bg-primary" />
-                          <div className="h-2 w-48 bg-muted rounded-full" />
-                       </div>
-                       <div className="flex items-center gap-4 mt-6">
-                          <div className="h-3 w-3 rounded-full bg-gold" />
-                          <div className="h-2 w-40 bg-muted rounded-full" />
-                       </div>
-                       <div className="mt-8 grid grid-cols-2 gap-4">
-                           <div className="h-20 bg-muted/10 rounded-xl border border-border" />
-                           <div className="h-20 bg-muted/10 rounded-xl border border-border" />
-                       </div>
-                    </div>
-                 </div>
-                 <div className="absolute -top-4 -left-4 bg-background border border-border p-3 rounded-2xl shadow-elevated">
-                   <div className="flex gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                      <div className="w-1.5 h-1.5 rounded-full bg-gold" />
-                      <div className="w-1.5 h-1.5 rounded-full bg-stat-blue" />
-                   </div>
-                 </div>
-              </div>
               <motion.div
-                 initial={{ opacity: 0, x: 20 }}
+                 initial={{ opacity: 0, x: -20 }}
                  whileInView={{ opacity: 1, x: 0 }}
                  viewport={{ once: true }}
-                 className="order-1 lg:order-2"
               >
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-energy/10 mb-6 font-bold text-xs uppercase tracking-widest text-primary">
                    <BarChart2 className="h-3.5 w-3.5" /> Performance Data
                 </div>
                 <h2 className="text-3xl md:text-5xl font-display font-bold mb-6">Track Your Progress</h2>
                 <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
-                  Log match reports, track skills progression, and earn XP. Our data engine 
+                  Log match reports, track skills progression, and earn XP. Our data engine
                   generates verified performance insights that build trust with institutions.
                 </p>
                 <ul className="space-y-4">
@@ -190,6 +143,7 @@ const Features = () => {
                    ))}
                 </ul>
               </motion.div>
+              <AnalyticsPreview />
             </div>
           </div>
         </div>
