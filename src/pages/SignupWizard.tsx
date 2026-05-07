@@ -114,6 +114,7 @@ const SignupWizard = () => {
     if (role && step > totalStepsFor(role)) {
       setStep(2);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [role]);
 
 

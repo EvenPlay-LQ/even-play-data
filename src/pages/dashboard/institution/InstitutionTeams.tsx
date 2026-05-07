@@ -88,6 +88,7 @@ const InstitutionTeams = () => {
   useEffect(() => {
     if (!user) return;
     loadInstitutionAndTeams();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const loadInstitutionAndTeams = async () => {
@@ -530,6 +531,7 @@ const AddAthleteToSquad = ({
     if (institutionId) {
       loadAvailableAthletes();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [institutionId]);
 
   const loadAvailableAthletes = async () => {
