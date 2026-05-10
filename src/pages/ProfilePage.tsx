@@ -149,13 +149,24 @@ const ProfilePage = () => {
       return;
     }
     setSaving(true);
-    const { error } = await updateProfile({ name: editName.trim(), bio: editBio.trim(), favorite_sport: editSport });
+    const trimmedName = editName.trim();
+    const { error } = await updateProfile({ name: trimmedName, bio: editBio.trim(), favorite_sport: editSport });
     if (error) {
       handleQueryError(error, "Failed to update profile.");
     } else {
+      // Also sync athletes.full_name so Zone page reflects the new name immediately.
+      // The DB trigger (trg_sync_athlete_fullname) handles this automatically,
+      // but we do it client-side too as a belt-and-suspenders measure.
+      if (viewRole === "athlete" && authUser?.id) {
+        await supabase
+          .from("athletes")
+          .update({ full_name: trimmedName, updated_at: new Date().toISOString() })
+          .eq("profile_id", authUser.id)
+          .eq("status", "claimed");
+      }
       toast({ title: "Profile updated!" });
       setShowEdit(false);
-      setViewProfile({ ...viewProfile, name: editName, bio: editBio, favorite_sport: editSport });
+      setViewProfile({ ...viewProfile, name: trimmedName, bio: editBio, favorite_sport: editSport });
     }
     setSaving(false);
   };
