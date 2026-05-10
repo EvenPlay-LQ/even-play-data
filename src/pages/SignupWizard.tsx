@@ -227,6 +227,11 @@ const SignupWizard = () => {
           const { error: claimProfileErr } = await (supabase.rpc as any)("claim_athlete_profile", {
             p_athlete_id: athleteId,
             p_profile_id: user.id,
+            // RC2 Fix: pass user-confirmed name and DOB so the athletes row
+            // always reflects what the user typed in the wizard, not a
+            // potentially stale institution-created stub value.
+            p_full_name: name.trim(),
+            p_date_of_birth: dateOfBirth || null,
             p_position: position || "Player",
             p_squad: squad || null,
             p_nationality: nationality || null,
@@ -238,7 +243,7 @@ const SignupWizard = () => {
 
           if (claimProfileErr) throw claimProfileErr;
           
-          // also safely update secondary sports just in case claim_athlete_profile doesn't
+          // Sync secondary sports — claim_athlete_profile only handles primary columns
           await supabase.from("athletes").update({ secondary_sports: secondarySports }).eq("id", athleteId);
         }
 
@@ -289,6 +294,8 @@ const SignupWizard = () => {
 
       toast({ title: "Welcome to Even Playground! 🎉", description: "Your profile is ready." });
 
+      // RC1 Fix: await the full profile refresh BEFORE navigating so the
+      // destination page receives fresh data from the DB, not a stale cache.
       if (refreshProfile) {
         await refreshProfile();
       }
@@ -296,9 +303,8 @@ const SignupWizard = () => {
       if (role === "institution") {
         setShowAddAthlete(true);
       } else {
-        setTimeout(() => {
-          window.location.href = "/buzz";
-        }, 400);
+        // Redirect to profile so the user immediately sees their populated data
+        navigate("/profile", { replace: true });
       }
     } catch (error: any) {
       console.error("[SignupWizard] Setup error:", error);
@@ -645,7 +651,8 @@ const SignupWizard = () => {
       <Dialog open={showAddAthlete} onOpenChange={(open) => {
         if (!open) {
           setShowAddAthlete(false);
-          window.location.href = "/dashboard/institution";
+          // RC1 Fix: soft nav preserves refreshed profile context
+          navigate("/dashboard/institution", { replace: true });
         }
       }}>
         <DialogContent className="sm:max-w-md">
@@ -687,7 +694,7 @@ const SignupWizard = () => {
                 {addingAthlete ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
                 Add Athlete
               </Button>
-              <Button variant="outline" onClick={() => window.location.href = "/dashboard/institution"}>
+              <Button variant="outline" onClick={() => navigate("/dashboard/institution", { replace: true })}>
                 Go to Dashboard
               </Button>
             </div>

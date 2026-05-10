@@ -116,12 +116,12 @@ const AthleteDashboard = () => {
                 <img src={profile.avatar} alt="avatar" className="w-full h-full object-cover rounded-2xl" />
               ) : (
                 <span className="font-display font-bold text-3xl sm:text-2xl text-primary">
-                  {(profile?.name || "A").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
+                  {(profile?.name || athlete?.full_name || "A").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                 </span>
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="font-display font-bold text-2xl sm:text-xl text-primary-foreground truncate">{profile?.name || "Athlete"}</h1>
+              <h1 className="font-display font-bold text-2xl sm:text-xl text-primary-foreground truncate">{profile?.name || athlete?.full_name || "Athlete"}</h1>
               <p className="text-primary-foreground/80 text-sm font-medium">
                 {[athlete.sport, ...(athlete.secondary_sports || [])].filter(Boolean).join(" · ")}
               </p>
