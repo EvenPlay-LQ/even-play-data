@@ -31,11 +31,15 @@ const InstitutionVerifications = () => {
         .maybeSingle() as any;
 
       if (inst) {
-        // Filter verifications to this institution only — security fix
+        // Filter verifications to this institution and its athletes — security fix
+        const { data: athletes } = await supabase.from("athletes").select("id").eq("institution_id", inst.id);
+        const athIds = athletes ? athletes.map((a: any) => a.id) : [];
+        const entityIds = [inst.id, ...athIds];
+
         const { data, error } = await (supabase
           .from("verifications" as any)
           .select("*")
-          .eq("institution_id", inst.id)
+          .in("entity_id", entityIds)
           .order("created_at", { ascending: false }) as any);
         if (error) handleQueryError(error);
         else setVerifications(data || []);

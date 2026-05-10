@@ -116,6 +116,7 @@ const AdminDashboard = () => {
           <h2 className="text-lg font-display font-semibold text-foreground mb-3">Admin Tools</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
+              { label: "Verification Queue", desc: "Review and approve institution and athlete verifications", path: "/admin/verifications", icon: ShieldCheck, accent: "border-l-indigo-500" },
               { label: "User Management", desc: "View all users, edit roles, delete accounts", path: "/admin/users", icon: Users, accent: "border-l-blue-500" },
               { label: "User Diagnostics", desc: "Troubleshoot accounts, view config & activity", path: "/admin/diagnostics", icon: Activity, accent: "border-l-emerald-500" },
               { label: "Audit Trail", desc: "Review all administrative actions", path: "/admin/audit", icon: FileText, accent: "border-l-amber-500" },
