@@ -61,6 +61,7 @@ const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
 const AdminDiagnostics = lazy(() => import("./pages/admin/AdminDiagnostics"));
 const AdminAuditLog = lazy(() => import("./pages/admin/AdminAuditLog"));
+const AdminVerifications = lazy(() => import("./pages/admin/AdminVerifications"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -147,6 +148,7 @@ const App = () => (
                 <Route path="/admin/users" element={<ProtectedRoute requiredRole="master_admin"><AdminUsers /></ProtectedRoute>} />
                 <Route path="/admin/diagnostics" element={<ProtectedRoute requiredRole="master_admin"><AdminDiagnostics /></ProtectedRoute>} />
                 <Route path="/admin/audit" element={<ProtectedRoute requiredRole="master_admin"><AdminAuditLog /></ProtectedRoute>} />
+                <Route path="/admin/verifications" element={<ProtectedRoute requiredRole="master_admin"><AdminVerifications /></ProtectedRoute>} />
 
                 <Route path="*" element={<NotFound />} />
               </Routes>

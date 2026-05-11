@@ -60,6 +60,7 @@ const InstitutionAnnouncements = () => {
   useEffect(() => {
     if (!user) return;
     loadInstitutionAndAnnouncements();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const loadInstitutionAndAnnouncements = async () => {

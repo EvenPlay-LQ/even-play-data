@@ -72,6 +72,7 @@ const AttendanceTracker = () => {
   useEffect(() => {
     if (!user) return;
     loadInstitutionAndAthletes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const loadInstitutionAndAthletes = async () => {

@@ -18,6 +18,7 @@ import { MultiSelectSport } from "@/components/MultiSelectSport";
 interface ClubHistoryEntry {
   id?: string;
   club_name: string;
+  institution_id?: string | null;
   start_date: string;
   end_date: string;
   notes: string;
@@ -52,15 +53,18 @@ const AthleteProfilePage = () => {
   const [clubHistory, setClubHistory] = useState<ClubHistoryEntry[]>([]);
   const [savingClub, setSavingClub] = useState(false);
   const [showClubForm, setShowClubForm] = useState(false);
-  const [newClub, setNewClub] = useState<ClubHistoryEntry>({ club_name: "", start_date: "", end_date: "", notes: "" });
+  const [newClub, setNewClub] = useState<ClubHistoryEntry>({ club_name: "", institution_id: null, start_date: "", end_date: "", notes: "" });
+  const [institutions, setInstitutions] = useState<{ id: string; institution_name: string }[]>([]);
+  const [institutionSearch, setInstitutionSearch] = useState("");
+  const [showInstitutionDropdown, setShowInstitutionDropdown] = useState(false);
 
   const currentClub = getCurrentClub(clubHistory);
 
-  /** Sync athletes.squad with the current club name (or null) */
-  const syncSquad = async (athleteId: string, clubName: string | null) => {
+  /** Sync athletes.squad and athletes.institution_id with the current club */
+  const syncSquad = async (athleteId: string, clubName: string | null, institutionId: string | null = null) => {
     await supabase
       .from("athletes")
-      .update({ squad: clubName })
+      .update({ squad: clubName, institution_id: institutionId })
       .eq("id", athleteId);
   };
 
@@ -68,10 +72,14 @@ const AthleteProfilePage = () => {
     if (!user) return;
     const load = async () => {
       setLoading(true);
-      const [{ data: profileData }, { data: athleteData }] = await Promise.all([
+      const [{ data: profileData }, { data: athleteData }, { data: institutionsData }] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
         supabase.from("athletes").select("*").eq("profile_id", user.id).maybeSingle(),
+        supabase.from("institutions").select("id, institution_name").order("institution_name"),
       ]);
+      if (institutionsData) {
+        setInstitutions(institutionsData);
+      }
       if (profileData) {
         setProfile(profileData);
         setName(profileData.name || "");
@@ -96,10 +104,10 @@ const AthleteProfilePage = () => {
         // Load club history
         const { data: clubs } = await supabase
           .from("club_history" as any)
-          .select("*")
+          .select("*, institutions(institution_name)")
           .eq("athlete_id", athleteData.id)
           .order("start_date", { ascending: false });
-        const history = (clubs || []) as unknown as ClubHistoryEntry[];
+        const history = (clubs || []) as unknown as any[];
 
         // Seed: if athlete has a squad value but no club history, create an initial entry
         if (history.length === 0 && athleteData.squad) {
@@ -156,13 +164,14 @@ const AthleteProfilePage = () => {
           c.id === currentClub?.id && isNewCurrent ? { ...c, end_date: newClub.start_date } : c
         )];
         setClubHistory(updated);
-        setNewClub({ club_name: "", start_date: "", end_date: "", notes: "" });
+        setNewClub({ club_name: "", institution_id: null, start_date: "", end_date: "", notes: "" });
+        setInstitutionSearch("");
         setShowClubForm(false);
         toast({ title: "Club added!" });
 
         // Sync squad with new current club
         const newCurrentClub = getCurrentClub(updated);
-        await syncSquad(athlete.id, newCurrentClub?.club_name || null);
+        await syncSquad(athlete.id, newCurrentClub?.club_name || null, newCurrentClub?.institution_id || null);
       }
     } catch (err: any) {
       handleQueryError(err, "Failed to add club.");
@@ -181,7 +190,7 @@ const AthleteProfilePage = () => {
       setClubHistory(updated);
       // Sync squad after deletion
       const newCurrentClub = getCurrentClub(updated);
-      await syncSquad(athlete.id, newCurrentClub?.club_name || null);
+      await syncSquad(athlete.id, newCurrentClub?.club_name || null, newCurrentClub?.institution_id || null);
     }
   };
 
@@ -362,9 +371,39 @@ const AthleteProfilePage = () => {
                 className="overflow-hidden"
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 p-4 rounded-lg bg-muted/30 border border-border">
-                  <div className="md:col-span-2">
+                  <div className="md:col-span-2 relative">
                     <Label>Club Name</Label>
-                    <Input className="mt-1" value={newClub.club_name} onChange={e => setNewClub({ ...newClub, club_name: e.target.value })} placeholder="e.g. Kaizer Chiefs FC" />
+                    <Input 
+                      className="mt-1" 
+                      value={institutionSearch || newClub.club_name} 
+                      onChange={e => {
+                        setInstitutionSearch(e.target.value);
+                        setNewClub({ ...newClub, club_name: e.target.value, institution_id: null });
+                        setShowInstitutionDropdown(true);
+                      }} 
+                      onFocus={() => setShowInstitutionDropdown(true)}
+                      onBlur={() => setTimeout(() => setShowInstitutionDropdown(false), 200)}
+                      placeholder="e.g. Kaizer Chiefs FC" 
+                    />
+                    {showInstitutionDropdown && institutionSearch && institutions.filter(i => i.institution_name.toLowerCase().includes(institutionSearch.toLowerCase())).length > 0 && (
+                      <div className="absolute z-10 w-full mt-1 bg-popover border border-border rounded-md shadow-md max-h-48 overflow-y-auto">
+                        {institutions
+                          .filter(i => i.institution_name.toLowerCase().includes(institutionSearch.toLowerCase()))
+                          .map(inst => (
+                            <div 
+                              key={inst.id} 
+                              className="px-3 py-2 text-sm cursor-pointer hover:bg-muted"
+                              onClick={() => {
+                                setNewClub({ ...newClub, club_name: inst.institution_name, institution_id: inst.id });
+                                setInstitutionSearch(inst.institution_name);
+                                setShowInstitutionDropdown(false);
+                              }}
+                            >
+                              {inst.institution_name}
+                            </div>
+                          ))}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <Label>Start Date</Label>
@@ -413,6 +452,11 @@ const AthleteProfilePage = () => {
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-sm text-foreground flex items-center gap-2">
                       {club.club_name}
+                      {(club as any).institutions?.institution_name && (
+                        <span className="flex items-center gap-1 text-[10px] text-stat-blue font-medium bg-stat-blue/10 px-1.5 py-0.5 rounded-full">
+                          <Shield className="h-2.5 w-2.5" /> Verified
+                        </span>
+                      )}
                       {!club.end_date && (
                         <span className="text-[10px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">Current</span>
                       )}

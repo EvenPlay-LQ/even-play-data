@@ -71,6 +71,7 @@ const ComplianceDocuments = () => {
   useEffect(() => {
     if (!user) return;
     loadInstitutionData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const loadInstitutionData = async () => {

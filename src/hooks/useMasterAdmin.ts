@@ -107,21 +107,28 @@ export const useMasterAdmin = () => {
     return { data: data ?? [], error };
   }, []);
 
-  /** Get platform-wide counts for the admin overview */
+  /** Get platform-wide counts for the admin overview.
+   *  Uses a SECURITY DEFINER RPC so the counts bypass RLS and reflect
+   *  the true table totals, not just rows the admin personally owns. */
   const getPlatformStats = useCallback(async () => {
-    const [profiles, athletes, institutions, posts, matches] = await Promise.all([
-      supabase.from("profiles").select("id", { count: "exact", head: true }),
-      supabase.from("athletes").select("id", { count: "exact", head: true }),
-      supabase.from("institutions").select("id", { count: "exact", head: true }),
-      supabase.from("posts").select("id", { count: "exact", head: true }),
-      supabase.from("matches").select("id", { count: "exact", head: true }),
-    ]);
+    const { data, error } = await supabase.rpc("get_platform_stats" as any);
+    if (error || !data) {
+      console.error("[getPlatformStats] RPC error:", error);
+      return {
+        totalUsers: 0,
+        totalAthletes: 0,
+        totalInstitutions: 0,
+        totalPosts: 0,
+        totalMatches: 0,
+      };
+    }
+    const d = data as any;
     return {
-      totalUsers: profiles.count ?? 0,
-      totalAthletes: athletes.count ?? 0,
-      totalInstitutions: institutions.count ?? 0,
-      totalPosts: posts.count ?? 0,
-      totalMatches: matches.count ?? 0,
+      totalUsers: d.totalUsers ?? 0,
+      totalAthletes: d.totalAthletes ?? 0,
+      totalInstitutions: d.totalInstitutions ?? 0,
+      totalPosts: d.totalPosts ?? 0,
+      totalMatches: d.totalMatches ?? 0,
     };
   }, []);
 

@@ -81,11 +81,15 @@ const InstitutionDashboard = () => {
           }
         }
 
-        // Fetch pending verifications — filtered to this institution
+        // Fetch pending verifications — filtered to this institution and its athletes
+        const athIds = athData ? athData.map((a: any) => a.id) : [];
+        const entityIds = [inst.id, ...athIds];
+        
         const { count, error: verifErr } = await supabase
           .from("verifications")
           .select("*", { count: "exact", head: true })
-          .eq("status", "pending");
+          .eq("status", "pending")
+          .in("entity_id", entityIds);
 
         if (verifErr) handleQueryError(verifErr);
         setPendingVerifications(count || 0);

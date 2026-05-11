@@ -99,6 +99,7 @@ const MatchEventsTimeline = () => {
     }
     
     loadInstitutionData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, searchParams]);
 
   useEffect(() => {

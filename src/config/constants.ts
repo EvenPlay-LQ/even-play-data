@@ -36,6 +36,7 @@ export const BUZZ_CATEGORIES = [
 export const SPORT_OPTIONS = [
   "Football",
   "Rugby",
+  "Teqball",
   "Athletics",
   "Cricket",
   "Basketball",
