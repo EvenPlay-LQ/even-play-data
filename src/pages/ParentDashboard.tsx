@@ -148,11 +148,10 @@ const ParentDashboard = () => {
                         <span className="text-[10px] text-muted-foreground">Lvl {athlete.level || 1}</span>
                       </div>
                       <button 
-                        onClick={() => navigate(`/profile?id=${athlete.profile_id || athlete.id}`)}
+                        onClick={() => navigate(`/profile?athleteId=${athlete.id}`)}
                         className="text-xs text-primary font-medium flex items-center gap-1 group-hover:underline"
-                        disabled={!athlete.profile_id}
                       >
-                        {athlete.profile_id ? "View Full Profile" : "Unclaimed Profile"} <ChevronRight className="h-3 w-3" />
+                        {athlete.profile_id ? "View Full Profile" : "View Stats (Unclaimed)"} <ChevronRight className="h-3 w-3" />
                       </button>
                     </div>
                   </motion.div>

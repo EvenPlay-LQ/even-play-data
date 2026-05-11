@@ -354,8 +354,8 @@ const InstitutionAthletes = () => {
                 </div>
                 <div className="flex items-center gap-1">
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0" 
-                    onClick={() => navigate(`/profile?id=${ath.profile_id || ath.id}`)}
-                    disabled={!ath.profile_id}>
+                    onClick={() => navigate(`/profile?athleteId=${ath.id}`)}
+                    title={ath.profile_id ? "View Full Profile" : "View Athlete Stats"}>
                     <User className="h-4 w-4 text-muted-foreground" />
                   </Button>
                   {/* Media Upload */}

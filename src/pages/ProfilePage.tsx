@@ -57,53 +57,122 @@ const ProfilePage = () => {
   useEffect(() => {
     const loadProfile = async () => {
       setFetchingProfile(true);
-      const effectiveId = targetId || authUser?.id;
-      if (!effectiveId) return;
+      const athleteId = searchParams.get("athleteId");
+      const targetId = searchParams.get("id");
+      
+      let profileData: any = null;
+      let athleteRecord: any = null;
+      let effectiveRole = "";
+      let isOwn = false;
 
-      setIsOwnProfile(effectiveId === authUser?.id);
+      // Reset state
+      setAthlete(null);
+      setMatches([]);
+      setMetrics([]);
+      setAchievements([]);
+      setHighlights([]);
 
-      // Fetch Profile Details
-      const { data: pData, error: pErr } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", effectiveId)
-        .single();
+      if (athleteId) {
+        // 1. Fetch via athleteId (Authoritative for Zone links)
+        const { data: aData, error: aErr } = await supabase
+          .from("athletes")
+          .select("*, profiles(*)")
+          .eq("id", athleteId)
+          .maybeSingle();
 
-      if (pData && !pErr) {
-        // If athlete, fetch athlete record to enrich profile with sport/position/squad
-        let athleteRecord: any = null;
-        if (pData.user_type === "athlete") {
-          const { data: aData } = await supabase
-            .from("athletes")
-            .select("*")
-            .eq("profile_id", effectiveId)
-            .maybeSingle();
-          if (aData) athleteRecord = aData;
+        if (aData && !aErr) {
+          athleteRecord = aData;
+          if (aData.profiles) {
+            profileData = aData.profiles;
+            effectiveRole = profileData.user_type;
+            isOwn = profileData.id === authUser?.id;
+          } else {
+            // Stub athlete - no linked user profile
+            profileData = {
+              id: null,
+              name: aData.full_name || "Unknown Athlete",
+              user_type: "athlete",
+              avatar: null,
+              bio: "This is a platform-managed athlete profile. The athlete has not yet claimed this profile.",
+              reputation: 0,
+              created_at: aData.created_at,
+              favorite_sport: aData.sport
+            };
+            effectiveRole = "athlete";
+            isOwn = false;
+          }
+        }
+      } else {
+        // 2. Original profile-first logic (Backwards compatibility & Own profile)
+        const effectiveId = targetId || authUser?.id;
+        if (!effectiveId) {
+          setFetchingProfile(false);
+          return;
         }
 
-        setViewProfile({ ...pData, _athlete: athleteRecord });
-        setViewRole(pData.user_type);
+        isOwn = effectiveId === authUser?.id;
+
+        const { data: pData, error: pErr } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", effectiveId)
+          .single();
+
+        if (pData && !pErr) {
+          profileData = pData;
+          effectiveRole = pData.user_type;
+          
+          if (pData.user_type === "athlete") {
+            const { data: aData } = await supabase
+              .from("athletes")
+              .select("*")
+              .eq("profile_id", effectiveId)
+              .maybeSingle();
+            if (aData) athleteRecord = aData;
+          }
+        }
+      }
+
+      if (profileData) {
+        setViewProfile({ ...profileData, _athlete: athleteRecord });
+        setViewRole(effectiveRole);
+        setIsOwnProfile(isOwn);
 
         // Fetch Stats
-        const statsQueries: any[] = [
-          supabase.from("posts").select("*", { count: "exact", head: true }).eq("author_id", effectiveId),
-          supabase.from("likes").select("*", { count: "exact", head: true }).eq("user_id", effectiveId),
-        ];
-        // Count team memberships if athlete
+        const profileIdForStats = profileData.id;
+        const statsQueries: any[] = [];
+        
+        if (profileIdForStats) {
+          statsQueries.push(supabase.from("posts").select("*", { count: "exact", head: true }).eq("author_id", profileIdForStats));
+          statsQueries.push(supabase.from("likes").select("*", { count: "exact", head: true }).eq("user_id", profileIdForStats));
+        } else {
+          // Stub athletes have 0 posts/likes
+          setPostCount(0);
+          setLikeCount(0);
+        }
+
         if (athleteRecord) {
           statsQueries.push(
             supabase.from("team_members").select("*", { count: "exact", head: true }).eq("athlete_id", athleteRecord.id)
           );
         }
-        const results = await Promise.all(statsQueries);
-        setPostCount(results[0].count || 0);
-        setLikeCount(results[1].count || 0);
-        if (results[2]) setTeamCount(results[2].count || 0);
+
+        if (statsQueries.length > 0) {
+          const results = await Promise.all(statsQueries);
+          let resIdx = 0;
+          if (profileIdForStats) {
+            setPostCount(results[resIdx++].count || 0);
+            setLikeCount(results[resIdx++].count || 0);
+          }
+          if (athleteRecord) {
+            setTeamCount(results[resIdx++].count || 0);
+          }
+        }
       }
       setFetchingProfile(false);
     };
     loadProfile();
-  }, [targetId, authUser]);
+  }, [targetId, searchParams, authUser]);
 
   useEffect(() => {
     if (!viewProfile || viewRole !== "athlete") return;

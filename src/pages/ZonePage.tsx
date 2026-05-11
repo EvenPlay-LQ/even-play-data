@@ -190,7 +190,7 @@ const ZonePage = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.03 }}
                       className="bg-card rounded-xl p-4 border border-border shadow-card hover:border-primary/40 hover:shadow-elevated transition-all cursor-pointer group"
-                      onClick={() => navigate(`/profile?id=${athlete.profile_id}`)}
+                      onClick={() => navigate(`/profile?athleteId=${athlete.id}`)}
                     >
                       <div className="flex items-center gap-3">
                         {/* Avatar */}
