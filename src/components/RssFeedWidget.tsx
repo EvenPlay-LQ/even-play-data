@@ -4,9 +4,8 @@ import { Rss, X, ExternalLink, Clock, ChevronRight, Loader2, RefreshCw } from "l
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-const RSS_URL = "https://www.youtube.com/feeds/videos.xml?channel_id=UCNBPmV_r8LsLwKnz86r3R7g";
-// Use a public CORS proxy so the browser can fetch the XML
-const PROXY_URL = `https://api.allorigins.win/get?url=${encodeURIComponent(RSS_URL)}`;
+const YOUTUBE_RSS_URL = "https://www.youtube.com/feeds/videos.xml?channel_id=UCNBPmV_r8LsLwKnz86r3R7g";
+const GOOGLE_NEWS_RSS_URL = "https://news.google.com/rss/search?q=south+african+sports&hl=en-US&gl=US&ceid=US:en";
 
 interface RssItem {
   title: string;
@@ -77,16 +76,19 @@ function timeAgo(dateStr: string): string {
 
 const RssFeedWidget = () => {
   const [open, setOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"community" | "local">("community");
   const [items, setItems] = useState<RssItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [lastFetched, setLastFetched] = useState<number | null>(null);
 
-  const fetchFeed = useCallback(async () => {
+  const fetchFeed = useCallback(async (tab: "community" | "local") => {
     setLoading(true);
     setError(false);
     try {
-      const res = await fetch(PROXY_URL);
+      const targetUrl = tab === "community" ? YOUTUBE_RSS_URL : GOOGLE_NEWS_RSS_URL;
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+      const res = await fetch(proxyUrl);
       if (!res.ok) throw new Error("Network error");
       const json = await res.json();
       const parsed = parseRssXml(json.contents);
@@ -94,15 +96,16 @@ const RssFeedWidget = () => {
       setLastFetched(Date.now());
     } catch {
       setError(true);
+      setItems([]);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Auto-open once and fetch on first open
+  // Fetch when tab changes
   useEffect(() => {
-    fetchFeed();
-  }, [fetchFeed]);
+    fetchFeed(activeTab);
+  }, [activeTab, fetchFeed]);
 
   return (
     <>
@@ -168,7 +171,7 @@ const RssFeedWidget = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={fetchFeed}
+                    onClick={() => fetchFeed(activeTab)}
                     disabled={loading}
                     className="text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded-lg hover:bg-muted disabled:opacity-40"
                     title="Refresh feed"
@@ -186,12 +189,18 @@ const RssFeedWidget = () => {
 
               {/* Badge row */}
               <div className="px-5 py-2.5 border-b border-border bg-muted/30 flex items-center gap-2">
-                <Badge variant="secondary" className="text-[10px] h-4">
+                <button
+                  onClick={() => setActiveTab("community")}
+                  className={`text-[10px] h-5 px-2.5 rounded-full transition-colors ${activeTab === "community" ? "bg-primary text-primary-foreground font-semibold shadow-sm" : "bg-secondary text-secondary-foreground hover:bg-secondary/80"}`}
+                >
                   Community
-                </Badge>
-                <Badge variant="secondary" className="text-[10px] h-4">
+                </button>
+                <button
+                  onClick={() => setActiveTab("local")}
+                  className={`text-[10px] h-5 px-2.5 rounded-full transition-colors ${activeTab === "local" ? "bg-primary text-primary-foreground font-semibold shadow-sm" : "bg-secondary text-secondary-foreground hover:bg-secondary/80"}`}
+                >
                   Local Sports
-                </Badge>
+                </button>
                 {lastFetched && (
                   <span className="ml-auto text-[10px] text-muted-foreground">
                     Updated {timeAgo(new Date(lastFetched).toISOString())}
@@ -210,7 +219,7 @@ const RssFeedWidget = () => {
                   <div className="flex flex-col items-center justify-center h-full gap-4 px-6 text-center">
                     <Rss className="h-10 w-10 text-muted-foreground/30" />
                     <p className="text-sm text-muted-foreground">Couldn't load the live feed.</p>
-                    <Button size="sm" variant="outline" onClick={fetchFeed}>
+                    <Button size="sm" variant="outline" onClick={() => fetchFeed(activeTab)}>
                       <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Try Again
                     </Button>
                   </div>
@@ -266,16 +275,29 @@ const RssFeedWidget = () => {
 
               {/* Footer */}
               <div className="px-5 py-3 border-t border-border bg-muted/20">
-                <a
-                  href={`https://www.youtube.com/@EvenPlayground`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
-                >
-                  <Rss className="h-3 w-3" />
-                  View YouTube Channel
-                  <ExternalLink className="h-2.5 w-2.5" />
-                </a>
+                {activeTab === "community" ? (
+                  <a
+                    href="https://www.youtube.com/@EvenPlayground"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    <Rss className="h-3 w-3" />
+                    View YouTube Channel
+                    <ExternalLink className="h-2.5 w-2.5" />
+                  </a>
+                ) : (
+                  <a
+                    href="https://news.google.com/search?q=south+african+sports"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    <Rss className="h-3 w-3" />
+                    View More News
+                    <ExternalLink className="h-2.5 w-2.5" />
+                  </a>
+                )}
               </div>
             </motion.div>
           </>
