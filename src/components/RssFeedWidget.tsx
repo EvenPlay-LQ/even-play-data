@@ -15,53 +15,7 @@ interface RssItem {
   image?: string;
 }
 
-function parseRssXml(xml: string): RssItem[] {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(xml, "text/xml");
-  
-  // Try RSS items first
-  let items = Array.from(doc.getElementsByTagName("item"));
-  let isAtom = false;
-  
-  if (items.length === 0) {
-    // If no RSS items, try Atom entries (used by YouTube)
-    items = Array.from(doc.getElementsByTagName("entry"));
-    isAtom = true;
-  }
-  
-  items = items.slice(0, 10);
-
-  return items.map((item) => {
-    const get = (tag: string) => item.getElementsByTagName(tag)[0]?.textContent?.trim() ?? "";
-    
-    if (isAtom) {
-      // Parse YouTube/Atom format
-      const link = item.getElementsByTagName("link")[0]?.getAttribute("href") ?? "";
-      // YouTube uses media:description, some Atom feeds use summary
-      const description = item.getElementsByTagName("media:description")[0]?.textContent?.trim() || get("summary") || get("content");
-      const thumbnail = item.getElementsByTagName("media:thumbnail")[0]?.getAttribute("url") ?? "";
-      
-      return {
-        title: get("title"),
-        description: description.replace(/<[^>]+>/g, "").slice(0, 160) + (description.length > 160 ? "..." : ""),
-        link: link,
-        pubDate: get("published") || get("updated"),
-        image: thumbnail,
-      };
-    } else {
-      // Parse standard RSS format
-      const mediaContent = item.querySelector("content")?.getAttribute("url") ?? "";
-      const enclosure = item.querySelector("enclosure")?.getAttribute("url") ?? "";
-      return {
-        title: get("title"),
-        description: get("description").replace(/<[^>]+>/g, "").slice(0, 160),
-        link: get("link"),
-        pubDate: get("pubDate"),
-        image: mediaContent || enclosure || "",
-      };
-    }
-  });
-}
+// We will use api.rss2json.com which parses the XML for us.
 
 function timeAgo(dateStr: string): string {
   try {
@@ -87,11 +41,24 @@ const RssFeedWidget = () => {
     setError(false);
     try {
       const targetUrl = tab === "community" ? YOUTUBE_RSS_URL : GOOGLE_NEWS_RSS_URL;
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+      const proxyUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(targetUrl)}`;
       const res = await fetch(proxyUrl);
       if (!res.ok) throw new Error("Network error");
       const json = await res.json();
-      const parsed = parseRssXml(json.contents);
+      if (json.status !== "ok") throw new Error("API error");
+      
+      const parsed = json.items.slice(0, 10).map((item: any) => {
+        // Clean HTML from description
+        const desc = (item.description || item.content || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160);
+        return {
+          title: item.title,
+          description: desc + ((item.description || item.content || "").length > 160 ? "..." : ""),
+          link: item.link,
+          pubDate: item.pubDate,
+          image: item.thumbnail || item.enclosure?.link || "",
+        };
+      });
+      
       setItems(parsed);
       setLastFetched(Date.now());
     } catch {
