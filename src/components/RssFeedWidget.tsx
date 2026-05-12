@@ -4,7 +4,7 @@ import { Rss, X, ExternalLink, Clock, ChevronRight, Loader2, RefreshCw } from "l
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-const RSS_URL = "https://rss.app/feeds/tMBQNojSfAmTz0Uc.xml";
+const RSS_URL = "https://www.youtube.com/feeds/videos.xml?channel_id=UCNBPmV_r8LsLwKnz86r3R7g";
 // Use a public CORS proxy so the browser can fetch the XML
 const PROXY_URL = `https://api.allorigins.win/get?url=${encodeURIComponent(RSS_URL)}`;
 
@@ -19,20 +19,48 @@ interface RssItem {
 function parseRssXml(xml: string): RssItem[] {
   const parser = new DOMParser();
   const doc = parser.parseFromString(xml, "text/xml");
-  const items = Array.from(doc.querySelectorAll("item")).slice(0, 10);
+  
+  // Try RSS items first
+  let items = Array.from(doc.getElementsByTagName("item"));
+  let isAtom = false;
+  
+  if (items.length === 0) {
+    // If no RSS items, try Atom entries (used by YouTube)
+    items = Array.from(doc.getElementsByTagName("entry"));
+    isAtom = true;
+  }
+  
+  items = items.slice(0, 10);
 
   return items.map((item) => {
-    const get = (tag: string) => item.querySelector(tag)?.textContent?.trim() ?? "";
-    // Try media:content, enclosure, or og:image for images
-    const mediaContent = item.querySelector("content")?.getAttribute("url") ?? "";
-    const enclosure = item.querySelector("enclosure")?.getAttribute("url") ?? "";
-    return {
-      title: get("title"),
-      description: get("description").replace(/<[^>]+>/g, "").slice(0, 160),
-      link: get("link"),
-      pubDate: get("pubDate"),
-      image: mediaContent || enclosure || "",
-    };
+    const get = (tag: string) => item.getElementsByTagName(tag)[0]?.textContent?.trim() ?? "";
+    
+    if (isAtom) {
+      // Parse YouTube/Atom format
+      const link = item.getElementsByTagName("link")[0]?.getAttribute("href") ?? "";
+      // YouTube uses media:description, some Atom feeds use summary
+      const description = item.getElementsByTagName("media:description")[0]?.textContent?.trim() || get("summary") || get("content");
+      const thumbnail = item.getElementsByTagName("media:thumbnail")[0]?.getAttribute("url") ?? "";
+      
+      return {
+        title: get("title"),
+        description: description.replace(/<[^>]+>/g, "").slice(0, 160) + (description.length > 160 ? "..." : ""),
+        link: link,
+        pubDate: get("published") || get("updated"),
+        image: thumbnail,
+      };
+    } else {
+      // Parse standard RSS format
+      const mediaContent = item.querySelector("content")?.getAttribute("url") ?? "";
+      const enclosure = item.querySelector("enclosure")?.getAttribute("url") ?? "";
+      return {
+        title: get("title"),
+        description: get("description").replace(/<[^>]+>/g, "").slice(0, 160),
+        link: get("link"),
+        pubDate: get("pubDate"),
+        image: mediaContent || enclosure || "",
+      };
+    }
   });
 }
 
@@ -239,13 +267,13 @@ const RssFeedWidget = () => {
               {/* Footer */}
               <div className="px-5 py-3 border-t border-border bg-muted/20">
                 <a
-                  href={RSS_URL}
+                  href={`https://www.youtube.com/@EvenPlayground`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
                 >
                   <Rss className="h-3 w-3" />
-                  View full RSS feed
+                  View YouTube Channel
                   <ExternalLink className="h-2.5 w-2.5" />
                 </a>
               </div>

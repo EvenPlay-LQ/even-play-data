@@ -1,9 +1,10 @@
 import { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Newspaper, Users, Target, User, Bell, LayoutDashboard } from "lucide-react";
+import { Newspaper, Users, Target, User, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import NotificationBell from "@/components/NotificationBell";
 import logo from "@/assets/logo.jpg";
 
 interface AppLayoutProps {
@@ -50,9 +51,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
                 Dashboard
               </Button>
             )}
-            <Button variant="ghost" size="icon" onClick={() => navigate("/profile")}>
-              <Bell className="h-4 w-4" />
-            </Button>
+            <NotificationBell />
           </div>
         </div>
       </header>

@@ -89,6 +89,7 @@ const MatchEventsTimeline = () => {
   
   const [saving, setSaving] = useState(false);
   const [filter, setFilter] = useState("all"); // all, goals, cards, substitutions
+  const [allFixtures, setAllFixtures] = useState<MatchFixture[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -130,10 +131,9 @@ const MatchEventsTimeline = () => {
       if (teamData) {
         setTeams(teamData as Team[]);
         
-        // Load recent matches if no match selected
-        if (!selectedMatch) {
-          const teamIds = teamData.map(t => t.id);
-          const { data: matchData } = await (supabase as any)
+        const teamIds = teamData.map((t: any) => t.id);
+        if (teamIds.length > 0) {
+          const { data: fixtureData } = await (supabase as any)
             .from("match_fixtures")
             .select(`
               *,
@@ -142,10 +142,16 @@ const MatchEventsTimeline = () => {
             `)
             .or(`home_team_id.in.(${teamIds.join(',')}),away_team_id.in.(${teamIds.join(',')})`)
             .order("kickoff_time", { ascending: false })
-            .limit(10);
+            .limit(30);
           
-          if (matchData && matchData.length > 0) {
-            setSelectedMatch(matchData[0].id);
+          if (fixtureData) {
+            setAllFixtures(fixtureData as unknown as MatchFixture[]);
+            const urlMatchId = searchParams.get('match');
+            if (urlMatchId && fixtureData.find((f: any) => f.id === urlMatchId)) {
+              setSelectedMatch(urlMatchId);
+            } else if (!selectedMatch && fixtureData.length > 0) {
+              setSelectedMatch(fixtureData[0].id);
+            }
           }
         }
       }
@@ -408,12 +414,17 @@ const MatchEventsTimeline = () => {
               <SelectValue placeholder="Choose a match..." />
             </SelectTrigger>
             <SelectContent>
-              {teams.flatMap(team => (
-                <optgroup key={team.id} label={team.team_name}>
-                  {/* In production, load actual matches for each team */}
-                  <option value={team.id}>{team.team_name} - Recent Matches</option>
-                </optgroup>
-              ))}
+              {allFixtures.length === 0 ? (
+                <SelectItem value="__none" disabled>No fixtures found — schedule one first</SelectItem>
+              ) : (
+                allFixtures.map(f => (
+                  <SelectItem key={f.id} value={f.id}>
+                    {f.home_team?.team_name ?? "Home"} vs {f.away_team?.team_name ?? "Away"}
+                    {" · "}{format(new Date(f.kickoff_time), "MMM dd, yyyy")}
+                    {" · "}{f.status.charAt(0).toUpperCase() + f.status.slice(1)}
+                  </SelectItem>
+                ))
+              )}
             </SelectContent>
           </Select>
         </div>

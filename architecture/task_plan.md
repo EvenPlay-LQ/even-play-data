@@ -1,49 +1,41 @@
-# Task Plan: Dashboard Data Persistence Fix
-**Created:** 2026-05-10  
-**Phase:** B.L.A.S.T. Protocol  
-**Priority:** P0 – User-facing data loss
+# Task Plan: B.L.A.S.T. Protocol & Feature Expansion
+**Updated:** 2026-05-11  
 
 ---
 
-## North Star
-Wizard signup data (name, bio, sport, position, squad, nationality, height, weight, DOB) must auto-populate on every dashboard and profile page the moment setup completes — no manual re-entry required.
+## 🎯 North Star
+Ensure a seamless end-to-end user journey across athletes, institutions, and fans. Data persistence must be robust, and connections between platform entities (e.g. Institutions inviting Athletes) must require explicit consent and generate clean audit trails.
 
-## Root Cause (Discovery)
-The `claim_athlete_profile` RPC does NOT write `full_name` or `date_of_birth` back to the `profiles` table, and the `profiles` upsert in `handleCompleteSetup` does NOT update the `name` field in the athletes table.  
-The `AthleteDashboard` reads `profile?.name` from `profiles` via `athletes.profiles(*)` join — which IS updated — but the profile page reads the `athletes` record directly for sport/position/squad, which IS written.  
-**The actual gap:** The `ProfilePage` shows `"No bio yet"` and blank name fields because:
-1. The wizard upserts `name` into `profiles` ✅ (this DOES work)  
-2. But `useProfile` can serve a stale cached profile after navigation if `refreshProfile()` race condition loses
+## ✅ Completed Milestones
 
-**Second gap (athletes):** `find_or_create_athlete` creates a stub with `full_name` but the `claim_athlete_profile` RPC does NOT update `full_name` from what the user typed in step 2. If they were pre-seeded with a different name by an institution, the profile will show the institution's name, not the athlete's own input.
+### 1. Dashboard Data Persistence Fix (P0)
+- **Root Cause Addressed:** Fixed race conditions during the signup wizard and ensured accurate data propagation from wizard to database (`claim_athlete_profile` patched to support `full_name` and `date_of_birth`).
+- **Outcome:** Athletes successfully see their setup data populate immediately upon hitting their dashboard and profile pages without forced re-entry.
 
-**Third gap (navigation race):** After `handleCompleteSetup`, `refreshProfile()` is called, then immediately `window.location.href = "/buzz"`. The browser hard-navigates before the profile re-fetch resolves, so the new page starts with stale/empty profile data.
+### 2. Database Security & Access
+- **Root Cause Addressed:** Resolved Supabase linting errors related to mutable search paths on RPCs and `SECURITY DEFINER`.
+- **Outcome:** RLS policies and grants locked down, ensuring proper visibility across `athletes`, `media_gallery`, `performance_metrics`, etc.
 
-## Blueprint
-
-### Phase 1 – Fix `handleCompleteSetup` in `SignupWizard.tsx`
-- After the profile upsert, wait for `refreshProfile()` to fully resolve before navigating
-- Pass `full_name` and `date_of_birth` into `claim_athlete_profile` (add params to RPC)
-- Ensure `name` is always synced back from wizard into both `profiles` AND `athletes.full_name`
-
-### Phase 2 – Fix `claim_athlete_profile` SQL RPC
-- Add `p_full_name TEXT DEFAULT NULL` and `p_date_of_birth DATE DEFAULT NULL` params
-- Update the athlete row with the user-confirmed name and DOB
-
-### Phase 3 – Fix navigation timing in `SignupWizard.tsx`
-- Replace `window.location.href` hard nav with `navigate()` after `await refreshProfile()`
-- Add a small guard delay only if needed
-
-### Phase 4 – Fix `AthleteDashboard` fallback
-- Ensure it reads `athlete.full_name` as a fallback display name when profile join is empty
+### 3. Institution ↔ Athlete Invitations (Connection Lifecycle)
+- **Implementation:** Institutions can now link existing athletes by generating an invitation via the `athlete_invites` table.
+- **Athlete Control:** Athletes view pending invites within their Profile UI and can **Accept** (which auto-creates a club history log and links them) or **Decline**.
+- **Management:** 
+  - Institutions can **Revoke** pending invites and **Remove** connected athletes.
+  - Athletes can formally **Leave** an institution via their club history.
+- **RLS:** Custom policies applied so athletes can read/update their specific `athlete_invites`.
 
 ---
 
-## Checklist
-- [x] Root cause identified
-- [ ] `claim_athlete_profile` RPC updated with full_name + DOB params
-- [ ] `SignupWizard.tsx` passes full_name + DOB to claim_athlete_profile
-- [ ] Navigation race condition fixed (await refreshProfile before navigate)
-- [ ] `AthleteDashboard` fallback name display verified
-- [ ] Migration SQL written
-- [ ] Findings documented
+## 🚀 Next Phases (Blueprint)
+
+### Phase 5 – Notifications & Communication (Option 2)
+- [ ] **In-App Notifications:** When an invite is sent/accepted/revoked, trigger a row insert into the `notifications` table.
+- [ ] **Email Workflows:** Hook into Supabase Edge Functions or third-party webhooks to send email alerts.
+
+### Phase 6 – Match & Tournament Features
+- [ ] **Match Scheduling:** Enable institutions to schedule matches.
+- [ ] **Match Statistics:** Create UI for inputting post-match stats.
+
+### Phase 7 – Community & Buzz Feed
+- [ ] **Buzz Feed Algorithm:** Refine posts fetching so athletes see relevant community buzz.
+- [ ] **Fan Engagement:** Complete the fan role workflows (likes, comments).

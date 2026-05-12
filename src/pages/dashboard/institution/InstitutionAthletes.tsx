@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Search, Users, Zap, Plus, Star, Image, Loader2, Info, User } from "lucide-react";
+import { Search, Users, Zap, Plus, Star, Image, Loader2, Info, User, UserMinus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,30 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { getLevelName, SPORT_OPTIONS } from "@/config/constants";
 import { handleQueryError } from "@/lib/queryHelpers";
+
+/** Insert a notification row for a target user. Fire-and-forget — errors are silently logged. */
+async function sendNotification({
+  userId, type, title, body, data,
+}: {
+  userId: string;
+  type: string;
+  title: string;
+  body?: string;
+  data?: Record<string, unknown>;
+}) {
+  try {
+    const { error } = await supabase.from("notifications" as any).insert([{
+      user_id: userId,
+      type,
+      title,
+      body: body ?? null,
+      data: data ?? {},
+    }]);
+    if (error) console.warn("[sendNotification] failed:", error.message);
+  } catch (e) {
+    console.warn("[sendNotification] exception:", e);
+  }
+}
 
 interface NewAthleteForm {
   name: string;
@@ -89,18 +113,101 @@ const InstitutionAthletes = () => {
     if (!institution) return;
     setSaving(true);
     try {
+      // Instead of forcing the link, we send an invitation
       const { error } = await supabase
-        .from("athletes")
-        .update({ institution_id: institution.id })
-        .eq("id", athleteId);
+        .from("athlete_invites" as any)
+        .insert([{
+          athlete_id: athleteId,
+          invited_by: user!.id,
+          invited_by_role: "institution",
+          status: "pending"
+        }]);
 
       if (error) throw error;
 
-      toast({ title: "Athlete linked!", description: "They have been added to your roster." });
+      toast({ title: "Invitation sent!", description: "The athlete will need to confirm the invitation." });
       setCreateOpen(false);
       loadAthletes();
+
+      // Notify the athlete
+      const { data: athleteRow } = await supabase
+        .from("athletes")
+        .select("profile_id, full_name")
+        .eq("id", athleteId)
+        .maybeSingle();
+      if (athleteRow?.profile_id) {
+        await sendNotification({
+          userId: athleteRow.profile_id,
+          type: "invite_received",
+          title: `${institution?.institution_name ?? "An institution"} invited you to join their roster`,
+          body: "Check your Profile page to accept or decline.",
+          data: { athlete_id: athleteId },
+        });
+      }
     } catch (err) {
-      handleQueryError(err, "Failed to link athlete.");
+      handleQueryError(err, "Failed to invite athlete.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleRevokeInvite = async (inviteId: string) => {
+    setSaving(true);
+    try {
+      const { error } = await supabase.from("athlete_invites" as any).delete().eq("id", inviteId);
+      if (error) throw error;
+      toast({ title: "Invitation revoked", description: "The invitation has been cancelled." });
+      loadAthletes();
+
+      // Notify the athlete about revocation
+      const { data: inviteRow } = await supabase
+        .from("athlete_invites" as any)
+        .select("athlete_id, athletes(profile_id, full_name)")
+        .eq("id", inviteId)
+        .maybeSingle();
+      const profileId = (inviteRow?.athletes as any)?.profile_id;
+      if (profileId) {
+        await sendNotification({
+          userId: profileId,
+          type: "invite_revoked",
+          title: `${institution?.institution_name ?? "An institution"} cancelled your invitation`,
+          body: "The invitation to join their roster has been withdrawn.",
+          data: { invite_id: inviteId },
+        });
+      }
+    } catch (err) {
+      handleQueryError(err, "Failed to revoke invitation.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleRemoveAthlete = async (athleteId: string) => {
+    if (!confirm("Are you sure you want to remove this athlete from your roster?")) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.from("athletes").update({ institution_id: null }).eq("id", athleteId);
+      if (error) throw error;
+      toast({ title: "Athlete removed", description: "The athlete is no longer on your roster." });
+      loadAthletes();
+
+      // Notify the removed athlete
+      const { data: ath } = await supabase
+        .from("athletes")
+        .select("profile_id, full_name")
+        .eq("id", athleteId)
+        .maybeSingle();
+      if (ath?.profile_id) {
+        await sendNotification({
+          userId: ath.profile_id,
+          type: "athlete_removed",
+          title: `You have been removed from ${institution?.institution_name ?? "the institution"}'s roster`,
+          body: "Contact the institution if you believe this was a mistake.",
+          data: { athlete_id: athleteId },
+        });
+      }
+    } catch (err) {
+      handleQueryError(err, "Failed to remove athlete.");
     } finally {
       setSaving(false);
     }
@@ -108,18 +215,40 @@ const InstitutionAthletes = () => {
 
   const loadAthletes = async () => {
     setLoading(true);
-    const { data: inst } = await supabase.from("institutions").select("id").eq("profile_id", user!.id).maybeSingle();
+    const { data: inst } = await supabase.from("institutions").select("id, institution_name").eq("profile_id", user!.id).maybeSingle();
     if (inst) {
       setInstitution(inst);
-      const { data, error } = await supabase.from("athletes")
+      
+      const { data: linkedAthletes, error } = await supabase.from("athletes")
         .select(`
           *,
           profiles (name, avatar)
         `)
         .eq("institution_id", inst.id)
         .order("performance_score", { ascending: false });
-      if (error) handleQueryError(error);
-      else setAthletes(data || []);
+        
+      const { data: invites } = await supabase.from("athlete_invites" as any)
+        .select(`*, athletes!inner(*, profiles(name, avatar))`)
+        .eq("invited_by", user!.id)
+        .eq("status", "pending");
+
+      if (error) {
+        handleQueryError(error);
+      } else {
+        const linked = linkedAthletes || [];
+        const invited = (invites || []).map((inv: any) => ({
+          ...inv.athletes,
+          status: "invited",
+          invite_id: inv.id,
+        }));
+        
+        const linkedIds = new Set(linked.map(a => a.id));
+        const uniqueInvited = invited.filter((a: any) => !linkedIds.has(a.id));
+        
+        // Sort combining both, keeping linked first if needed, or by performance score
+        const combined = [...linked, ...uniqueInvited].sort((a, b) => (b.performance_score || 0) - (a.performance_score || 0));
+        setAthletes(combined);
+      }
     }
     setLoading(false);
   };
@@ -343,7 +472,11 @@ const InstitutionAthletes = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-sm font-semibold text-foreground truncate">{ath.profiles?.name || ath.full_name || "Unknown"}</h3>
-                  <p className="text-xs text-muted-foreground">{ath.sport} · {ath.position} {ath.status === 'stub' && '· (Stub)'}</p>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    {ath.sport} · {ath.position} 
+                    {ath.status === 'stub' && <span className="bg-muted px-1.5 py-0.5 rounded text-[10px]">Stub</span>}
+                    {ath.status === 'invited' && <span className="bg-amber-500/10 text-amber-500 px-1.5 py-0.5 rounded text-[10px]">Pending Invite</span>}
+                  </p>
                 </div>
                 <div className="text-right mr-2">
                   <div className="text-base font-display font-bold text-foreground">{Number(ath.performance_score).toFixed(0)}</div>
@@ -435,6 +568,18 @@ const InstitutionAthletes = () => {
                       </div>
                     </DialogContent>
                   </Dialog>
+                  
+                  {ath.status === 'invited' ? (
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-amber-500 hover:text-amber-600 hover:bg-amber-500/10" 
+                      onClick={() => handleRevokeInvite(ath.invite_id)} title="Revoke Invitation">
+                      <UserMinus className="h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10" 
+                      onClick={() => handleRemoveAthlete(ath.id)} title="Remove from Roster">
+                      <UserMinus className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </motion.div>
             ))}

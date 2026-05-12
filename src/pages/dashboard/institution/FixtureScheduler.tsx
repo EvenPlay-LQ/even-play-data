@@ -27,6 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 const supabaseAny = supabase as any;
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import { handleQueryError } from "@/lib/queryHelpers";
 
 interface Team {
@@ -58,12 +59,16 @@ interface MatchFixture {
 const FixtureScheduler = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [institution, setInstitution] = useState<any>(null);
   const [teams, setTeams] = useState<Team[]>([]);
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [fixtures, setFixtures] = useState<MatchFixture[]>([]);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  
+  // Controlled score update state — keyed by fixture id
+  const [scoreState, setScoreState] = useState<Record<string, { home: number; away: number }>>({});
   
   // Form state
   const [newFixture, setNewFixture] = useState({
@@ -194,12 +199,14 @@ const FixtureScheduler = () => {
     }
   };
 
-  const handleUpdateScore = async (match: MatchFixture, homeScore: number, awayScore: number) => {
+  const handleUpdateScore = async (match: MatchFixture) => {
+    const s = scoreState[match.id];
+    if (!s) return;
     const { error } = await (supabase as any)
       .from("match_fixtures")
       .update({
-        home_score: homeScore,
-        away_score: awayScore,
+        home_score: s.home,
+        away_score: s.away,
         status: 'completed',
       })
       .eq("id", match.id);
@@ -470,7 +477,15 @@ const FixtureScheduler = () => {
                   <div className="flex gap-2 mt-3">
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="flex-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => setScoreState(prev => ({
+                            ...prev,
+                            [match.id]: { home: match.home_score ?? 0, away: match.away_score ?? 0 }
+                          }))}
+                        >
                           Update Score
                         </Button>
                       </DialogTrigger>
@@ -480,33 +495,37 @@ const FixtureScheduler = () => {
                         </DialogHeader>
                         <div className="grid grid-cols-2 gap-4 pt-4">
                           <div>
-                            <Label>Home Score</Label>
+                            <Label>Home Score — {match.home_team?.team_name}</Label>
                             <Input
                               type="number"
-                              defaultValue={match.home_score || 0}
-                              id="home-score"
+                              min={0}
+                              value={scoreState[match.id]?.home ?? match.home_score ?? 0}
+                              onChange={(e) => setScoreState(prev => ({
+                                ...prev,
+                                [match.id]: { ...prev[match.id], home: Number(e.target.value) }
+                              }))}
                               className="mt-1"
                             />
                           </div>
                           <div>
-                            <Label>Away Score</Label>
+                            <Label>Away Score — {match.away_team?.team_name}</Label>
                             <Input
                               type="number"
-                              defaultValue={match.away_score || 0}
-                              id="away-score"
+                              min={0}
+                              value={scoreState[match.id]?.away ?? match.away_score ?? 0}
+                              onChange={(e) => setScoreState(prev => ({
+                                ...prev,
+                                [match.id]: { ...prev[match.id], away: Number(e.target.value) }
+                              }))}
                               className="mt-1"
                             />
                           </div>
                         </div>
                         <Button
                           className="w-full mt-4"
-                          onClick={() => {
-                            const homeScore = parseInt((document.getElementById('home-score') as HTMLInputElement).value);
-                            const awayScore = parseInt((document.getElementById('away-score') as HTMLInputElement).value);
-                            handleUpdateScore(match, homeScore, awayScore);
-                          }}
+                          onClick={() => handleUpdateScore(match)}
                         >
-                          Update Score & Complete Match
+                          Update Score &amp; Complete Match
                         </Button>
                       </DialogContent>
                     </Dialog>
@@ -514,10 +533,7 @@ const FixtureScheduler = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => {
-                        // Navigate to match details page (to be implemented)
-                        toast({ title: "Feature coming soon", description: "Match events tracking" });
-                      }}
+                      onClick={() => navigate(`/dashboard/institution/matches/events?match=${match.id}`)}
                     >
                       Track Events
                     </Button>

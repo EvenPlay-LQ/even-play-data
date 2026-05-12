@@ -1,13 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Search, TrendingUp, Clock, Eye, Plus, X } from "lucide-react";
+import { Search, TrendingUp, Plus, Zap } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import AppLayout from "@/components/AppLayout";
+import PostCard from "@/components/PostCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -25,6 +27,9 @@ interface Post {
   views: number;
   created_at: string;
   author_id: string;
+  profiles?: { name: string; avatar?: string | null };
+  like_count: number;
+  comment_count: number;
 }
 
 const BuzzPage = () => {
@@ -40,25 +45,41 @@ const BuzzPage = () => {
   const [newContent, setNewContent] = useState("");
   const [newCategory, setNewCategory] = useState("");
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const channelRef = useRef<any>(null);
 
+  /* ---------- fetch posts with aggregates ---------- */
   const fetchPosts = async () => {
     setLoading(true);
-    let query = supabase
+    let query = (supabase as any)
       .from("posts")
-      .select("*")
-      .order("created_at", { ascending: false });
+      .select(`
+        *,
+        profiles(name, avatar),
+        like_count:likes(count),
+        comment_count:comments(count)
+      `)
+      .order("created_at", { ascending: false })
+      .limit(30);
 
     if (activeCategory !== "All") {
       query = query.eq("category", activeCategory.toLowerCase());
     }
-
     if (searchQuery.trim()) {
-      query = query.ilike("title", `%${searchQuery}%`);
+      query = query.ilike("title", `%${searchQuery.trim()}%`);
     }
 
     const { data, error } = await query;
-    if (error) handleQueryError(error, "Failed to load stories.");
-    setPosts((data as unknown as Post[]) || []);
+    if (error) {
+      handleQueryError(error, "Failed to load stories.");
+    } else {
+      // Supabase returns { count } objects for aggregated columns
+      const normalised: Post[] = (data || []).map((p: any) => ({
+        ...p,
+        like_count:    Array.isArray(p.like_count)    ? (p.like_count[0]?.count ?? 0)    : (p.like_count ?? 0),
+        comment_count: Array.isArray(p.comment_count) ? (p.comment_count[0]?.count ?? 0) : (p.comment_count ?? 0),
+      }));
+      setPosts(normalised);
+    }
     setLoading(false);
   };
 
@@ -67,6 +88,36 @@ const BuzzPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeCategory, searchQuery]);
 
+  /* ---------- realtime — new posts ---------- */
+  useEffect(() => {
+    channelRef.current = (supabase as any)
+      .channel("buzz-realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "posts" },
+        () => {
+          // Refetch to get aggregates for new posts
+          fetchPosts();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      if (channelRef.current) supabase.removeChannel(channelRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /* ---------- increment view count ---------- */
+  const handleViewIncrement = async (postId: string) => {
+    await (supabase as any).rpc("increment_post_views", { pid: postId });
+    // Optimistic local update
+    setPosts(prev =>
+      prev.map(p => p.id === postId ? { ...p, views: p.views + 1 } : p)
+    );
+  };
+
+  /* ---------- create post ---------- */
   const handleCreatePost = async () => {
     setFormErrors({});
     const result = postSchema.safeParse({ title: newTitle, content: newContent, category: newCategory });
@@ -76,7 +127,6 @@ const BuzzPage = () => {
       setFormErrors(errs);
       return;
     }
-
     if (!user) return;
     setCreating(true);
     const { error } = await supabase.from("posts").insert({
@@ -85,14 +135,11 @@ const BuzzPage = () => {
       category: newCategory,
       author_id: user.id,
     });
-
     if (error) {
       handleQueryError(error, "Failed to create post.");
     } else {
-      toast({ title: "Story published!" });
-      setNewTitle("");
-      setNewContent("");
-      setNewCategory("");
+      toast({ title: "Story published! 🎉" });
+      setNewTitle(""); setNewContent(""); setNewCategory("");
       setShowCreate(false);
       fetchPosts();
     }
@@ -106,10 +153,14 @@ const BuzzPage = () => {
   return (
     <AppLayout>
       <div className="space-y-6 max-w-4xl pb-20">
+
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-display font-bold text-foreground mb-1">Buzz</h1>
-            <p className="text-sm text-muted-foreground">Sports news, transfers, and stories</p>
+            <h1 className="text-2xl font-display font-bold text-foreground mb-1 flex items-center gap-2">
+              <Zap className="h-6 w-6 text-gold" /> Buzz
+            </h1>
+            <p className="text-sm text-muted-foreground">Sports news, transfers &amp; stories</p>
           </div>
           <Button variant="hero" size="sm" onClick={() => setShowCreate(true)}>
             <Plus className="h-4 w-4 mr-1" /> Write Story
@@ -119,18 +170,23 @@ const BuzzPage = () => {
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search stories..." className="pl-10" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+          <Input
+            placeholder="Search stories..."
+            className="pl-10"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
 
         {/* Category Tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
           {BUZZ_CATEGORIES.map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+              className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
                 activeCategory === cat
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-primary text-primary-foreground shadow-sm"
                   : "bg-muted text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -139,9 +195,11 @@ const BuzzPage = () => {
           ))}
         </div>
 
+        {/* Posts */}
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <div className="space-y-4">
+            <Skeleton className="h-52 rounded-2xl" />
+            {[1, 2, 3].map(i => <Skeleton key={i} className="h-28 rounded-xl" />)}
           </div>
         ) : posts.length === 0 ? (
           <div className="text-center py-20">
@@ -152,42 +210,18 @@ const BuzzPage = () => {
         ) : (
           <div className="space-y-4">
             {featured && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="rounded-2xl bg-gradient-hero p-6 shadow-elevated cursor-pointer"
-              >
-                <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary font-medium capitalize">{featured.category}</span>
-                <h2 className="text-xl font-display font-bold text-primary-foreground mt-3 mb-2">{featured.title}</h2>
-                <p className="text-sm text-primary-foreground/60 line-clamp-2 mb-4">{featured.content}</p>
-                <div className="flex items-center gap-4 text-xs text-primary-foreground/40">
-                  <span className="flex items-center gap-1"><Eye className="h-3.5 w-3.5" /> {featured.views}</span>
-                  <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {new Date(featured.created_at).toLocaleDateString()}</span>
-                </div>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                <PostCard post={featured} featured onViewIncrement={handleViewIncrement} />
               </motion.div>
             )}
-
             {rest.map((post, i) => (
               <motion.div
                 key={post.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="bg-card rounded-xl p-4 border border-border shadow-card flex gap-4 cursor-pointer hover:shadow-elevated transition-shadow"
+                transition={{ delay: i * 0.04 }}
               >
-                {post.image_url && (
-                  <div className="w-20 h-20 rounded-lg bg-muted flex-shrink-0 overflow-hidden">
-                    <img src={post.image_url} alt="" className="w-full h-full object-cover" />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-medium capitalize">{post.category}</span>
-                  <h3 className="text-sm font-semibold text-foreground mt-1 line-clamp-2">{post.title}</h3>
-                  <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {post.views}</span>
-                    <span>{new Date(post.created_at).toLocaleDateString()}</span>
-                  </div>
-                </div>
+                <PostCard post={post} onViewIncrement={handleViewIncrement} />
               </motion.div>
             ))}
           </div>
@@ -221,7 +255,7 @@ const BuzzPage = () => {
             </div>
             <div>
               <Label className="text-foreground">Content</Label>
-              <Textarea className="mt-1.5 min-h-[120px]" placeholder="Write your story..." value={newContent} onChange={(e) => setNewContent(e.target.value)} />
+              <Textarea className="mt-1.5 min-h-[140px]" placeholder="Write your story..." value={newContent} onChange={(e) => setNewContent(e.target.value)} />
               {formErrors.content && <p className="text-xs text-destructive mt-1">{formErrors.content}</p>}
             </div>
             <Button onClick={handleCreatePost} disabled={creating} className="w-full" variant="hero">

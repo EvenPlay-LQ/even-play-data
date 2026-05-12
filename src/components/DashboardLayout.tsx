@@ -2,10 +2,11 @@ import { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Home, Calendar, Users, BarChart3, User, Shield, LogOut, Trophy, Video,
-  Building2, CheckCircle, FileText, ShieldCheck, Activity, ScrollText
+  Building2, CheckCircle, FileText, ShieldCheck, Activity, ScrollText, CalendarRange
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import NotificationBell from "@/components/NotificationBell";
 import logo from "@/assets/logo.jpg";
 
 interface DashboardLayoutProps {
@@ -16,6 +17,7 @@ interface DashboardLayoutProps {
 const athleteTabs = [
   { icon: Home, label: "Overview", path: "/dashboard/athlete" },
   { icon: Calendar, label: "Matches", path: "/dashboard/athlete/matches" },
+  { icon: CalendarRange, label: "Fixtures", path: "/dashboard/athlete/fixtures" },
   { icon: BarChart3, label: "Analytics", path: "/dashboard/athlete/analytics" },
   { icon: Trophy, label: "Achievements", path: "/dashboard/athlete/achievements" },
   { icon: Video, label: "Highlights", path: "/dashboard/athlete/highlights" },
@@ -85,6 +87,7 @@ const DashboardLayout = ({ children, role }: DashboardLayoutProps) => {
               <FileText className="h-3.5 w-3.5" />
               <span className="hidden md:inline">Community</span>
             </Button>
+            <NotificationBell />
             <Button variant="ghost" size="icon" onClick={handleSignOut}>
               <LogOut className="h-4 w-4" />
             </Button>

@@ -43,6 +43,7 @@ const AthleteAnalytics = lazy(() => import("./pages/dashboard/athlete/AthleteAna
 const AthleteAchievements = lazy(() => import("./pages/dashboard/athlete/AthleteAchievements"));
 const AthleteHighlights = lazy(() => import("./pages/dashboard/athlete/AthleteHighlights"));
 const AthleteProfilePage = lazy(() => import("./pages/dashboard/athlete/AthleteProfilePage"));
+const AthleteFixtures = lazy(() => import("./pages/dashboard/athlete/AthleteFixtures"));
 const InstitutionAthletes = lazy(() => import("./pages/dashboard/institution/InstitutionAthletes"));
 const InstitutionTeams = lazy(() => import("./pages/dashboard/institution/InstitutionTeams"));
 const InstitutionMatches = lazy(() => import("./pages/dashboard/institution/InstitutionMatches"));
@@ -51,6 +52,7 @@ const InstitutionAnalytics = lazy(() => import("./pages/dashboard/institution/In
 const AttendanceTracker = lazy(() => import("./pages/dashboard/institution/AttendanceTracker"));
 const InstitutionAnnouncements = lazy(() => import("./pages/dashboard/institution/InstitutionAnnouncements"));
 const FixtureScheduler = lazy(() => import("./pages/dashboard/institution/FixtureScheduler"));
+const MatchEventsTimeline = lazy(() => import("./pages/dashboard/institution/MatchEventsTimeline"));
 const ComplianceDocuments = lazy(() => import("./pages/dashboard/institution/ComplianceDocuments"));
 const ParentDashboard = lazy(() => import("./pages/ParentDashboard"));
 const ShareTargetPage = lazy(() => import("./pages/ShareTargetPage"));
@@ -124,6 +126,7 @@ const App = () => (
                 {/* Athlete Dashboard */}
                 <Route path="/dashboard/athlete" element={<ProtectedRoute requiredRole="athlete"><AthleteDashboard /></ProtectedRoute>} />
                 <Route path="/dashboard/athlete/matches" element={<ProtectedRoute requiredRole="athlete"><AthleteMatches /></ProtectedRoute>} />
+                <Route path="/dashboard/athlete/fixtures" element={<ProtectedRoute requiredRole="athlete"><AthleteFixtures /></ProtectedRoute>} />
                 <Route path="/dashboard/athlete/analytics" element={<ProtectedRoute requiredRole="athlete"><AthleteAnalytics /></ProtectedRoute>} />
                 <Route path="/dashboard/athlete/achievements" element={<ProtectedRoute requiredRole="athlete"><AthleteAchievements /></ProtectedRoute>} />
                 <Route path="/dashboard/athlete/highlights" element={<ProtectedRoute requiredRole="athlete"><AthleteHighlights /></ProtectedRoute>} />
@@ -134,6 +137,7 @@ const App = () => (
                 <Route path="/dashboard/institution/athletes" element={<ProtectedRoute requiredRole="institution"><InstitutionAthletes /></ProtectedRoute>} />
                 <Route path="/dashboard/institution/teams" element={<ProtectedRoute requiredRole="institution"><InstitutionTeams /></ProtectedRoute>} />
                 <Route path="/dashboard/institution/matches" element={<ProtectedRoute requiredRole="institution"><FixtureScheduler /></ProtectedRoute>} />
+                <Route path="/dashboard/institution/matches/events" element={<ProtectedRoute requiredRole="institution"><MatchEventsTimeline /></ProtectedRoute>} />
                 <Route path="/dashboard/institution/verifications" element={<ProtectedRoute requiredRole="institution"><InstitutionVerifications /></ProtectedRoute>} />
                 <Route path="/dashboard/institution/analytics" element={<ProtectedRoute requiredRole="institution"><InstitutionAnalytics /></ProtectedRoute>} />
                 <Route path="/dashboard/institution/attendance" element={<ProtectedRoute requiredRole="institution"><AttendanceTracker /></ProtectedRoute>} />

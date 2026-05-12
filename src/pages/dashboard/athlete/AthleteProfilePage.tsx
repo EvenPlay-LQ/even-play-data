@@ -15,6 +15,30 @@ import { useToast } from "@/hooks/use-toast";
 import { handleQueryError } from "@/lib/queryHelpers";
 import { MultiSelectSport } from "@/components/MultiSelectSport";
 
+/** Insert a notification row for a target user. Fire-and-forget. */
+async function sendNotification({
+  userId, type, title, body, data,
+}: {
+  userId: string;
+  type: string;
+  title: string;
+  body?: string;
+  data?: Record<string, unknown>;
+}) {
+  try {
+    const { error } = await supabase.from("notifications" as any).insert([{
+      user_id: userId,
+      type,
+      title,
+      body: body ?? null,
+      data: data ?? {},
+    }]);
+    if (error) console.warn("[sendNotification] failed:", error.message);
+  } catch (e) {
+    console.warn("[sendNotification] exception:", e);
+  }
+}
+
 interface ClubHistoryEntry {
   id?: string;
   club_name: string;
@@ -57,6 +81,9 @@ const AthleteProfilePage = () => {
   const [institutions, setInstitutions] = useState<{ id: string; institution_name: string }[]>([]);
   const [institutionSearch, setInstitutionSearch] = useState("");
   const [showInstitutionDropdown, setShowInstitutionDropdown] = useState(false);
+
+  // Invites
+  const [pendingInvites, setPendingInvites] = useState<any[]>([]);
 
   const currentClub = getCurrentClub(clubHistory);
 
@@ -126,6 +153,21 @@ const AthleteProfilePage = () => {
         }
 
         setClubHistory(history);
+        
+        // Load pending invites
+        const { data: invitesData } = await supabase
+          .from("athlete_invites" as any)
+          .select(`
+            id, status, created_at,
+            profiles!invited_by (
+              name,
+              institutions (id, institution_name)
+            )
+          `)
+          .eq("athlete_id", athleteData.id)
+          .eq("status", "pending");
+          
+        setPendingInvites(invitesData || []);
       }
       setLoading(false);
     };
@@ -177,6 +219,116 @@ const AthleteProfilePage = () => {
       handleQueryError(err, "Failed to add club.");
     } finally {
       setSavingClub(false);
+    }
+  };
+
+  const handleAcceptInvite = async (inviteId: string, institutionId: string, instName: string) => {
+    if (!athlete) return;
+    setSaving(true);
+    try {
+      // Fetch the invite to get invited_by (the institution user id)
+      const { data: inviteRow } = await supabase
+        .from("athlete_invites" as any)
+        .select("invited_by")
+        .eq("id", inviteId)
+        .maybeSingle();
+
+      const { error: invErr } = await supabase.from("athlete_invites" as any).update({ status: "used" }).eq("id", inviteId);
+      if (invErr) throw invErr;
+      
+      const { error: athErr } = await supabase.from("athletes").update({ institution_id: institutionId }).eq("id", athlete.id);
+      if (athErr) throw athErr;
+
+      toast({ title: "Invitation accepted!", description: `You are now linked to ${instName}.` });
+      setPendingInvites(prev => prev.filter(inv => inv.id !== inviteId));
+      
+      // Auto add to club history
+      const newClubEntry = {
+        club_name: instName,
+        institution_id: institutionId,
+        start_date: new Date().toISOString().slice(0, 10),
+        notes: "Joined via invitation",
+        athlete_id: athlete.id
+      };
+      const { data: addedClub } = await supabase.from("club_history" as any).insert([newClubEntry]).select().single();
+      
+      if (addedClub) {
+        setClubHistory([addedClub as unknown as ClubHistoryEntry, ...clubHistory]);
+        await syncSquad(athlete.id, instName, institutionId);
+      }
+
+      // Notify the institution user
+      if (inviteRow?.invited_by) {
+        await sendNotification({
+          userId: inviteRow.invited_by,
+          type: "invite_accepted",
+          title: `${profile?.name ?? "An athlete"} accepted your invitation`,
+          body: `They are now linked to your roster as a member of ${instName}.`,
+          data: { athlete_id: athlete.id, institution_id: institutionId },
+        });
+      }
+    } catch (err) {
+      handleQueryError(err, "Failed to accept invite.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleRejectInvite = async (inviteId: string) => {
+    setSaving(true);
+    try {
+      // Fetch the invite to get invited_by before deleting
+      const { data: inviteRow } = await supabase
+        .from("athlete_invites" as any)
+        .select("invited_by, athletes(institution_id), profiles!invited_by(institutions(institution_name))")
+        .eq("id", inviteId)
+        .maybeSingle();
+
+      const { error } = await supabase.from("athlete_invites" as any).delete().eq("id", inviteId);
+      if (error) throw error;
+      toast({ title: "Invitation declined" });
+      setPendingInvites(prev => prev.filter(inv => inv.id !== inviteId));
+
+      // Notify the institution user
+      if (inviteRow?.invited_by) {
+        const instArray = (inviteRow as any)?.profiles?.institutions;
+        const inst = Array.isArray(instArray) ? instArray[0] : instArray;
+        await sendNotification({
+          userId: inviteRow.invited_by,
+          type: "invite_declined",
+          title: `${profile?.name ?? "An athlete"} declined your invitation`,
+          body: inst?.institution_name ? `They chose not to join ${inst.institution_name} at this time.` : undefined,
+          data: { invite_id: inviteId },
+        });
+      }
+    } catch (err) {
+      handleQueryError(err, "Failed to decline invite.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleLeaveClub = async (clubId: string, instId: string | null) => {
+    if (!athlete) return;
+    setSaving(true);
+    try {
+      const endDate = new Date().toISOString().slice(0, 10);
+      const { error: clubErr } = await supabase.from("club_history" as any).update({ end_date: endDate }).eq("id", clubId);
+      if (clubErr) throw clubErr;
+      
+      if (instId && athlete.institution_id === instId) {
+        const { error: athErr } = await supabase.from("athletes").update({ institution_id: null, squad: null }).eq("id", athlete.id);
+        if (athErr) throw athErr;
+        setAthlete({ ...athlete, institution_id: null, squad: null });
+      }
+      
+      toast({ title: "Left club", description: "You have formally left the club." });
+      const updated = clubHistory.map(c => c.id === clubId ? { ...c, end_date: endDate } : c);
+      setClubHistory(updated);
+    } catch (err) {
+      handleQueryError(err, "Failed to leave club.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -350,6 +502,34 @@ const AthleteProfilePage = () => {
           </Button>
         </div>
 
+        {/* Pending Invites */}
+        {pendingInvites.length > 0 && (
+          <div className="bg-card rounded-xl p-6 border border-amber-500/30 shadow-card bg-amber-500/5 space-y-4">
+            <h2 className="font-display font-semibold text-foreground flex items-center gap-2">
+              <Shield className="h-4 w-4 text-amber-500" /> Pending Invitations
+            </h2>
+            <div className="space-y-3">
+              {pendingInvites.map(inv => {
+                const instArray = inv.profiles?.institutions;
+                const inst = Array.isArray(instArray) ? instArray[0] : instArray;
+                if (!inst) return null;
+                return (
+                  <div key={inv.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-background">
+                    <div>
+                      <div className="font-semibold text-sm">{inst.institution_name}</div>
+                      <div className="text-xs text-muted-foreground">Invited by {inv.profiles?.name}</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" onClick={() => handleRejectInvite(inv.id)} disabled={saving}>Decline</Button>
+                      <Button variant="default" size="sm" onClick={() => handleAcceptInvite(inv.id, inst.id, inst.institution_name)} disabled={saving}>Accept</Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Club History Card */}
         <div className="bg-card rounded-xl p-6 border border-border shadow-card">
           <div className="flex items-center justify-between mb-4">
@@ -466,9 +646,16 @@ const AthleteProfilePage = () => {
                     </div>
                     {club.notes && <div className="text-xs text-muted-foreground mt-1">{club.notes}</div>}
                   </div>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={() => club.id && handleDeleteClub(club.id)}>
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    {!club.end_date && (
+                      <Button variant="outline" size="sm" className="h-7 text-[10px] px-2 text-muted-foreground hover:text-foreground" onClick={() => club.id && handleLeaveClub(club.id, club.institution_id)}>
+                        Leave
+                      </Button>
+                    )}
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={() => club.id && handleDeleteClub(club.id)}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 </motion.div>
               ))}
             </div>
