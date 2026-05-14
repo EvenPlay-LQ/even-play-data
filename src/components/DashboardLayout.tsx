@@ -1,12 +1,14 @@
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Home, Calendar, Users, BarChart3, User, Shield, LogOut, Trophy, Video,
-  Building2, CheckCircle, FileText, ShieldCheck, Activity, ScrollText, CalendarRange
+  Building2, CheckCircle, FileText, ShieldCheck, Activity, ScrollText, CalendarRange,
+  HelpCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import NotificationBell from "@/components/NotificationBell";
+import PlatformGuide from "@/components/PlatformGuide";
 import logo from "@/assets/logo.jpg";
 
 interface DashboardLayoutProps {
@@ -50,6 +52,16 @@ const DashboardLayout = ({ children, role }: DashboardLayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut } = useAuth();
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
+
+  useEffect(() => {
+    const hasSeenGuide = localStorage.getItem("even_play_guide_seen");
+    if (!hasSeenGuide && role === "athlete") {
+      // Small delay to ensure layout is ready
+      const timer = setTimeout(() => setIsGuideOpen(true), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [role]);
   
   const tabs = 
     role === "master_admin" ? masterAdminTabs : 
@@ -87,6 +99,9 @@ const DashboardLayout = ({ children, role }: DashboardLayoutProps) => {
               <FileText className="h-3.5 w-3.5" />
               <span className="hidden md:inline">Community</span>
             </Button>
+            <Button variant="ghost" size="icon" onClick={() => setIsGuideOpen(true)} title="Platform Guide">
+              <HelpCircle className="h-4 w-4" />
+            </Button>
             <NotificationBell />
             <Button variant="ghost" size="icon" onClick={handleSignOut}>
               <LogOut className="h-4 w-4" />
@@ -94,6 +109,13 @@ const DashboardLayout = ({ children, role }: DashboardLayoutProps) => {
           </div>
         </div>
       </header>
+
+      {/* Onboarding Guide */}
+      <PlatformGuide 
+        isOpen={isGuideOpen} 
+        onClose={() => setIsGuideOpen(false)} 
+        role={role}
+      />
 
       {/* Content Area */}
       <div className="flex-1 flex w-full">
