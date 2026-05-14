@@ -160,11 +160,12 @@ const InstitutionAthletes = () => {
       loadAthletes();
 
       // Notify the athlete about revocation
-      const { data: inviteRow } = await supabase
-        .from("athlete_invites" as any)
+      const { data: inviteRowData } = await supabase
+        .from("athlete_invites")
         .select("athlete_id, athletes(profile_id, full_name)")
         .eq("id", inviteId)
         .maybeSingle();
+      const inviteRow = inviteRowData as any;
       const profileId = (inviteRow?.athletes as any)?.profile_id;
       if (profileId) {
         await sendNotification({
@@ -227,7 +228,7 @@ const InstitutionAthletes = () => {
         .eq("institution_id", inst.id)
         .order("performance_score", { ascending: false });
         
-      const { data: invites } = await supabase.from("athlete_invites" as any)
+      const { data: invites } = await supabase.from("athlete_invites")
         .select(`*, athletes!inner(*, profiles(name, avatar))`)
         .eq("invited_by", user!.id)
         .eq("status", "pending");

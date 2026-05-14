@@ -156,7 +156,7 @@ const AthleteProfilePage = () => {
         
         // Load pending invites
         const { data: invitesData } = await supabase
-          .from("athlete_invites" as any)
+          .from("athlete_invites")
           .select(`
             id, status, created_at,
             profiles!invited_by (
@@ -167,7 +167,7 @@ const AthleteProfilePage = () => {
           .eq("athlete_id", athleteData.id)
           .eq("status", "pending");
           
-        setPendingInvites(invitesData || []);
+        setPendingInvites((invitesData as any) || []);
       }
       setLoading(false);
     };
@@ -227,11 +227,13 @@ const AthleteProfilePage = () => {
     setSaving(true);
     try {
       // Fetch the invite to get invited_by (the institution user id)
-      const { data: inviteRow } = await supabase
-        .from("athlete_invites" as any)
+      const { data: inviteRowData } = await supabase
+        .from("athlete_invites")
         .select("invited_by")
         .eq("id", inviteId)
         .maybeSingle();
+
+      const inviteRow = inviteRowData as any;
 
       const { error: invErr } = await supabase.from("athlete_invites" as any).update({ status: "used" }).eq("id", inviteId);
       if (invErr) throw invErr;
@@ -278,11 +280,13 @@ const AthleteProfilePage = () => {
     setSaving(true);
     try {
       // Fetch the invite to get invited_by before deleting
-      const { data: inviteRow } = await supabase
-        .from("athlete_invites" as any)
+      const { data: inviteRowData } = await supabase
+        .from("athlete_invites")
         .select("invited_by, athletes(institution_id), profiles!invited_by(institutions(institution_name))")
         .eq("id", inviteId)
         .maybeSingle();
+
+      const inviteRow = inviteRowData as any;
 
       const { error } = await supabase.from("athlete_invites" as any).delete().eq("id", inviteId);
       if (error) throw error;
