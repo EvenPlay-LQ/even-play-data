@@ -114,7 +114,7 @@ const LandingPage = () => {
               Whether you're an athlete, fan, coach, or official — there's a place for you.
             </p>
           </motion.div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {WHY_JOIN_CARDS.map((item, i) => (
               <Dialog key={item.title}>
                 <DialogTrigger asChild>
@@ -181,7 +181,7 @@ const LandingPage = () => {
               Three powerful sections to explore the world of sports data.
             </p>
           </motion.div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {FEATURE_SECTIONS.map((feature, i) => (
               <motion.div
                 key={feature.title}

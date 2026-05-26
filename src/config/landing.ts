@@ -74,18 +74,36 @@ export const FEATURE_SECTIONS = [
     title: "Buzz",
     description:
       "Live sports news, transfer stories, youth highlights, and community updates in one feed.",
+    bullets: [
+      "Live transfer & match news feed",
+      "Youth and local story spotlights",
+      "Write and share your own stories",
+      "Like, comment & follow categories",
+    ],
   },
   {
     icon: Users,
     title: "Community",
     description:
       "Join groups, watch replays, shop official merch, and climb the fan leaderboard.",
+    bullets: [
+      "Join community groups by sport",
+      "Watch live events and replays",
+      "Shop official athlete merchandise",
+      "Fan leaderboard & Rate A Ref",
+    ],
   },
   {
     icon: Target,
     title: "Zone",
     description:
       "Discover talent, compare athletes side-by-side with verified stats and radar charts.",
+    bullets: [
+      "Browse and filter athletes by sport",
+      "Side-by-side athlete comparisons",
+      "Verified stats with radar charts",
+      "Performance score & level rankings",
+    ],
   },
 ];
 

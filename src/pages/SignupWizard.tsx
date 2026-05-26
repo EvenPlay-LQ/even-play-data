@@ -51,7 +51,6 @@ const SignupWizard = () => {
   const [position, setPosition] = useState("");
   const [heightCm, setHeightCm] = useState("");
   const [weightKg, setWeightKg] = useState("");
-  const [playingStyle, setPlayingStyle] = useState("");
   const [mysafaId, setMysafaId] = useState("");
   const [squad, setSquad] = useState("");
 
@@ -238,7 +237,7 @@ const SignupWizard = () => {
             p_height_cm: heightCm ? parseFloat(heightCm) : null,
             p_weight_kg: weightKg ? parseFloat(weightKg) : null,
             p_mysafa_id: mysafaId || null,
-            p_playing_style: playingStyle || null,
+            p_playing_style: null,
           });
 
           if (claimProfileErr) throw claimProfileErr;
@@ -406,8 +405,8 @@ const SignupWizard = () => {
                     <h2 className="text-2xl font-display font-bold text-foreground">Basic Info</h2>
                     <p className="text-muted-foreground mt-1 text-sm">Tell us a bit about yourself.</p>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="col-span-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="sm:col-span-2">
                       <Label>Athlete's Full Name *</Label>
                       <Input className="mt-1" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. John Doe" />
                       <p className="text-[10px] text-muted-foreground mt-1">This is how your name will appear on your verified profile and leaderboards.</p>
@@ -420,7 +419,7 @@ const SignupWizard = () => {
                       <Label>Nationality</Label>
                       <Input className="mt-1" value={nationality} onChange={e => setNationality(e.target.value)} placeholder="e.g. South African" />
                     </div>
-                    <div className="col-span-2">
+                    <div className="sm:col-span-2">
                       <Label>Bio (Optional)</Label>
                       <Textarea className="mt-1 resize-none" rows={3} value={bio} onChange={e => setBio(e.target.value)} placeholder="A quick summary about you" />
                     </div>
@@ -435,21 +434,17 @@ const SignupWizard = () => {
                     <h2 className="text-2xl font-display font-bold text-foreground">Sports Profile</h2>
                     <p className="text-muted-foreground mt-1 text-sm">Your performance details. Select multiple sports if you are a multi-sport athlete.</p>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="col-span-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="sm:col-span-2">
                       <Label>Your Sports * <span className="text-[10px] font-normal text-muted-foreground ml-1">(The first selected is your Primary)</span></Label>
                       <div className="mt-2">
                         <MultiSelectSport selected={sports} onChange={setSports} />
                       </div>
                     </div>
-                    <div>
+                    <div className="sm:col-span-2">
                       <Label>Position *</Label>
                       <Input className="mt-1" value={position} onChange={e => setPosition(e.target.value)} placeholder="e.g. Striker / Point Guard" />
                       <p className="text-[10px] text-muted-foreground mt-1">Your main role on the field/court.</p>
-                    </div>
-                    <div className="col-span-2">
-                      <Label>Playing Style (Optional)</Label>
-                      <Input className="mt-1" value={playingStyle} onChange={e => setPlayingStyle(e.target.value)} placeholder="e.g. Box-to-box midfielder, Aggressive forward" />
                     </div>
                     <div>
                       <Label>Height (cm)</Label>
@@ -459,7 +454,7 @@ const SignupWizard = () => {
                       <Label>Weight (kg)</Label>
                       <Input type="number" className="mt-1" value={weightKg} onChange={e => setWeightKg(e.target.value)} placeholder="75" />
                     </div>
-                    <div className="col-span-2">
+                    <div className="sm:col-span-2">
                        <p className="text-[10px] text-muted-foreground text-center">Accurate height & weight metrics improve your visibility to scouts and team placements.</p>
                     </div>
                   </div>
@@ -517,7 +512,7 @@ const SignupWizard = () => {
                         <option value="federation">Federation & Association</option>
                       </select>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <Label>Province *</Label>
                         <Input className="mt-1" value={province} onChange={e => setProvince(e.target.value)} placeholder="e.g. Gauteng" />
@@ -678,7 +673,7 @@ const SignupWizard = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label>Position</Label>
                 <Input className="mt-1" value={ath_position} onChange={e => setAthPosition(e.target.value)} placeholder="e.g. Striker" />

@@ -40,7 +40,7 @@ const Features = () => {
       {/* Core Ecosystem */}
       <section className="py-24 bg-background">
         <div className="container">
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {FEATURE_SECTIONS.map((feature, i) => {
               const icons = [Newspaper, Users, Target];
               const Icon = icons[i] || Zap;
@@ -62,12 +62,7 @@ const Features = () => {
                   
                   {/* Detailed features bullet list */}
                    <ul className="space-y-4 pt-4 border-t border-border/50">
-                    {[
-                      "Verified data verification pipeline",
-                      "Real-time performance metrics",
-                      "Interactive talent comparisons",
-                      "Global accessibility & sharing"
-                    ].map((item, idx) => (
+                    {feature.bullets.map((item, idx) => (
                       <li key={idx} className="flex items-center gap-3 text-sm font-medium text-foreground/80">
                          <Zap className="h-3 w-3 text-primary" />
                          {item}
@@ -86,7 +81,7 @@ const Features = () => {
         <div className="container">
           <div className="flex flex-col gap-32">
             {/* Feature 1: The Buzz */}
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
               <motion.div
                  initial={{ opacity: 0, x: -20 }}
                  whileInView={{ opacity: 1, x: 0 }}
@@ -100,7 +95,7 @@ const Features = () => {
                   Catch the latest highlights, transfer news, and performance breakthroughs in a 
                   real-time feed designed for the sports community.
                 </p>
-                <div className="grid sm:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                    <div className="p-4 bg-card rounded-xl border border-border shadow-sm">
                       <h4 className="font-bold mb-2">Real-time Updates</h4>
                       <p className="text-xs text-muted-foreground">Stay informed with the latest match reports and scouting breakthroughs.</p>
@@ -115,7 +110,7 @@ const Features = () => {
             </div>
 
             {/* Feature 2: Performance Tracking */}
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
               <motion.div
                  initial={{ opacity: 0, x: -20 }}
                  whileInView={{ opacity: 1, x: 0 }}

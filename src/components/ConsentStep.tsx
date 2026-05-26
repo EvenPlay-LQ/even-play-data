@@ -46,7 +46,7 @@ const ConsentStep = ({ role, onConsent }: ConsentStepProps) => {
           <h2 className="text-2xl font-display font-bold text-foreground">Privacy & Consent</h2>
         </div>
         <p className="text-muted-foreground text-sm">
-          Even Playground is committed to protecting your personal information in compliance with POPIA (Protection of Personal Information Act, South Africa).
+          Even Playground is committed to protecting your personal information in compliance with POPIA (Protection of Personal Information Act, South Africa) and the GDPR (General Data Protection Regulation, EU).
         </p>
       </div>
 
@@ -89,7 +89,7 @@ const ConsentStep = ({ role, onConsent }: ConsentStepProps) => {
               className="mt-0.5"
             />
             <Label htmlFor="guardian-consent" className="text-sm text-foreground leading-relaxed cursor-pointer">
-              I confirm that I am the legal parent or guardian of any child athlete profiles I create on this platform, and I consent on their behalf in accordance with POPIA regulations.
+              I confirm that I am the legal parent or guardian of any child athlete profiles I create on this platform, and I consent on their behalf in accordance with POPIA and GDPR regulations.
             </Label>
           </div>
         )}
@@ -107,7 +107,7 @@ const ConsentStep = ({ role, onConsent }: ConsentStepProps) => {
       )}
 
       <p className="text-xs text-muted-foreground/60 text-center">
-        POPIA v1.0 · Data collected as of {new Date().toLocaleDateString("en-ZA")}
+        POPIA &amp; GDPR v1.0 · Data collected as of {new Date().toLocaleDateString("en-ZA")}
       </p>
     </motion.div>
   );
